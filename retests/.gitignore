@@ -1,0 +1,5 @@
+# Retest outputs and logs are intentionally ignored from VCS
+logs/*
+!logs/.gitkeep
+output/*
+!output/.gitkeep

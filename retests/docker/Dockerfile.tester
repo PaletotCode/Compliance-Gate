@@ -1,0 +1,28 @@
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /retests
+
+# Install system dependencies (minimal)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install \
+    polars==0.20.31 \
+    pyarrow==16.1.0 \
+    rich==13.7.1 \
+    requests==2.32.3
+
+# Copy retest scripts into image
+COPY scripts/ /retests/scripts/
+
+# Create output/log dirs inside image (host volumes will be mounted over these)
+RUN mkdir -p /retests/logs /retests/output
+
+ENTRYPOINT ["python", "/retests/scripts/run_retests.py"]

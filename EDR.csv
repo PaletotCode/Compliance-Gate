@@ -1,0 +1,1243 @@
+Hostname,Host ID,Last Seen,First Seen,Platform,OS Version,Type,Local IP,External IP,MAC Address,Sensor Version,Host Groups,Sensor Tags,Last Logged In User Account,Prevention Policy,Sensor Update Policy,Content Update Policy,Host Retention Policy
+SIC_00_4349_00,345589e110cb464f99f3e421e719ac06,2026-02-02T13:14:24Z,2025-12-11T17:05:59Z,Windows,Windows 11,Workstation,192.168.28.24,189.75.104.70,a0-29-42-17-1d-17,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",catiae4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 15:24 UTC","Windows - Estacoes - Global
+14 Jan 26 15:29 UTC","platform_default
+11 Dec 25 17:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+11 Dec 25 17:09 UTC"
+SIC_00_4349_01,e8ba88a48a7f4b00b7ab9243164ae973,2026-02-02T12:58:18Z,2023-11-28T14:02:27Z,Windows,Windows 10,Workstation,10.14.46.54,138.118.3.62,d0-94-66-af-b0-07,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pamelas4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:13 UTC","Windows - Estacoes - Global
+14 Jan 26 12:45 UTC","platform_default
+17 Apr 25 12:19 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:50 UTC"
+SIC_00_4349_05,b1435cfadb39477e94c538774442e0e8,2026-01-30T21:17:57Z,2025-01-23T16:32:49Z,Windows,Windows 11,Workstation,10.14.24.63,177.130.29.68,c8-4b-d6-0c-1c-2f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",fabianoo4349_05,"Protecao fase 3 - Global Windows
+14 Jan 26 12:51 UTC","Windows - Estacoes - Global
+14 Jan 26 13:12 UTC","platform_default
+17 Apr 25 00:21 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+23 Jan 25 18:55 UTC"
+SIC_00_4349_06,14a229e1338c484e86b8f82b33ce62eb,2026-02-02T13:00:52Z,2024-01-25T20:33:57Z,Windows,Windows 10,Workstation,10.14.28.115,189.75.104.70,a4-bb-6d-7c-52-6f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",lucasm4349_06,"Protecao fase 3 - Global Windows
+22 Jan 26 11:51 UTC","Windows - Estacoes - Global
+22 Jan 26 11:51 UTC","platform_default
+17 Apr 25 11:58 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:36 UTC"
+SIC_00_4349_10,09a0ff5a3d6b49d69b90c79cb0b799f1,2026-02-02T13:09:17Z,2023-11-01T19:00:57Z,Windows,Windows 11,Workstation,10.212.134.4,45.231.20.47,00-09-0f-aa-00-01,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",adriellys4349_10,"Protecao fase 3 - Global Windows
+14 Jan 26 11:34 UTC","Windows - Estacoes - Global
+14 Jan 26 11:36 UTC","platform_default
+17 Apr 25 11:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Aug 24 11:19 UTC"
+SIC_00_4349_12,60fdaa0cefc54aa1b21428c1f0fc378b,2026-02-02T13:03:19Z,2025-01-03T15:24:35Z,Windows,Windows 10,Workstation,10.14.142.54,138.118.2.184,d0-94-66-ae-61-1b,7.25.19706.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",jonasj4349_12,"Protecao fase 3 - Global Windows
+14 Jan 26 09:39 UTC","Windows - Estacoes - Global
+Changes pending","platform_default
+17 Apr 25 19:55 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+03 Jan 25 15:26 UTC"
+SIC_00_4349_14,b61ebf8c6b6840a4b30a4224fa90bb27,2026-01-23T20:29:26Z,2025-07-09T17:11:20Z,Windows,Windows 10,Workstation,192.168.144.2,45.236.213.225,00-d7-6d-6e-aa-9b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",kettye4349_14,"Protecao fase 3 - Global Windows
+14 Jan 26 20:51 UTC","Windows - Estacoes - Global
+15 Jan 26 14:36 UTC","platform_default
+09 Jul 25 17:14 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Jul 25 17:15 UTC"
+SIC_00_4349_15,211c09a9afcf4657b51bece458e7a35f,2026-02-02T12:59:15Z,2023-12-04T15:14:46Z,Windows,Windows 10,Workstation,10.14.182.52,138.118.3.167,b4-45-06-43-6c-0c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",geizac4349_16,"Protecao fase 3 - Global Windows
+14 Jan 26 12:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:41 UTC","platform_default
+17 Apr 25 12:04 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:26 UTC"
+SIC_00_4349_18,8a787fe374514f08aac480e0d40d226f,2026-02-02T13:16:56Z,2023-11-01T19:33:41Z,Windows,Windows 11,Workstation,10.14.192.50,177.23.184.152,6c-3c-8c-46-e9-b6,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",josimarp4349_13,"Protecao fase 3 - Global Windows
+26 Jan 26 11:10 UTC","Windows - Estacoes - Global
+26 Jan 26 14:00 UTC","platform_default
+17 Apr 25 12:12 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:28 UTC"
+SIC_00_4349_20,eed66e2a53bd4ca0af85d5d8274adafe,2026-02-02T13:14:10Z,2024-11-22T18:41:37Z,Windows,Windows 10,Workstation,10.14.190.51,45.6.108.67,d0-94-66-ad-96-1a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",gabrielag4349_20,"Protecao fase 3 - Global Windows
+14 Jan 26 12:12 UTC","Windows - Estacoes - Global
+14 Jan 26 12:22 UTC","platform_default
+17 Apr 25 12:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+22 Nov 24 18:46 UTC"
+SIC_00_4349_21,29372020ccd64fae9cbae70795bc8ebe,2026-02-02T13:04:46Z,2025-08-21T16:07:59Z,Windows,Windows 11,Workstation,10.14.186.50,138.118.2.23,34-73-5a-fc-9d-88,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",raisab4349_21,"Protecao fase 3 - Global Windows
+14 Jan 26 06:15 UTC","Windows - Estacoes - Global
+14 Jan 26 05:02 UTC","platform_default
+21 Aug 25 16:11 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+25 Aug 25 17:06 UTC"
+SIC_00_4349_97,349e5ff855f841a687509501dae31e7e,2026-01-09T20:31:16Z,2024-06-18T14:08:48Z,Windows,Windows 10,Workstation,10.13.142.20,138.118.2.184,40-b8-9a-e8-62-0b,7.31.20309.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",marcias4349_12,"Protecao fase 3 - Global Windows
+02 Oct 25 15:32 UTC","Windows - Estacoes - Global
+11 Dec 25 20:38 UTC","platform_default
+22 Apr 25 11:46 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:40 UTC"
+SIC_01_4349_00,7c2dd08151314b9cbdfac02d12c340ed,2026-02-02T13:07:00Z,2025-12-08T20:39:44Z,Windows,Windows 11,Workstation,10.14.28.96,189.75.104.70,fc-4c-ea-eb-a8-03,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 00:08 UTC","Windows - Estacoes - Global
+14 Jan 26 00:52 UTC","platform_default
+08 Dec 25 20:43 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Dec 25 20:44 UTC"
+SIC_01_4349_01,0086b435a90e4d9295d8863cc2864976,2026-02-02T13:22:24Z,2026-01-29T12:30:47Z,Windows,Windows 11,Workstation,10.14.186.51,138.118.2.23,00-be-43-60-6b-2b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",lucasz4349_21,"Protecao fase 3 - Global Windows
+30 Jan 26 18:22 UTC","Windows - Estacoes - Global
+30 Jan 26 18:14 UTC","platform_default
+29 Jan 26 12:36 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+29 Jan 26 12:37 UTC"
+SIC_01_4349_02,71c768f60be64a2a945825b9272e73c0,2026-02-02T13:03:49Z,2025-03-19T13:46:38Z,Windows,Windows 11,Workstation,10.14.21.51,45.231.20.62,d0-94-66-cf-48-69,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",Stephanyv4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 11:14 UTC","Windows - Estacoes - Global
+14 Jan 26 11:14 UTC","platform_default
+17 Apr 25 15:19 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+19 Mar 25 13:47 UTC"
+SIC_01_4349_03,bffdc990bfea4d1dbda969d8896f1de0,2026-02-02T13:00:42Z,2025-03-11T20:52:21Z,Windows,Windows 11,Workstation,10.14.28.52,189.75.104.70,f4-ee-08-e4-7d-9a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",anal4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:10 UTC","Windows - Estacoes - Global
+14 Jan 26 12:12 UTC","platform_default
+17 Apr 25 00:17 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+11 Mar 25 20:56 UTC"
+SIC_01_4349_04,3fd77824d2a34d87b459cf541d36dc45,2026-02-02T12:32:36Z,2025-12-12T13:19:15Z,Windows,Windows 11,Workstation,10.14.64.71,45.236.214.206,d4-a2-cd-80-68-f3,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+23 Jan 26 11:25 UTC","Windows - Estacoes - Global
+23 Jan 26 11:32 UTC","platform_default
+12 Dec 25 13:27 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Dec 25 13:28 UTC"
+SIC_01_4349_04,ab969876bdb9489b9fc6214aee6b1061,2026-02-02T13:04:00Z,2026-01-26T13:54:41Z,Windows,Windows 10,Workstation,10.14.21.58,45.231.20.62,d0-94-66-a7-fa-ed,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+26 Jan 26 14:09 UTC","Windows - Estacoes - Global
+26 Jan 26 14:09 UTC","platform_default
+26 Jan 26 13:56 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Jan 26 13:58 UTC"
+SIC_01_4349_05,5d2a431fcfdf41e28123a87694c9f46b,2026-02-02T13:03:25Z,2025-09-09T12:32:31Z,Windows,Windows 11,Workstation,10.14.24.50,177.130.29.68,00-be-43-c7-5a-9a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",luizm4349_05,"Protecao fase 3 - Global Windows
+14 Jan 26 11:23 UTC","Windows - Estacoes - Global
+14 Jan 26 11:45 UTC","platform_default
+09 Sep 25 12:35 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 Oct 25 11:17 UTC"
+SIC_01_4349_06,fecac9ed748343ae810d737330ca3c7c,2026-02-02T13:26:17Z,2025-08-13T18:03:25Z,Windows,Windows 11,Workstation,10.14.28.75,189.75.104.70,d0-94-66-b4-5b-fa,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",eliasj4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 11:59 UTC","Windows - Estacoes - Global
+14 Jan 26 12:05 UTC","platform_default
+13 Aug 25 18:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+13 Aug 25 18:08 UTC"
+SIC_01_4349_08,f218476f7ac64cb896da668c5c791612,2026-02-02T13:05:59Z,2023-11-27T11:55:16Z,Windows,Windows 11,Workstation,10.14.28.61,189.75.104.70,d0-94-66-d9-a6-54,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",sthefanis4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:17 UTC","Windows - Estacoes - Global
+14 Jan 26 12:04 UTC","platform_default
+17 Apr 25 11:35 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:44 UTC"
+SIC_01_4349_09,7ea2b94a28af4b918c20e05e011176d5,2026-01-26T17:12:39Z,2026-01-12T13:05:39Z,Windows,Windows 11,Workstation,10.14.74.52,190.111.171.216,d0-94-66-d9-ac-fa,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+15 Jan 26 13:24 UTC","Windows - Estacoes - Global
+15 Jan 26 13:26 UTC","platform_default
+12 Jan 26 13:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Jan 26 13:07 UTC"
+SIC_01_4349_10,0bf1666a8b344f83aa1c71a60bafd629,2026-01-27T14:14:59Z,2024-09-16T11:21:51Z,Windows,Windows 10,Workstation,10.14.188.55,45.231.20.47,00-be-43-c6-eb-07,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",thalesd4349_10,"Protecao fase 3 - Global Windows
+16 Jan 26 18:06 UTC","Windows - Estacoes - Global
+27 Jan 26 14:15 UTC","platform_default
+17 Apr 25 09:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+16 Sep 24 11:23 UTC"
+SIC_01_4349_12,dfce30e480fb4305a49e1e4cc8c45b46,2026-02-02T11:11:39Z,2025-12-11T19:30:30Z,Windows,Windows 11,Workstation,10.215.0.2,179.220.74.228,00-09-0f-fe-00-01,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",marcias4349_12,"Protecao fase 3 - Global Windows
+14 Jan 26 14:44 UTC","Windows - Estacoes - Global
+14 Jan 26 15:03 UTC","platform_default
+11 Dec 25 19:33 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+11 Dec 25 19:41 UTC"
+SIC_01_4349_13,a8664e2e00634abca7df60ccbd80bc5f,2026-01-30T20:16:46Z,2023-11-01T19:18:00Z,Windows,Windows 10,Workstation,10.14.141.51,45.169.196.245,00-be-43-c7-5a-8f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",kauannev4349_11,"Protecao fase 3 - Global Windows
+14 Jan 26 11:18 UTC","Windows - Estacoes - Global
+14 Jan 26 11:28 UTC","platform_default
+17 Apr 25 11:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:35 UTC"
+SIC_01_4349_17,1b5158edb4854db59a3c793f16333ff6,2026-02-02T13:27:25Z,2023-11-01T19:34:05Z,Windows,Windows 10,Workstation,10.14.140.50,168.228.39.103,a4-bb-6d-24-ff-61,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",lorraynes4349_17,"Protecao fase 3 - Global Windows
+14 Jan 26 00:06 UTC","Windows - Estacoes - Global
+14 Jan 26 00:40 UTC","platform_default
+17 Apr 25 09:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:42 UTC"
+SIC_01_4349_18,d8121dd746044cf2895a0f14acaf7ec9,2026-02-02T13:12:05Z,2025-08-01T18:36:00Z,Windows,Windows 10,Workstation,10.14.192.52,177.23.184.152,74-86-e2-db-d2-b0,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",juscelinao4349_18,"Protecao fase 3 - Global Windows
+14 Jan 26 11:24 UTC","Windows - Estacoes - Global
+14 Jan 26 11:54 UTC","platform_default
+01 Aug 25 18:39 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+04 Aug 25 11:07 UTC"
+SIC_01_4349_19,c73593d618a744c79a2e6fd0475b6891,2026-02-02T13:26:20Z,2023-12-07T16:38:14Z,Windows,Windows 11,Workstation,10.14.191.50,179.48.65.201,6c-3c-8c-1b-9c-81,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",yasmind4349_19,"Protecao fase 3 - Global Windows
+14 Jan 26 11:19 UTC","Windows - Estacoes - Global
+14 Jan 26 11:19 UTC","platform_default
+17 Apr 25 11:29 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:37 UTC"
+SIC_01_4349_21,5864658d40064c47ac719cfc1a993a9b,2026-02-02T12:59:27Z,2025-08-18T14:33:01Z,Windows,Windows 11,Workstation,192.168.1.20,38.3.209.106,00-d7-6d-6e-a0-d2,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",elisac4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:18 UTC","Windows - Estacoes - Global
+14 Jan 26 12:26 UTC","platform_default
+18 Aug 25 14:38 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+18 Aug 25 14:39 UTC"
+SIC_01_4349_21,b8f55c03ccd8466d81246ce95be73950,2026-01-05T17:48:40Z,2026-01-05T17:48:40Z,Windows,Windows 11,Workstation,192.168.1.87,138.118.1.31,6c-3c-8c-1b-9c-78,7.21.19205.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+05 Jan 26 17:50 UTC",No policy,"platform_default
+05 Jan 26 17:50 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+05 Jan 26 17:50 UTC"
+SIC_01_4349_97,0afb965de5394580b3d5013a0299e880,2026-02-02T12:52:15Z,2024-07-16T12:38:12Z,Windows,Windows 10,Workstation,10.14.93.64,138.118.3.55,00-be-43-c8-1f-58,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",karinas4349_97,"Protecao fase 3 - Global Windows
+14 Jan 26 12:02 UTC","Windows - Estacoes - Global
+14 Jan 26 12:04 UTC","platform_default
+17 Apr 25 11:52 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:50 UTC"
+SIC_02_4349_00,375eac9e8f9c4c58859be32d10c4b7ca,2026-02-02T13:16:30Z,2024-06-18T15:02:46Z,Windows,Windows 10,Workstation,10.14.74.62,190.111.171.216,d0-94-66-cb-3c-4f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",ruanc4349_09,"Protecao fase 3 - Global Windows
+26 Jan 26 10:50 UTC","Windows - Estacoes - Global
+26 Jan 26 10:55 UTC","platform_default
+17 Apr 25 10:49 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:20 UTC"
+SIC_02_4349_01,b2a4441141c74e00b8962aa6b67df494,2026-02-02T13:14:12Z,2025-03-07T18:38:02Z,Windows,Windows 10,Workstation,192.168.46.3,138.118.3.62,5c-cd-5b-f8-52-8c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",giulian4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:07 UTC","Windows - Estacoes - Global
+14 Jan 26 12:09 UTC","platform_default
+17 Apr 25 12:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+07 Mar 25 18:43 UTC"
+SIC_02_4349_03,b57bf2dda0c4498895a42a797c3db148,2026-02-02T13:11:41Z,2025-03-14T13:22:05Z,Windows,Windows 10,Workstation,10.14.93.62,138.118.3.55,d0-94-66-b1-59-40,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",higork4349_03,"Protecao fase 3 - Global Windows
+14 Jan 26 11:59 UTC","Windows - Estacoes - Global
+14 Jan 26 12:00 UTC","platform_default
+17 Apr 25 12:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+14 Mar 25 13:26 UTC"
+SIC_02_4349_04,f0d27a3de3ca41529ce8051cb7a99516,2026-01-29T19:47:15Z,2024-02-19T15:35:26Z,Windows,Windows 10,Workstation,10.14.64.62,45.236.214.206,34-73-5a-fc-9f-20,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",cleomarm4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 12:34 UTC","Windows - Estacoes - Global
+14 Jan 26 12:36 UTC","platform_default
+17 Apr 25 11:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:42 UTC"
+SIC_02_4349_06,e24b988a4da1475c8cd8f0255078c22f,2026-02-02T13:13:53Z,2025-06-17T18:18:27Z,Windows,Windows 11,Workstation,10.14.28.94,189.75.104.70,d0-94-66-ce-00-67,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",hellens4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 00:44 UTC","Windows - Estacoes - Global
+14 Jan 26 01:56 UTC","platform_default
+18 Jun 25 13:22 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+18 Jun 25 13:22 UTC"
+SIC_02_4349_07,763f4124aed04334a22917b9c95c06d4,2026-02-02T13:15:54Z,2025-10-15T16:14:11Z,Windows,Windows 10,Workstation,10.14.94.51,45.231.20.46,00-be-43-c8-1e-44,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",adrielb4349_07,"Protecao fase 3 - Global Windows
+14 Jan 26 11:14 UTC","Windows - Estacoes - Global
+14 Jan 26 11:44 UTC","platform_default
+15 Oct 25 16:18 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+15 Oct 25 16:22 UTC"
+SIC_02_4349_08,75c12116628c4d1189d415165b033fc2,2026-02-02T13:22:43Z,2025-03-12T11:22:52Z,Windows,Windows 10,Workstation,10.14.75.58,138.118.2.250,d0-94-66-d9-ac-cb,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",gesyanel4349_08,"Protecao fase 3 - Global Windows
+14 Jan 26 11:53 UTC","Windows - Estacoes - Global
+14 Jan 26 11:56 UTC","platform_default
+17 Apr 25 11:45 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Mar 25 11:31 UTC"
+SIC_02_4349_09,f5a047b786944f69a2fff0efdfb86777,2026-01-31T01:57:33Z,2024-09-20T12:41:50Z,Windows,Windows 11,Workstation,10.14.74.50,190.111.171.216,d0-94-66-d9-95-7d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",ernandesf4349_09,"Protecao fase 3 - Global Windows
+14 Jan 26 11:27 UTC","Windows - Estacoes - Global
+14 Jan 26 12:29 UTC","platform_default
+22 Apr 25 11:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+20 Sep 24 12:51 UTC"
+SIC_02_4349_10,4d65ebec1da1475684da5edc857f50ff,2026-02-02T13:26:15Z,2024-10-29T20:58:57Z,Windows,Windows 10,Workstation,192.168.137.1,45.231.20.47,5e-cd-5b-9e-57-2d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",calistona4349_10,"Protecao fase 3 - Global Windows
+14 Jan 26 22:15 UTC","Windows - Estacoes - Global
+14 Jan 26 22:15 UTC","platform_default
+17 Apr 25 12:14 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+29 Oct 24 20:59 UTC"
+SIC_02_4349_13,e6d6bbbd7e694a43badc17231b617daf,2026-02-02T13:02:02Z,2024-03-21T12:29:58Z,Windows,Windows 10,Workstation,192.168.94.2,45.231.20.46,5c-cd-5b-ea-3c-4c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",alessandraf4349_07,"Protecao fase 3 - Global Windows
+14 Jan 26 14:39 UTC","Windows - Estacoes - Global
+15 Jan 26 12:11 UTC","platform_default
+17 Apr 25 11:11 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Aug 24 11:05 UTC"
+SIC_02_4349_14,ee4ae45d5e20421dae9f7db0e640bf35,2026-02-02T13:12:18Z,2025-05-29T16:57:50Z,Windows,Windows 10,Workstation,10.14.144.50,45.236.213.225,8c-04-ba-a5-b1-4d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",laraf4349_14,"Protecao fase 3 - Global Windows
+14 Jan 26 11:59 UTC","Windows - Estacoes - Global
+14 Jan 26 11:39 UTC","platform_default
+09 Jun 25 19:58 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+10 Jun 25 13:05 UTC"
+SIC_02_4349_15,8a4a887c477d4c51af7ef6eaaa843d45,2026-02-02T13:13:31Z,2024-07-22T14:47:32Z,Windows,Windows 10,Workstation,10.14.193.51,201.140.221.21,00-be-43-ec-b1-01,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",lidialinep4349_15,"Protecao fase 3 - Global Windows
+14 Jan 26 12:05 UTC","Windows - Estacoes - Global
+14 Jan 26 13:05 UTC","platform_default
+17 Apr 25 12:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:26 UTC"
+SIC_02_4349_17,15db62a7bbec49dab7895e1b25bdc336,2026-01-16T19:10:09Z,2026-01-16T18:14:19Z,Windows,Windows 11,Workstation,10.14.28.102,189.75.104.70,d0-94-66-a9-fa-2f,7.16.18608.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",pedrom4349_00,"Protecao fase 3 - Global Windows
+16 Jan 26 18:23 UTC",No policy,"platform_default
+16 Jan 26 18:17 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+16 Jan 26 18:17 UTC"
+SIC_02_4349_18,7733b0ceda404066b166142b868d85ea,2026-02-02T13:00:22Z,2023-11-27T11:08:10Z,Windows,Windows 11,Workstation,192.168.192.1,177.23.184.152,00-d7-6d-6e-aa-a0,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",diegoo4349_18,"Protecao fase 3 - Global Windows
+14 Jan 26 14:34 UTC","Windows - Estacoes - Global
+14 Jan 26 14:36 UTC","platform_default
+17 Apr 25 12:19 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:50 UTC"
+SIC_02_4349_19,f67a90d451d1459c8df654db55d1fc30,2026-02-02T13:21:54Z,2025-04-22T10:56:14Z,Windows,Windows 10,Workstation,192.168.191.10,179.48.65.201,5c-cd-5b-c0-72-0e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",kilmers4349_19,"Protecao fase 3 - Global Windows
+14 Jan 26 11:59 UTC","Windows - Estacoes - Global
+14 Jan 26 11:39 UTC","platform_default
+22 Apr 25 10:58 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+22 Apr 25 11:00 UTC"
+SIC_02_4349_21,e154498586fb4356b14d3cfdc682735f,2026-02-02T13:15:21Z,2025-06-12T14:42:32Z,Windows,Windows 10,Workstation,10.14.142.55,138.118.2.184,f0-d4-e2-f6-c3-ac,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",eduardof4349_12,"Protecao fase 3 - Global Windows
+14 Jan 26 14:14 UTC","Windows - Estacoes - Global
+26 Jan 26 14:03 UTC","platform_default
+12 Jun 25 14:50 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Jun 25 14:53 UTC"
+SIC_02_4349_97,9bf203ded5a84a94a557b2c4c20e989f,2026-02-02T13:14:53Z,2025-05-05T11:57:56Z,Windows,Windows 10,Workstation,10.14.93.59,138.118.3.55,a4-bb-6d-7c-52-46,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",giovannac4349_97,"Protecao fase 3 - Global Windows
+14 Jan 26 12:01 UTC","Windows - Estacoes - Global
+14 Jan 26 12:02 UTC","platform_default
+05 May 25 12:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+05 May 25 12:07 UTC"
+SIC_03_4349_00,520d8dd2dcf04bee9199c68b4e906d81,2026-02-02T13:10:43Z,2024-07-30T20:58:39Z,Windows,Windows 10,Workstation,10.14.28.95,189.75.104.70,b4-45-06-43-82-ec,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",SIC_03_4349_00$,"Protecao fase 3 - Global Windows
+14 Jan 26 12:10 UTC","Windows - Estacoes - Global
+14 Jan 26 11:49 UTC","platform_default
+17 Apr 25 01:26 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+13 Aug 24 12:48 UTC"
+SIC_03_4349_01,5ee7f689074f4579a4d32b580370c3f9,2026-01-30T21:33:28Z,2025-03-12T14:52:38Z,Windows,Windows 10,Workstation,10.14.46.51,138.118.3.62,d0-94-66-aa-d7-65,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",giulian4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:12 UTC","Windows - Estacoes - Global
+14 Jan 26 12:08 UTC","platform_default
+17 Apr 25 15:16 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Mar 25 14:58 UTC"
+SIC_03_4349_03,edc917a4c9d14390ab0d43abbfa95825,2026-02-02T13:28:02Z,2024-07-29T16:19:12Z,Windows,Windows 10,Workstation,10.14.93.61,138.118.3.55,d0-94-66-c0-a8-1f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",carolinew4349_97,"Protecao fase 3 - Global Windows
+14 Jan 26 12:11 UTC","Windows - Estacoes - Global
+14 Jan 26 12:22 UTC","platform_default
+17 Apr 25 09:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Aug 24 12:40 UTC"
+SIC_03_4349_04,b1fa23daab184a409650ddb8cc7e85fb,2026-02-02T13:18:27Z,2025-12-15T11:30:49Z,Windows,Windows 11,Workstation,10.14.64.58,45.236.214.206,b4-45-06-33-2d-37,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",edineiac4349_04,"Protecao fase 3 - Global Windows
+20 Jan 26 11:38 UTC","Windows - Estacoes - Global
+20 Jan 26 11:41 UTC","platform_default
+15 Dec 25 11:34 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+15 Dec 25 11:36 UTC"
+SIC_03_4349_06,0f0d7bd58def4410bfece2960c86689e,2026-02-02T13:06:05Z,2023-11-28T13:27:14Z,Windows,Windows 11,Workstation,10.14.93.50,138.118.3.55,d0-94-66-ce-8a-59,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",igorm4349_97,"Protecao fase 3 - Global Windows
+13 Jan 26 23:24 UTC","Windows - Estacoes - Global
+14 Jan 26 09:25 UTC","platform_default
+17 Apr 25 09:05 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:49 UTC"
+SIC_03_4349_07,4de45918d50247039a39f348c2a83e35,2026-02-02T12:56:57Z,2024-02-02T13:32:54Z,Windows,Windows 10,Workstation,10.14.24.62,177.130.29.68,00-be-43-c8-1e-43,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",brendao4349_05,"Protecao fase 3 - Global Windows
+14 Jan 26 11:15 UTC","Windows - Estacoes - Global
+14 Jan 26 11:18 UTC","platform_default
+17 Apr 25 11:10 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:31 UTC"
+SIC_03_4349_08,350672303b934e58ab85066c63ac5a56,2026-02-02T13:15:55Z,2023-10-31T21:13:54Z,Windows,Windows 10,Workstation,10.14.75.52,138.118.2.250,f4-ee-08-e4-87-d2,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",nadias4349_08,"Protecao fase 3 - Global Windows
+14 Jan 26 11:53 UTC","Windows - Estacoes - Global
+14 Jan 26 11:55 UTC","platform_default
+17 Apr 25 11:31 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:34 UTC"
+SIC_03_4349_09,7dd6f3fb93f049db86f9c2949fdc61a1,2026-02-02T13:21:25Z,2023-11-01T18:36:15Z,Windows,Windows 10,Workstation,10.14.74.58,190.111.171.216,d0-94-66-d9-a6-24,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",cristielir4349_09,"Protecao fase 3 - Global Windows
+21 Jan 26 11:21 UTC","Windows - Estacoes - Global
+21 Jan 26 11:23 UTC","platform_default
+17 Apr 25 10:54 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:30 UTC"
+SIC_03_4349_12,5ba7b7c1d01f4024a1f0adf0406fc829,2026-02-02T12:32:50Z,2025-12-11T13:15:37Z,Windows,Windows 11,Workstation,10.14.142.53,138.118.2.184,a4-bb-6d-12-91-72,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",erikac4349_12,"Protecao fase 3 - Global Windows
+14 Jan 26 12:36 UTC","Windows - Estacoes - Global
+14 Jan 26 12:39 UTC","platform_default
+11 Dec 25 13:18 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+11 Dec 25 13:19 UTC"
+SIC_03_4349_16,895b200b6b094443a35ca9e935377971,2026-02-02T13:10:59Z,2025-02-04T20:22:10Z,Windows,Windows 10,Workstation,10.14.182.51,138.118.3.167,84-7b-eb-e6-55-3c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",carlose4349_16,"Protecao fase 3 - Global Windows
+14 Jan 26 12:19 UTC","Windows - Estacoes - Global
+14 Jan 26 12:21 UTC","platform_default
+17 Apr 25 13:19 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+04 Feb 25 20:32 UTC"
+SIC_03_4349_17,03bbff514c27441d9b8cb22696c2c896,2026-02-02T13:27:43Z,2023-10-31T21:21:55Z,Windows,Windows 10,Workstation,10.14.140.51,168.228.39.103,c8-4b-d6-07-ed-e2,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",samuels4349_17,"Protecao fase 3 - Global Windows
+14 Jan 26 11:34 UTC","Windows - Estacoes - Global
+14 Jan 26 12:07 UTC","platform_default
+17 Apr 25 12:18 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+19 Aug 24 12:19 UTC"
+SIC_03_4349_19,34a9ea86f0f345d0be025b132a74148c,2026-02-02T13:13:36Z,2025-10-28T14:36:48Z,Windows,Windows 10,Workstation,10.14.191.52,179.48.65.201,6c-3c-8c-1b-9c-6f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",gabrielled4349_19,"Protecao fase 3 - Global Windows
+14 Jan 26 11:23 UTC","Windows - Estacoes - Global
+14 Jan 26 11:43 UTC","platform_default
+28 Oct 25 14:41 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+28 Oct 25 14:43 UTC"
+SIC_03_4349_97,0e650e8263ab43d2b55787ef4403e567,2026-02-02T13:14:31Z,2025-07-15T17:23:12Z,Windows,Windows 10,Workstation,10.14.93.56,138.118.3.55,00-be-43-c7-71-a3,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",rafaelas4349_97,"Protecao fase 3 - Global Windows
+14 Jan 26 12:12 UTC","Windows - Estacoes - Global
+14 Jan 26 12:22 UTC","platform_default
+15 Jul 25 17:27 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+22 Jul 25 11:58 UTC"
+SIC_04_4349_00,41d93a72ce9c4d3dbfbf8178c93c2cf5,2026-02-02T13:04:36Z,2023-11-24T14:41:53Z,Windows,Windows 11,Workstation,192.168.190.1,45.6.108.67,5c-cd-5b-e2-df-6a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",gabrielag4349_20,"Protecao fase 3 - Global Windows
+15 Jan 26 12:19 UTC","Windows - Estacoes - Global
+15 Jan 26 12:19 UTC","platform_default
+17 Apr 25 11:29 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Aug 24 11:28 UTC"
+SIC_04_4349_01,abeda8e2510049869b15603d48c5eea2,2026-02-02T13:09:16Z,2025-11-12T18:08:25Z,Windows,Windows 11,Workstation,10.14.46.50,138.118.3.62,d0-94-66-c6-52-4f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",emillyn4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:51 UTC","Windows - Estacoes - Global
+14 Jan 26 12:16 UTC","platform_default
+12 Nov 25 18:10 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Nov 25 18:11 UTC"
+SIC_04_4349_02,7bcfa339bf6648a99c4a14f2a3835e48,2026-02-02T13:15:24Z,2023-12-01T11:16:20Z,Windows,Windows 10,Workstation,10.14.21.63,45.231.20.62,d0-94-66-c6-61-30,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",larahm4349_02,"Protecao fase 3 - Global Windows
+15 Jan 26 12:49 UTC","Windows - Estacoes - Global
+15 Jan 26 12:51 UTC","platform_default
+17 Apr 25 11:43 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:32 UTC"
+SIC_04_4349_04,c47379bcf68144f7bac56a236d7bae40,2026-02-02T13:10:19Z,2025-08-11T14:21:49Z,Windows,Windows 11,Workstation,10.14.64.51,45.236.214.206,d0-94-66-ae-4d-96,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",karitap4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:23 UTC","Windows - Estacoes - Global
+14 Jan 26 11:25 UTC","platform_default
+11 Aug 25 14:22 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+11 Aug 25 14:24 UTC"
+SIC_04_4349_05,657c6e042717408bb2ef9a3438e0f970,2026-02-02T13:19:14Z,2023-11-27T11:10:40Z,Windows,Windows 10,Workstation,10.14.24.58,177.130.29.68,d0-94-66-bb-54-1d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",geraldom4349_05,"Protecao fase 3 - Global Windows
+14 Jan 26 11:13 UTC","Windows - Estacoes - Global
+14 Jan 26 11:59 UTC","platform_default
+17 Apr 25 09:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:23 UTC"
+SIC_04_4349_12,418531192be2456dafde904e7227f38c,2026-02-02T13:19:12Z,2023-11-01T18:59:45Z,Windows,Windows 10,Workstation,10.14.186.52,138.118.2.23,d0-94-66-d9-a5-ec,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",brunam4349_21,"Protecao fase 3 - Global Windows
+14 Jan 26 12:58 UTC","Windows - Estacoes - Global
+14 Jan 26 12:58 UTC","platform_default
+17 Apr 25 12:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:31 UTC"
+SIC_04_4349_16,a135daf65b194127942755329d1d7179,2026-01-06T13:17:03Z,2025-10-14T20:38:46Z,Windows,Windows 11,Workstation,10.14.182.50,138.118.3.167,34-73-5a-fc-9d-55,7.31.20309.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+15 Oct 25 14:02 UTC","Windows - Estacoes - Global
+09 Dec 25 20:36 UTC","platform_default
+14 Oct 25 20:40 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+14 Oct 25 20:42 UTC"
+SIC_04_4349_97,89a2d09131f644dca19cfa01a1e3c41e,2026-02-02T13:22:05Z,2025-07-15T18:45:44Z,Windows,Windows 10,Workstation,10.14.93.58,138.118.3.55,a4-bb-6d-7c-52-58,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",marianej4349_97,"Protecao fase 3 - Global Windows
+14 Jan 26 12:02 UTC","Windows - Estacoes - Global
+14 Jan 26 12:04 UTC","platform_default
+15 Jul 25 18:51 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+21 Jul 25 17:07 UTC"
+SIC_05_4349_00,d3321d3e0c7348ddb813627c7b98cfd2,2026-02-02T13:26:05Z,2025-07-30T13:00:09Z,Windows,Windows 10,Workstation,10.13.93.9,138.118.3.55,00-d7-6d-9c-0a-a9,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",deboraf4349_03,"Protecao fase 3 - Global Windows
+14 Jan 26 11:21 UTC","Windows - Estacoes - Global
+14 Jan 26 11:24 UTC","platform_default
+30 Jul 25 13:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+30 Jul 25 13:04 UTC"
+SIC_05_4349_02,110e7575eed74b599a12309adc775879,2026-02-02T12:37:27Z,2025-10-02T18:35:16Z,Windows,Windows 11,Workstation,192.168.21.2,45.231.20.62,5c-cd-5b-9e-5b-29,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",saras4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 11:13 UTC","Windows - Estacoes - Global
+14 Jan 26 11:23 UTC","platform_default
+02 Oct 25 18:39 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 Oct 25 18:41 UTC"
+SIC_05_4349_03,57e7a24f88244cd7a7272a9dbb19de5b,2026-02-02T13:17:26Z,2025-10-23T19:03:36Z,Windows,Windows 11,Workstation,10.14.93.51,138.118.3.55,d0-94-66-c0-ad-5e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 11:37 UTC","Windows - Estacoes - Global
+14 Jan 26 11:39 UTC","platform_default
+23 Oct 25 19:11 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+23 Oct 25 20:27 UTC"
+SIC_05_4349_04,192c72b070564d779d1f91266f20ce07,2026-02-02T13:23:19Z,2023-11-01T15:42:58Z,Windows,Windows 10,Workstation,10.14.64.59,45.236.214.206,d0-94-66-b4-4a-f8,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",karitap4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 12:34 UTC","Windows - Estacoes - Global
+14 Jan 26 12:32 UTC","platform_default
+17 Apr 25 12:13 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:21 UTC"
+SIC_05_4349_05,681f49a913954ce886e033b2fd655a42,2026-02-02T13:11:11Z,2024-02-07T12:08:38Z,Windows,Windows 10,Workstation,10.14.24.59,177.130.29.68,d0-94-66-bb-54-1b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",camillap4349_05,"Protecao fase 3 - Global Windows
+26 Jan 26 11:38 UTC","Windows - Estacoes - Global
+26 Jan 26 12:08 UTC","platform_default
+17 Apr 25 11:12 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:34 UTC"
+SIC_05_4349_06,c84a2ab3a9634dbf8716f575a892fdb8,2026-02-02T13:08:55Z,2025-08-20T20:55:42Z,Windows,Windows 11,Workstation,192.168.141.1,45.169.196.245,00-d7-6d-7c-3f-7b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",rudyj4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 16:02 UTC","Windows - Estacoes - Global
+14 Jan 26 16:04 UTC","platform_default
+20 Aug 25 20:59 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+20 Aug 25 20:59 UTC"
+SIC_05_4349_07,1740c6a4109d4152a4da8db883f22a9e,2026-02-02T13:11:31Z,2024-02-20T11:40:23Z,Windows,Windows 11,Workstation,10.14.21.57,45.231.20.62,d0-94-66-cf-44-f9,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",josev4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 11:16 UTC","Windows - Estacoes - Global
+14 Jan 26 11:39 UTC","platform_default
+17 Apr 25 11:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:47 UTC"
+SIC_05_4349_12,5233b4726a0141dbb468f87f54620d75,2026-02-02T13:07:59Z,2024-10-07T15:17:11Z,Windows,Windows 10,Workstation,192.168.28.42,189.75.104.70,4e-dc-cf-f1-58-bb,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",romeur4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 09:18 UTC","Windows - Estacoes - Global
+14 Jan 26 09:20 UTC","platform_default
+17 Apr 25 12:55 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+07 Oct 24 15:20 UTC"
+SIC_05_4349_13,2dd3ee6b356d4b4ebad541641c608698,2026-02-02T13:08:17Z,2023-11-01T19:15:27Z,Windows,Windows 11,Workstation,10.14.143.50,177.86.169.244,74-86-e2-db-d3-4b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",ottaviov4349_13,"Protecao fase 3 - Global Windows
+14 Jan 26 11:26 UTC","Windows - Estacoes - Global
+14 Jan 26 12:02 UTC","platform_default
+17 Apr 25 12:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:34 UTC"
+SIC_05_4349_16,4a744b63c52e41ea942c3cae5ea06bc7,2026-02-02T13:21:41Z,2025-10-02T15:02:10Z,Windows,Windows 11,Workstation,192.168.182.2,138.118.3.167,5c-cd-5b-da-b1-eb,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",adailtonn4349_16,"Protecao fase 3 - Global Windows
+14 Jan 26 17:13 UTC","Windows - Estacoes - Global
+14 Jan 26 20:30 UTC","platform_default
+02 Oct 25 15:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 Oct 25 15:07 UTC"
+SIC_05_4349_97,62686b493b414836a3eaccea65409289,2026-02-02T13:06:25Z,2025-10-29T12:21:54Z,Windows,Windows 11,Workstation,10.14.28.62,189.75.104.70,00-be-43-c8-0e-d9,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",murillom4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:12 UTC","Windows - Estacoes - Global
+14 Jan 26 12:16 UTC","platform_default
+29 Oct 25 12:22 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+29 Oct 25 12:23 UTC"
+SIC_06_4349_00,dd6ee73f739c4659a6ecc8135a26c26f,2026-02-02T13:23:05Z,2025-12-19T17:18:34Z,Windows,Windows 11,Workstation,192.168.28.40,189.75.104.70,6c-f6-da-6f-4f-af,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+19 Jan 26 12:59 UTC","Windows - Estacoes - Global
+19 Jan 26 12:48 UTC","platform_default
+19 Dec 25 17:21 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+19 Dec 25 17:22 UTC"
+SIC_06_4349_03,3c761ad422544469ad131058ef72694d,2026-01-30T21:10:11Z,2025-10-30T17:39:49Z,Windows,Windows 11,Workstation,192.168.93.3,138.118.3.55,00-d7-6d-9b-e9-0c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",deboraf4349_03,"Protecao fase 3 - Global Windows
+14 Jan 26 11:28 UTC","Windows - Estacoes - Global
+14 Jan 26 11:29 UTC","platform_default
+30 Oct 25 17:47 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+04 Nov 25 12:08 UTC"
+SIC_06_4349_04,dc05c9facf9f48a697a271583bfb55eb,2026-02-02T13:12:23Z,2023-11-01T15:32:58Z,Windows,Windows 10,Workstation,10.14.64.60,45.236.214.206,d0-94-66-d9-a6-4f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",amandak4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:59 UTC","Windows - Estacoes - Global
+14 Jan 26 12:02 UTC","platform_default
+17 Apr 25 11:20 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:28 UTC"
+SIC_06_4349_07,faac7855f32e47aba46744f4558ae02f,2026-02-02T13:06:31Z,2023-11-01T17:26:58Z,Windows,Windows 10,Workstation,10.14.94.57,45.231.20.46,00-be-43-c8-1f-80,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",isabelaa4349_07,"Protecao fase 3 - Global Windows
+14 Jan 26 11:14 UTC","Windows - Estacoes - Global
+14 Jan 26 11:40 UTC","platform_default
+17 Apr 25 11:16 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:48 UTC"
+SIC_06_4349_97,c6940beb75404a7982ec2d4c4f9b2f6c,2026-02-02T13:10:57Z,2025-10-30T19:21:21Z,Windows,Windows 11,Workstation,10.14.28.60,189.75.104.70,8c-04-ba-a5-b5-00,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",gabriellyn4349_97,"Protecao fase 3 - Global Windows
+14 Jan 26 12:12 UTC","Windows - Estacoes - Global
+14 Jan 26 12:08 UTC","platform_default
+30 Oct 25 19:29 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+30 Oct 25 19:30 UTC"
+SIC_07_4349_00,d550202048b4470c962f0a16e92266c3,2026-02-02T13:22:31Z,2025-03-31T14:01:48Z,Windows,Windows 11,Workstation,192.168.28.39,189.75.104.70,5c-cd-5b-f8-52-5a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",alianyc4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:18 UTC","platform_default
+17 Apr 25 12:17 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+31 Mar 25 14:09 UTC"
+SIC_07_4349_01,d4557889edf74783bea7793ebdfa94c9,2026-01-30T17:49:45Z,2023-12-13T15:14:07Z,Windows,Windows 10,Workstation,10.14.46.58,138.118.3.62,a4-bb-6d-7c-52-0a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",DWM-5,"Protecao fase 3 - Global Windows
+26 Jan 26 14:05 UTC","Windows - Estacoes - Global
+26 Jan 26 14:53 UTC","platform_default
+17 Apr 25 12:27 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:37 UTC"
+SIC_07_4349_03,88bf04a642564bdfadefede4fdfaba1b,2026-02-02T13:23:12Z,2025-12-01T18:40:17Z,Windows,Windows 11,Workstation,192.168.93.6,138.118.3.55,00-d7-6d-99-8e-0f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",giovanas4349_03,"Protecao fase 3 - Global Windows
+14 Jan 26 12:30 UTC","Windows - Estacoes - Global
+14 Jan 26 12:32 UTC","platform_default
+01 Dec 25 18:45 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+01 Dec 25 18:47 UTC"
+SIC_07_4349_04,fadfca7317b345ad9f8b45dc0402a27e,2026-02-02T13:13:40Z,2025-10-15T16:29:12Z,Windows,Windows 10,Workstation,10.14.64.151,45.236.214.206,d0-94-66-b1-5b-b9,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",byllenc4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:03 UTC","Windows - Estacoes - Global
+14 Jan 26 11:04 UTC","platform_default
+15 Oct 25 16:34 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+15 Oct 25 16:40 UTC"
+SIC_07_4349_05,516c896351f54f4283d8cc2d65b3af66,2026-01-09T16:32:58Z,2023-11-29T17:19:22Z,Windows,Windows 10,Workstation,10.14.64.58,45.236.214.206,c8-4b-d6-03-78-14,7.31.20309.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",rafaelg4349_04,"Protecao fase 3 - Global Windows
+02 Oct 25 15:21 UTC","Windows - Estacoes - Global
+09 Dec 25 20:26 UTC","platform_default
+17 Apr 25 10:52 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 Sep 24 13:23 UTC"
+SIC_07_4349_06,c985c667997b47e4abef2e20461274d8,2026-02-02T13:01:04Z,2023-11-28T11:52:16Z,Windows,Windows 10,Workstation,10.14.46.60,138.118.3.62,d0-94-66-b1-59-91,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",brendam4349_06,"Protecao fase 3 - Global Windows
+13 Jan 26 23:20 UTC","Windows - Estacoes - Global
+14 Jan 26 00:18 UTC","platform_default
+17 Apr 25 11:50 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:29 UTC"
+SIC_07_4349_97,3031c401a178436ba8384330f38ef155,2026-02-02T13:02:05Z,2026-01-29T14:38:05Z,Windows,Windows 11,Workstation,10.14.93.52,138.118.3.55,00-be-43-c5-ff-99,7.32.20403.0,Estacoes-4349,,matheuso4349_97,"Protecao fase 3 - Global Windows
+02 Feb 26 13:05 UTC","Windows - Estacoes - Global
+02 Feb 26 12:57 UTC","platform_default
+29 Jan 26 14:41 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+29 Jan 26 14:43 UTC"
+SIC_08_4349_06,6778d1f52f084482afbe5bcb9a06f7a2,2026-02-02T13:23:14Z,2023-11-01T13:07:13Z,Windows,Windows 10,Workstation,10.14.28.117,189.75.104.70,c8-4b-d6-08-02-7a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",SRV-RODC425616$,"Protecao fase 3 - Global Windows
+14 Jan 26 13:12 UTC","Windows - Estacoes - Global
+14 Jan 26 12:41 UTC","platform_default
+17 Apr 25 12:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Aug 24 13:13 UTC"
+SIC_08_4349_09,37ab916f0c454167b866c5ddbeb0599d,2026-01-29T20:07:07Z,2025-04-15T10:58:38Z,Windows,Windows 10,Workstation,10.14.74.59,190.111.171.216,d0-94-66-ae-63-86,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",danilob4349_09,"Protecao fase 3 - Global Windows
+13 Jan 26 23:39 UTC","Windows - Estacoes - Global
+14 Jan 26 01:00 UTC","platform_default
+17 Apr 25 11:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+15 Apr 25 11:00 UTC"
+SIC_08_4349_13,03d93f724e8449fca3116bbf383707de,2026-02-02T13:10:08Z,2025-08-08T17:48:53Z,Windows,Windows 11,Workstation,10.14.141.50,45.169.196.245,b4-45-06-3a-f0-14,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",kauannev4349_11,"Protecao fase 3 - Global Windows
+14 Jan 26 11:18 UTC","Windows - Estacoes - Global
+14 Jan 26 11:56 UTC","platform_default
+08 Aug 25 17:53 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 25 17:59 UTC"
+SIC_09_4349_00,c0d1b504633043ce97803a0cccdd401b,2026-02-02T13:03:57Z,2023-11-29T12:07:35Z,Windows,Windows 10,Workstation,10.14.28.116,189.75.104.70,70-b5-e8-fb-eb-58,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",anaa4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:22 UTC","Windows - Estacoes - Global
+14 Jan 26 13:02 UTC","platform_default
+17 Apr 25 12:18 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:40 UTC"
+SIC_09_4349_01,c2459c54f98f4c6f8d7a7bdbb7bdd439,2026-02-02T13:09:49Z,2023-11-28T17:24:11Z,Windows,Windows 11,Workstation,10.14.28.65,189.75.104.70,2c-ea-7f-0a-ba-1d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",higorv4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 12:13 UTC","Windows - Estacoes - Global
+14 Jan 26 12:17 UTC","platform_default
+17 Apr 25 12:26 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:27 UTC"
+SIC_09_4349_05,ce7bbb3e5fe443d49532795acb127a18,2026-02-02T12:54:33Z,2023-11-01T16:45:14Z,Windows,Windows 10,Workstation,10.14.24.77,177.130.29.68,6c-3c-8c-1b-9c-7d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",kauannac4349_05,"Protecao fase 3 - Global Windows
+14 Jan 26 13:02 UTC","Windows - Estacoes - Global
+14 Jan 26 12:58 UTC","platform_default
+17 Apr 25 11:04 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:23 UTC"
+SIC_09_4349_06,3a124f12f9db4e9daa06d97fd187cfea,2026-02-02T13:24:59Z,2025-06-24T14:42:05Z,Windows,Windows 11,Workstation,192.168.28.29,189.75.104.70,00-d7-6d-87-d7-96,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:38 UTC","Windows - Estacoes - Global
+14 Jan 26 12:30 UTC","platform_default
+24 Jun 25 14:45 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+24 Jun 25 14:47 UTC"
+SIC_09_4349_08,b5188e3eb2014df49b9e24ab1d384a12,2026-02-02T13:16:58Z,2023-11-01T18:09:15Z,Windows,Windows 10,Workstation,10.14.75.55,138.118.2.250,c8-4b-d6-0c-40-09,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",paulos4349_08,"Protecao fase 3 - Global Windows
+14 Jan 26 11:45 UTC","Windows - Estacoes - Global
+14 Jan 26 11:48 UTC","platform_default
+17 Apr 25 11:53 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:23 UTC"
+SIC_09_4349_13,f068591d7e5f48a4aaa7ea528e88c088,2026-02-02T13:06:50Z,2025-05-19T11:38:58Z,Windows,Windows 10,Workstation,10.14.143.56,177.86.169.244,d0-94-66-ab-0c-7b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",josimarp4349_13,"Protecao fase 3 - Global Windows
+14 Jan 26 11:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:28 UTC","platform_default
+19 May 25 11:40 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+19 May 25 11:42 UTC"
+SIC_100_4349_00,265ba0df48a0448e8e5cd9a0ba115ca9,2026-01-21T17:12:34Z,2026-01-16T12:27:49Z,Windows,Windows 10,Workstation,10.14.21.58,45.231.20.62,6c-3c-8c-1b-9c-91,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",isisd4349_02,"Protecao fase 3 - Global Windows
+16 Jan 26 17:43 UTC","Windows - Estacoes - Global
+19 Jan 26 14:37 UTC","platform_default
+16 Jan 26 12:31 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+16 Jan 26 17:02 UTC"
+SIC_101_4349_00,cbc2c1ba4abd42be82b2bc6cbfadd9c9,2026-02-02T13:25:33Z,2023-11-01T13:03:31Z,Windows,Windows 11,Workstation,10.14.28.102,189.75.104.70,74-86-e2-d9-bf-43,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pietraa4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:20 UTC","Windows - Estacoes - Global
+14 Jan 26 12:54 UTC","platform_default
+17 Apr 25 12:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:49 UTC"
+SIC_102_4349_00,99ca084420104e77abccca61cce0ded0,2026-02-02T12:23:43Z,2025-12-01T12:55:30Z,Windows,Windows 11,Workstation,192.168.93.3,138.118.3.55,c8-95-ce-11-9d-4c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 14:36 UTC","Windows - Estacoes - Global
+14 Jan 26 18:44 UTC","platform_default
+01 Dec 25 12:56 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+01 Dec 25 12:57 UTC"
+SIC_104_4349_00,0ccb2030535b4dc884a65eb4f6836883,2026-02-02T13:27:07Z,2023-11-03T13:43:47Z,Windows,Windows 10,Workstation,192.168.28.38,189.75.104.70,5c-cd-5b-e0-eb-29,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",mirelam4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 00:41 UTC","Windows - Estacoes - Global
+14 Jan 26 00:44 UTC","platform_default
+17 Apr 25 11:56 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:41 UTC"
+SIC_105_4349_00,46269f840d444702b223a0f4b4ebf613,2026-02-02T12:52:02Z,2024-09-09T12:18:07Z,Windows,Windows 11,Workstation,10.14.28.104,189.75.104.70,74-86-e2-db-d2-69,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",mariaj4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:25 UTC","Windows - Estacoes - Global
+14 Jan 26 12:31 UTC","platform_default
+17 Apr 25 12:19 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Sep 24 12:24 UTC"
+SIC_106_4349_00,02a9f729065c496c9bbed7d71ab77390,2026-02-02T13:03:58Z,2023-11-01T13:06:39Z,Windows,Windows 10,Workstation,10.13.28.95,189.75.104.70,00-d7-6d-9c-0b-fd,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",samelal4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:01 UTC","Windows - Estacoes - Global
+14 Jan 26 12:05 UTC","platform_default
+22 Apr 25 14:57 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:27 UTC"
+SIC_107_4349_00,85b349c86cc1491781493f5a69d7801a,2026-02-02T13:19:01Z,2023-10-31T21:09:16Z,Windows,Windows 10,Workstation,192.168.28.32,189.75.104.70,00-d7-6d-9c-0a-ae,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pryscillad4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 12:23 UTC","Windows - Estacoes - Global
+14 Jan 26 12:24 UTC","platform_default
+17 Apr 25 11:55 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:24 UTC"
+SIC_109_4349_00,e910b135ba1a495a93eaaf9fbbe14c3e,2026-01-28T14:45:03Z,2025-12-02T16:54:24Z,Windows,Windows 11,Workstation,10.14.28.85,189.75.104.70,d4-a2-cd-7e-21-15,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",luannam4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 13:31 UTC","Windows - Estacoes - Global
+14 Jan 26 13:36 UTC","platform_default
+02 Dec 25 16:59 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 Dec 25 17:00 UTC"
+SIC_10_4349_00,bb428eec6bdc473a98ab132a1757bcc9,2026-02-02T12:59:52Z,2023-11-01T12:58:51Z,Windows,Windows 10,Workstation,10.14.28.110,189.75.104.70,d0-94-66-c0-ad-2e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pedrom4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:10 UTC","Windows - Estacoes - Global
+14 Jan 26 12:15 UTC","platform_default
+17 Apr 25 11:57 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:30 UTC"
+SIC_10_4349_05,afa29be8f4184cfb9374164c391e7a2c,2026-02-02T13:07:41Z,2024-03-05T13:10:22Z,Windows,Windows 10,Workstation,10.14.24.61,177.130.29.68,d0-94-66-d9-a5-e7,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",amandae4349_05,"Protecao fase 3 - Global Windows
+14 Jan 26 11:20 UTC","Windows - Estacoes - Global
+14 Jan 26 11:22 UTC","platform_default
+17 Apr 25 11:35 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:20 UTC"
+SIC_10_4349_06,3d30ce8494e44a4a889e3dfd6f65fc67,2026-02-02T12:31:33Z,2025-09-30T18:15:44Z,Windows,Windows 11,Workstation,192.168.28.12,189.75.104.70,d8-0f-99-a8-1e-d9,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",gustavoj4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 12:05 UTC","Windows - Estacoes - Global
+14 Jan 26 12:14 UTC","platform_default
+30 Sep 25 18:17 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+30 Sep 25 18:19 UTC"
+SIC_10_4349_08,32d9454f0d0744a1a79a6b1e245fb14e,2026-02-02T13:02:41Z,2023-11-30T18:12:13Z,Windows,Windows 10,Workstation,192.168.64.1,45.236.214.206,00-d7-6d-9c-0a-18,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",amandao4349_08,"Protecao fase 3 - Global Windows
+19 Jan 26 12:27 UTC","Windows - Estacoes - Global
+19 Jan 26 12:27 UTC","platform_default
+17 Apr 25 11:43 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:51 UTC"
+SIC_110_4349_00,0d9e2baa62fe43518aaba8ccb50a6ecf,2026-02-02T13:06:33Z,2026-01-21T12:59:32Z,Windows,Windows 11,Workstation,192.168.100.149,177.1.103.54,00-d7-6d-67-6b-00,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",romenningss4349_00,"Protecao fase 3 - Global Windows
+21 Jan 26 15:33 UTC","Windows - Estacoes - Global
+21 Jan 26 13:32 UTC","platform_default
+21 Jan 26 13:02 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+21 Jan 26 13:04 UTC"
+SIC_111_4349_00,b4520a03bc924f848f7a870372864f5d,2026-02-02T13:13:17Z,2025-12-01T14:50:03Z,Windows,Windows 11,Workstation,10.14.28.109,189.75.104.70,d4-a2-cd-7e-08-a7,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:09 UTC","Windows - Estacoes - Global
+14 Jan 26 12:14 UTC","platform_default
+01 Dec 25 14:56 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+01 Dec 25 14:58 UTC"
+SIC_112_4349_00,cdfe0819981345a5b0d87ad7ab03958b,2026-02-02T12:52:14Z,2023-11-01T19:54:25Z,Windows,Windows 11,Workstation,10.14.28.146,189.75.104.70,6c-3c-8c-1b-9c-6c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pablap4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:07 UTC","Windows - Estacoes - Global
+14 Jan 26 12:26 UTC","platform_default
+17 Apr 25 12:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:43 UTC"
+SIC_113_4349_00,de3ef3adec664777941146c1cd70cb1f,2026-02-02T13:17:18Z,2025-12-01T19:05:24Z,Windows,Windows 11,Workstation,192.168.28.7,189.75.104.70,c8-95-ce-11-5d-5a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 02:23 UTC","Windows - Estacoes - Global
+14 Jan 26 02:32 UTC","platform_default
+01 Dec 25 19:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+01 Dec 25 19:11 UTC"
+SIC_114_4349_00,34f3196daee247ffb5dbfdc05abc1526,2026-02-02T13:23:54Z,2025-11-17T11:59:56Z,Windows,Windows 11,Workstation,10.14.28.57,189.75.104.70,90-8d-6e-8a-78-00,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",kathlina4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:20 UTC","Windows - Estacoes - Global
+14 Jan 26 12:17 UTC","platform_default
+17 Nov 25 12:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+17 Nov 25 12:10 UTC"
+SIC_11_4349_00,65ec52f5f0a44f4190a1434c43008649,2026-02-02T13:09:01Z,2023-11-28T12:08:47Z,Windows,Windows 11,Workstation,192.168.28.35,189.75.104.70,ac-5a-fc-3b-57-db,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",admin.murilo,"Protecao fase 3 - Global Windows
+14 Jan 26 13:02 UTC","Windows - Estacoes - Global
+14 Jan 26 13:08 UTC","platform_default
+17 Apr 25 12:24 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:30 UTC"
+SIC_11_4349_06,9fc1561f483e4dcc8abc06a3558bdd78,2026-01-16T13:58:25Z,2026-01-16T13:36:48Z,Windows,Windows 10,Workstation,192.168.1.94,138.118.1.31,84-7b-eb-fa-d2-47,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+16 Jan 26 13:50 UTC","Windows - Estacoes - Global
+16 Jan 26 13:55 UTC","platform_default
+16 Jan 26 13:39 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+16 Jan 26 13:45 UTC"
+SIC_120_4349_00,5817c18259b844f7bf0561b7cad41fc8,2026-02-02T13:06:16Z,2025-12-15T15:37:35Z,Windows,Windows 11,Workstation,10.14.75.50,138.118.2.250,c8-4b-d6-0c-40-05,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",amandao4349_08,"Protecao fase 3 - Global Windows
+14 Jan 26 11:49 UTC","Windows - Estacoes - Global
+14 Jan 26 12:12 UTC","platform_default
+15 Dec 25 15:42 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+15 Dec 25 17:19 UTC"
+SIC_127_4349_00,50345b6ca889489e9a2f42c8879a23ae,2026-02-02T13:22:38Z,2023-11-01T13:08:24Z,Windows,Windows 10,Workstation,10.14.28.134,189.75.104.70,c8-4b-d6-07-ce-e0,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",julianoe4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:25 UTC","Windows - Estacoes - Global
+14 Jan 26 12:20 UTC","platform_default
+17 Apr 25 12:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:52 UTC"
+SIC_12_4349_00,3d263d18cd6542469e5a8b0fea86c579,2026-02-02T12:38:30Z,2025-09-30T16:22:21Z,Windows,Windows 11,Workstation,10.14.188.51,45.231.20.47,f4-ee-08-be-4a-b5,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",thalesd4349_10,"Protecao fase 3 - Global Windows
+14 Jan 26 04:09 UTC","Windows - Estacoes - Global
+14 Jan 26 11:18 UTC","platform_default
+30 Sep 25 16:25 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+30 Sep 25 16:26 UTC"
+SIC_12_4349_01,81ca0981bb9b4a9b8928488c9bbba5e3,2026-02-02T12:54:21Z,2023-12-14T20:23:52Z,Windows,Windows 10,Workstation,10.14.46.57,138.118.3.62,34-73-5a-fc-9e-3e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",maysaa4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 13:38 UTC","Windows - Estacoes - Global
+14 Jan 26 13:35 UTC","platform_default
+25 Apr 25 14:53 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 20:11 UTC"
+SIC_12_4349_06,666b7daf13ae4f0bbf2a8ff8e08303d9,2026-01-30T21:16:24Z,2025-10-28T12:32:06Z,Windows,Windows 11,Workstation,192.168.28.35,189.75.104.70,5c-cd-5b-8f-07-cd,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:43 UTC","platform_default
+28 Oct 25 12:33 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+28 Oct 25 12:35 UTC"
+SIC_130_4349_00,db2519a856204de081f9b802f33e7a75,2026-02-02T13:09:10Z,2024-11-13T18:58:28Z,Windows,Windows 10,Workstation,10.14.28.124,189.75.104.70,d0-94-66-b4-5c-07,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",micheleg4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 12:13 UTC","Windows - Estacoes - Global
+14 Jan 26 12:17 UTC","platform_default
+17 Apr 25 12:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+13 Nov 24 19:03 UTC"
+SIC_136_4349_00,57c77426d670475d95e936ffb3411a01,2026-02-02T13:19:12Z,2024-01-16T13:53:55Z,Windows,Windows 11,Workstation,10.14.28.54,189.75.104.70,b4-45-06-43-89-74,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pedrom4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:54 UTC","Windows - Estacoes - Global
+14 Jan 26 12:54 UTC","platform_default
+17 Apr 25 11:56 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+28 Aug 24 14:17 UTC"
+SIC_13_4349_00,05932a687e3d4639a5acba3ec6f7b2ee,2026-02-02T13:17:11Z,2025-08-05T19:54:25Z,Windows,Windows 11,Workstation,192.168.137.1,189.75.104.70,5e-cd-5b-e1-3f-07,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",joyces4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 02:38 UTC","Windows - Estacoes - Global
+14 Jan 26 02:43 UTC","platform_default
+05 Aug 25 19:56 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+05 Aug 25 19:57 UTC"
+SIC_13_4349_02,3af3326ab9e74827979d4aeb62153274,2026-02-02T13:24:07Z,2023-11-27T11:20:09Z,Windows,Windows 10,Workstation,10.14.21.52,45.231.20.62,d0-94-66-cf-47-39,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",admin.murilo,"Protecao fase 3 - Global Windows
+13 Jan 26 23:28 UTC","Windows - Estacoes - Global
+14 Jan 26 00:44 UTC","platform_default
+17 Apr 25 09:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:45 UTC"
+SIC_14_4349_00,efbef8fa1cbf44ffb1e5e24d08490664,2026-02-02T12:58:53Z,2026-01-06T12:32:21Z,Windows,Windows 11,Workstation,192.168.28.18,38.3.209.47,c8-95-ce-11-ce-16,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",elineo4349_00,"Protecao fase 3 - Global Windows
+15 Jan 26 14:41 UTC","Windows - Estacoes - Global
+15 Jan 26 14:30 UTC","platform_default
+06 Jan 26 12:36 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+06 Jan 26 12:38 UTC"
+SIC_14_4349_02,a97cee3acdaf4daabd6075e33dd4448d,2026-02-02T13:01:23Z,2025-09-24T18:11:39Z,Windows,Windows 11,Workstation,10.14.21.50,45.231.20.62,d0-94-66-c6-bc-97,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",mikaellal4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 11:14 UTC","Windows - Estacoes - Global
+14 Jan 26 11:24 UTC","platform_default
+24 Sep 25 18:13 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+24 Sep 25 18:15 UTC"
+SIC_14_4349_04,fa9568f44ec548fbbb439291f4b0e584,2026-02-02T12:50:13Z,2023-12-28T03:12:56Z,Windows,Windows 11,Workstation,10.14.64.52,45.236.214.206,d0-94-66-cd-fe-d8,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",amandak4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:41 UTC","Windows - Estacoes - Global
+14 Jan 26 12:10 UTC","platform_default
+17 Apr 25 11:14 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:23 UTC"
+SIC_14_4349_06,6f9818be00484f35afa95f6abff14403,2026-02-02T13:00:33Z,2025-06-27T18:18:18Z,Windows,Windows 10,Workstation,10.14.28.132,189.75.104.70,00-be-43-cb-0f-9a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:18 UTC","platform_default
+27 Jun 25 18:23 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+27 Jun 25 18:23 UTC"
+SIC_15_4349_00,5106794aa687498c9504ef7f2fe72a4d,2026-01-24T14:47:48Z,2025-04-16T19:19:03Z,Windows,Windows 11,Workstation,10.14.28.52,189.75.104.70,d0-94-66-b4-30-b8,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",juzilener4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:08 UTC","Windows - Estacoes - Global
+14 Jan 26 12:23 UTC","platform_default
+17 Apr 25 12:05 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+16 Apr 25 19:31 UTC"
+SIC_15_4349_02,e01072903f58413ea77ee52346af124a,2026-02-02T12:59:55Z,2025-09-25T17:33:40Z,Windows,Windows 11,Workstation,10.14.28.55,189.75.104.70,34-73-5a-fc-9a-21,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",jessicac4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 14:04 UTC","Windows - Estacoes - Global
+14 Jan 26 12:11 UTC","platform_default
+25 Sep 25 17:40 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Sep 25 17:55 UTC"
+SIC_15_4349_04,12c65e44f202488aa9dd9ed7bac9c5c8,2026-02-02T13:08:32Z,2025-05-15T11:07:21Z,Windows,Windows 11,Workstation,10.14.64.67,45.236.214.206,d0-94-66-cd-fd-3c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",Ceilianep4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:37 UTC","Windows - Estacoes - Global
+14 Jan 26 11:41 UTC","platform_default
+15 May 25 11:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+15 May 25 11:09 UTC"
+SIC_15_4349_06,dae2d6127afd4566a9f5555c1110d96f,2026-02-02T13:14:22Z,2025-10-01T17:24:22Z,Windows,Windows 11,Workstation,10.14.28.53,189.75.104.70,00-be-43-c6-ea-12,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",brunnaa4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 11:25 UTC","Windows - Estacoes - Global
+14 Jan 26 11:32 UTC","platform_default
+01 Oct 25 17:29 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+01 Oct 25 20:09 UTC"
+SIC_16_4349_00,30f28591423d47dabf106e36622ce0b1,2026-02-02T12:56:54Z,2025-07-14T19:42:14Z,Windows,Windows 11,Workstation,10.14.193.50,201.140.221.21,2c-ea-7f-0a-ba-f5,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",gustavol4349_15,"Protecao fase 3 - Global Windows
+13 Jan 26 23:22 UTC","Windows - Estacoes - Global
+14 Jan 26 12:17 UTC","platform_default
+14 Jul 25 19:43 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+14 Jul 25 19:45 UTC"
+SIC_16_4349_06,88df061f241244d284cbdc16e0714813,2026-02-02T13:23:19Z,2025-10-03T18:43:07Z,Windows,Windows 11,Workstation,10.14.28.56,189.75.104.70,d0-94-66-aa-20-6e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",diogog4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:13 UTC","Windows - Estacoes - Global
+14 Jan 26 12:16 UTC","platform_default
+03 Oct 25 18:43 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+03 Oct 25 18:44 UTC"
+SIC_17_4349_00,df666ff341834575b07ffa3e723f2ff9,2026-02-02T13:16:23Z,2024-01-15T16:49:18Z,Windows,Windows 10,Workstation,192.168.93.7,138.118.3.55,5c-cd-5b-da-b8-a3,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",amandac4349_00,"Protecao fase 3 - Global Windows
+15 Jan 26 14:04 UTC","Windows - Estacoes - Global
+15 Jan 26 14:08 UTC","platform_default
+17 Apr 25 00:34 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:34 UTC"
+SIC_17_4349_01,b581ec29be5b4bf381952e36c03894ed,2026-02-02T12:47:19Z,2023-12-28T12:01:10Z,Windows,Windows 10,Workstation,192.168.46.7,138.118.3.62,00-d7-6d-95-38-f0,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",brunog4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:31 UTC","Windows - Estacoes - Global
+14 Jan 26 12:46 UTC","platform_default
+17 Apr 25 12:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:34 UTC"
+SIC_17_4349_04,25ed7f0394fa4614b6b433ee8566dd81,2026-01-27T11:17:11Z,2023-11-01T15:36:46Z,Windows,Windows 10,Workstation,10.14.64.59,45.236.214.206,d0-94-66-aa-1e-cc,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",byllenc4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:51 UTC","Windows - Estacoes - Global
+14 Jan 26 11:46 UTC","platform_default
+22 Apr 25 11:54 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:31 UTC"
+SIC_17_4349_06,7d082f9f07cc42d6861481c3228a9155,2025-12-19T20:02:39Z,2025-09-22T20:01:10Z,Windows,Windows 11,Workstation,192.168.192.2,177.23.184.152,64-32-a8-3c-66-b7,7.31.20309.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",julioh4349_06,"Protecao fase 3 - Global Windows
+02 Oct 25 15:19 UTC","Windows - Estacoes - Global
+09 Dec 25 21:33 UTC","platform_default
+22 Sep 25 20:02 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+22 Sep 25 20:04 UTC"
+SIC_18_4349_00,2e6698118fe64ecb9381c3fcb42fef8e,2026-02-02T13:19:04Z,2025-12-29T13:27:04Z,Windows,Windows 11,Workstation,10.14.28.106,189.75.104.70,3c-2c-30-ad-44-23,7.32.20403.0,"Estacoes-4349,Excecao-usb","SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",jessikav4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 16:31 UTC","Windows - Estacoes - Global
+14 Jan 26 20:14 UTC","platform_default
+29 Dec 25 13:32 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+29 Dec 25 13:34 UTC"
+SIC_18_4349_02,6a7bec91d9784ee69983cf5557e13a9e,2026-02-02T13:22:24Z,2024-12-23T13:57:01Z,Windows,Windows 10,Workstation,10.14.21.66,45.231.20.62,d0-94-66-cf-47-aa,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",caiom4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 11:11 UTC","Windows - Estacoes - Global
+14 Jan 26 11:11 UTC","platform_default
+17 Apr 25 09:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+23 Dec 24 14:01 UTC"
+SIC_18_4349_06,0d15db299abc412dad1837dc1d74d81e,2026-02-02T13:21:35Z,2023-11-27T21:08:50Z,Windows,Windows 10,Workstation,10.14.28.98,189.75.104.70,8c-04-ba-a5-b1-cc,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",alined4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 12:10 UTC","Windows - Estacoes - Global
+14 Jan 26 12:27 UTC","platform_default
+17 Apr 25 14:57 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:42 UTC"
+SIC_19_4349_00,3cf0a0e8e6954835946ea24c01080835,2026-02-02T12:48:17Z,2025-11-18T16:29:45Z,Windows,Windows 11,Workstation,10.12.28.52,189.75.104.70,a4-bb-6d-7c-50-09,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",inhd4349_00,"Protecao fase 3 - Global Windows
+13 Jan 26 23:27 UTC","Windows - Estacoes - Global
+14 Jan 26 01:17 UTC","platform_default
+18 Nov 25 16:31 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+18 Nov 25 16:31 UTC"
+SIC_19_4349_02,65a81b6cfedb4100b2a5f94bfb9d3589,2026-02-02T13:16:32Z,2023-11-01T14:49:18Z,Windows,Windows 10,Workstation,10.14.21.67,45.231.20.62,d0-94-66-cf-42-4b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",lucelyg4349_02,"Protecao fase 3 - Global Windows
+13 Jan 26 23:27 UTC","Windows - Estacoes - Global
+14 Jan 26 01:11 UTC","platform_default
+17 Apr 25 11:13 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:33 UTC"
+SIC_19_4349_04,02a45f93d7fd4739a0efb6a282016b84,2026-02-02T12:30:58Z,2023-11-01T15:33:46Z,Windows,Windows 11,Workstation,10.14.64.50,45.236.214.206,d0-94-66-c0-ae-4c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",flaviag4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:37 UTC","Windows - Estacoes - Global
+14 Jan 26 11:39 UTC","platform_default
+17 Apr 25 11:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:43 UTC"
+SIC_19_4349_06,0847d95c40764e55baf5505ca03eb164,2026-02-02T12:17:14Z,2025-02-21T13:23:21Z,Windows,Windows 10,Workstation,10.14.21.60,45.231.20.62,b4-45-06-43-6b-de,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",stephanyv4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 11:49 UTC","Windows - Estacoes - Global
+14 Jan 26 11:49 UTC","platform_default
+23 Apr 25 09:11 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+21 Feb 25 13:24 UTC"
+SIC_200_4349_00,8fb7b4c72cf74f328236ec5c78bcfa4e,2026-01-28T19:13:03Z,2025-11-26T14:04:55Z,Windows,Windows 11,Workstation,192.168.1.52,138.118.1.31,1c-61-b4-15-d7-ea,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",inhd4349_00,"Protecao fase 3 - Global Windows
+13 Jan 26 23:30 UTC","Windows - Estacoes - Global
+14 Jan 26 00:06 UTC","platform_default
+26 Nov 25 14:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Nov 25 14:10 UTC"
+SIC_20_4349_00,50b209c79f504f04885e5528ba5624db,2026-02-02T13:14:56Z,2025-02-25T20:37:12Z,Windows,Windows 11,Workstation,10.14.28.64,189.75.104.70,f0-d4-e2-f6-c2-b5,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",catiae4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:10 UTC","Windows - Estacoes - Global
+14 Jan 26 12:12 UTC","platform_default
+17 Apr 25 12:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+25 Feb 25 20:41 UTC"
+SIC_20_4349_04,f9ab84e53fa7490baba3b5800ae96c5a,2026-02-02T13:19:19Z,2025-05-19T19:47:17Z,Windows,Windows 10,Workstation,192.168.21.1,45.231.20.62,5c-cd-5b-81-be-4c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",UMFD-0,"Protecao fase 3 - Global Windows
+14 Jan 26 12:02 UTC","Windows - Estacoes - Global
+14 Jan 26 12:04 UTC","platform_default
+11 Jun 25 18:31 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+11 Jun 25 18:33 UTC"
+SIC_21_4349_00,c13ea78f8a8e4959b2c042815ac0c979,2026-02-02T13:12:58Z,2025-12-09T19:44:22Z,Windows,Windows 11,Workstation,192.168.28.23,189.75.104.70,30-89-4a-04-b8-34,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",pedroa4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:20 UTC","Windows - Estacoes - Global
+14 Jan 26 12:23 UTC","platform_default
+09 Dec 25 19:46 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Dec 25 19:48 UTC"
+SIC_21_4349_04,4739d4f9f12048dd8872284eacd01fb7,2026-02-02T13:16:21Z,2024-03-04T20:28:34Z,Windows,Windows 10,Workstation,10.14.64.69,45.236.214.206,74-86-e2-dc-06-b7,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",karitap4349_04,"Protecao fase 3 - Global Windows
+14 Jan 26 11:35 UTC","Windows - Estacoes - Global
+14 Jan 26 11:56 UTC","platform_default
+17 Apr 25 12:40 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:33 UTC"
+SIC_22_4349_00,0e538ee866784921bc3e5818caa0f21d,2026-02-02T13:14:27Z,2025-08-08T19:46:05Z,Windows,Windows 11,Workstation,192.168.28.37,189.75.104.70,00-d7-6d-6e-a8-4d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",isadorab4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:36 UTC","Windows - Estacoes - Global
+14 Jan 26 12:36 UTC","platform_default
+08 Aug 25 19:52 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 25 19:54 UTC"
+SIC_22_4349_06,538f11d147f74f9ebd693a572e9e70f4,2026-02-02T12:59:55Z,2026-01-27T12:33:07Z,Windows,Windows 10,Workstation,192.168.28.55,189.75.104.70,00-d7-6d-7c-46-dd,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",fabianem4349_06,"Protecao fase 3 - Global Windows
+27 Jan 26 12:49 UTC","Windows - Estacoes - Global
+27 Jan 26 12:58 UTC","platform_default
+27 Jan 26 12:36 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+27 Jan 26 12:40 UTC"
+SIC_23_4349_00,b7434827dd6b4e498b4dc52e9ee06878,2026-02-02T12:32:40Z,2023-10-31T21:26:03Z,Windows,Windows 10,Workstation,192.168.28.26,189.75.104.70,5c-cd-5b-56-96-b8,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",samaran4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:02 UTC","Windows - Estacoes - Global
+14 Jan 26 11:54 UTC","platform_default
+17 Apr 25 12:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:43 UTC"
+SIC_23_4349_02,81278ed6f8fb43318081e2a0cf2de336,2026-02-02T13:16:07Z,2023-11-01T14:48:52Z,Windows,Windows 10,Workstation,10.14.21.117,45.231.20.62,00-be-43-c6-f0-06,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",hyanm4349_02,"Protecao fase 3 - Global Windows
+13 Jan 26 23:30 UTC","Windows - Estacoes - Global
+14 Jan 26 00:36 UTC","platform_default
+17 Apr 25 09:05 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Aug 24 13:44 UTC"
+SIC_24_4349_00,91089b71c7dc4351bd177803efa8f0f4,2026-02-02T13:03:19Z,2024-08-02T11:56:48Z,Windows,Windows 10,Workstation,10.14.28.103,189.75.104.70,d0-94-66-cb-3a-4d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",deboras4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:17 UTC","Windows - Estacoes - Global
+14 Jan 26 12:44 UTC","platform_default
+22 Apr 25 11:47 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:47 UTC"
+SIC_24_4349_02,fa24727b3a3a472fae8c46a7d9c300c8,2026-02-02T13:03:51Z,2024-06-17T19:48:01Z,Windows,Windows 10,Workstation,10.14.21.114,45.231.20.62,74-86-e2-db-d3-4c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",isisd4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 14:19 UTC","Windows - Estacoes - Global
+14 Jan 26 14:51 UTC","platform_default
+17 Apr 25 09:05 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:26 UTC"
+SIC_25_4349_00,93a5c70b94c84b3f8cb730ed37083a12,2026-02-02T12:59:20Z,2026-01-06T17:23:53Z,Windows,Windows 11,Workstation,10.14.28.74,189.75.104.70,6c-3c-8c-1b-9c-78,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",adalbertol4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:01 UTC","Windows - Estacoes - Global
+14 Jan 26 14:19 UTC","platform_default
+06 Jan 26 17:30 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+06 Jan 26 17:32 UTC"
+SIC_25_4349_02,0acbd927e3e54aa1bd37dcc97ba1362a,2026-02-02T13:11:06Z,2023-11-24T11:22:19Z,Windows,Windows 10,Workstation,10.14.21.115,45.231.20.62,74-86-e2-db-c8-40,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",wallyssonj4349_02,"Protecao fase 3 - Global Windows
+13 Jan 26 23:28 UTC","Windows - Estacoes - Global
+14 Jan 26 01:59 UTC","platform_default
+17 Apr 25 11:14 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:29 UTC"
+SIC_26_4349_00,333d4ce7240a4ee49fd45cd099936087,2026-02-02T13:01:07Z,2026-01-08T14:57:11Z,Windows,Windows 11,Workstation,192.168.140.2,168.228.39.239,c8-95-ce-10-f9-c3,7.32.20403.0,Estacoes-4349,,regisr4349_17,"Protecao fase 3 - Global Windows
+19 Jan 26 13:43 UTC","Windows - Estacoes - Global
+19 Jan 26 13:29 UTC","platform_default
+08 Jan 26 15:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Jan 26 15:00 UTC"
+SIC_26_4349_02,66a6ef429a614839b96e73a93856a435,2026-02-02T13:06:28Z,2023-11-24T11:00:08Z,Windows,Windows 10,Workstation,10.14.21.59,45.231.20.62,74-86-e2-db-d3-28,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",leticias4349_02,"Protecao fase 3 - Global Windows
+14 Jan 26 11:37 UTC","Windows - Estacoes - Global
+14 Jan 26 11:39 UTC","platform_default
+17 Apr 25 11:12 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:27 UTC"
+SIC_26_4349_06,5fa6db20e8414fe2b714157434a503d0,2026-02-02T13:16:33Z,2023-11-24T12:04:45Z,Windows,Windows 10,Workstation,10.14.28.149,189.75.104.70,d0-94-66-c0-ad-0e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",muriloh4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:10 UTC","Windows - Estacoes - Global
+14 Jan 26 12:41 UTC","platform_default
+17 Apr 25 11:41 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:51 UTC"
+SIC_27_4349_00,58509ddde42b43e9a1d35eb0480ce652,2026-02-02T13:12:00Z,2025-05-14T20:44:14Z,Windows,Windows 10,Workstation,10.14.28.83,189.75.104.70,d0-94-66-c6-00-9e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",adalbertol4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 11:56 UTC","Windows - Estacoes - Global
+14 Jan 26 11:59 UTC","platform_default
+14 May 25 20:54 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+14 May 25 20:55 UTC"
+SIC_27_4349_02,e3c4cefa4a344d7a924efcd0fac3a5dd,2026-02-02T13:21:38Z,2025-09-08T11:42:20Z,Windows,Windows 11,Workstation,10.14.21.53,45.231.20.62,74-86-e2-dc-0c-3d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 11:14 UTC","Windows - Estacoes - Global
+14 Jan 26 11:14 UTC","platform_default
+08 Sep 25 11:45 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Sep 25 11:51 UTC"
+SIC_28_4349_00,cdc1dfbc35a44f0ea67ab8b1ad115912,2026-02-02T13:00:14Z,2025-11-25T16:39:54Z,Windows,Windows 11,Workstation,10.14.28.59,189.75.104.70,d0-94-66-cf-46-2e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",yasminc4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:26 UTC","Windows - Estacoes - Global
+14 Jan 26 12:29 UTC","platform_default
+25 Nov 25 16:45 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+25 Nov 25 16:46 UTC"
+SIC_28_4349_02,957ecf2985bf46d68205aed0455c75d4,2026-02-02T13:19:48Z,2025-09-26T12:50:21Z,Windows,Windows 11,Workstation,192.168.28.11,189.75.104.70,00-d7-6d-6e-a0-3c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",samuac4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 00:43 UTC","Windows - Estacoes - Global
+14 Jan 26 00:39 UTC","platform_default
+26 Sep 25 12:51 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Sep 25 12:51 UTC"
+SIC_29_4349_00,2edb8727785949af9bfadc534b93d2bc,2026-02-02T13:02:23Z,2024-04-25T14:02:09Z,Windows,Windows 11,Workstation,10.14.28.67,189.75.104.70,34-73-5a-fc-9d-a9,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pablap4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:05 UTC","Windows - Estacoes - Global
+14 Jan 26 12:39 UTC","platform_default
+17 Apr 25 12:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:38 UTC"
+SIC_29_4349_06,477704c443ef4ea9abe778581b70ee15,2026-01-24T14:30:10Z,2025-09-08T14:38:11Z,Windows,Windows 10,Workstation,10.14.28.108,189.75.104.70,d0-94-66-c0-8d-e6,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",agddab4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:20 UTC","Windows - Estacoes - Global
+14 Jan 26 13:00 UTC","platform_default
+08 Sep 25 14:41 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Sep 25 14:53 UTC"
+SIC_30_4349_00,a353d3c3afda465f9ea9459ba44ec605,2026-02-02T13:21:50Z,2025-03-28T19:55:05Z,Windows,Windows 11,Workstation,10.14.28.87,189.75.104.70,d0-94-66-cc-55-03,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",SRV-RODC425609$,"Protecao fase 3 - Global Windows
+14 Jan 26 19:24 UTC","Windows - Estacoes - Global
+14 Jan 26 20:25 UTC","platform_default
+22 Apr 25 11:30 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+28 Mar 25 20:01 UTC"
+SIC_30_4349_06,7c5282be56b34b36a5dd44040850ed56,2026-01-30T21:06:39Z,2025-10-17T12:30:30Z,Windows,Windows 11,Workstation,10.14.28.51,189.75.104.70,d0-94-66-b5-0c-6c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",evlynf4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 11:52 UTC","Windows - Estacoes - Global
+14 Jan 26 11:54 UTC","platform_default
+17 Oct 25 12:32 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+17 Oct 25 12:33 UTC"
+SIC_32_4349_00,e431cf0561c84feca5c67c97819b3033,2026-02-02T13:09:04Z,2026-01-08T17:36:20Z,Windows,Windows 11,Workstation,192.168.137.1,138.118.2.23,ca-95-ce-11-4f-7c,7.32.20403.0,Estacoes-4349,,julianam4349_21,"Protecao fase 3 - Global Windows
+13 Jan 26 23:30 UTC","Windows - Estacoes - Global
+14 Jan 26 12:25 UTC","platform_default
+08 Jan 26 17:42 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Jan 26 17:44 UTC"
+SIC_33_4349_00,dd508804beda40b2ad048d902752e513,2026-01-24T17:42:19Z,2024-11-26T20:38:50Z,Windows,Windows 11,Workstation,10.14.28.75,189.75.104.70,c8-4b-d6-2b-d5-92,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",anandao4349_00,"Protecao fase 3 - Global Windows
+24 Jan 26 14:13 UTC","Windows - Estacoes - Global
+24 Jan 26 14:09 UTC","platform_default
+17 Apr 25 12:39 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Nov 24 20:48 UTC"
+SIC_33_4349_06,fcd0204a689141dfa5a30383ee3ce3bf,2026-02-02T13:21:52Z,2024-06-17T20:21:50Z,Windows,Windows 10,Workstation,10.14.28.120,189.75.104.70,d0-94-66-d4-09-73,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",admin.murilo,"Protecao fase 3 - Global Windows
+14 Jan 26 12:11 UTC","Windows - Estacoes - Global
+14 Jan 26 12:23 UTC","platform_default
+17 Apr 25 12:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:30 UTC"
+SIC_34_4349_00,3b500cbf027442e1bc994bbb30200c0a,2026-02-02T13:17:06Z,2025-12-22T17:36:35Z,Windows,Windows 11,Workstation,10.14.28.71,189.75.104.70,d4-a2-cd-29-7b-ec,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:38 UTC","Windows - Estacoes - Global
+14 Jan 26 12:30 UTC","platform_default
+22 Dec 25 17:42 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+22 Dec 25 17:43 UTC"
+SIC_34_4349_06,ea33202ee0a047ffbf42f9267c3f9676,2026-02-02T13:06:45Z,2025-10-23T14:41:38Z,Windows,Windows 11,Workstation,10.14.28.63,189.75.104.70,d0-94-66-ce-83-49,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:18 UTC","platform_default
+23 Oct 25 14:45 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+23 Oct 25 14:46 UTC"
+SIC_35_4349_00,09f41bff1a3c497594581df041820800,2026-02-02T13:05:56Z,2025-10-06T12:32:42Z,Windows,Windows 11,Workstation,10.14.46.51,138.118.3.62,d0-94-66-c6-61-de,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",gustavoj4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:40 UTC","Windows - Estacoes - Global
+14 Jan 26 12:40 UTC","platform_default
+06 Oct 25 12:36 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+06 Oct 25 12:42 UTC"
+SIC_35_4349_06,6d2f28d49d2b4f8fb92382fe801fec29,2026-02-02T13:19:21Z,2024-04-30T20:46:55Z,Windows,Windows 10,Workstation,10.14.28.100,189.75.104.70,d0-94-66-d4-09-2c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",oziell4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 11:52 UTC","Windows - Estacoes - Global
+14 Jan 26 12:10 UTC","platform_default
+17 Apr 25 12:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:46 UTC"
+SIC_36_4349_00,1494251dc5444787a5f207d5aaed6658,2026-02-02T13:18:50Z,2025-10-24T20:23:55Z,Windows,Windows 11,Workstation,192.168.28.33,189.75.104.70,5c-cd-5b-da-b2-72,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",pamelas4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:30 UTC","Windows - Estacoes - Global
+14 Jan 26 12:32 UTC","platform_default
+24 Oct 25 20:27 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+24 Oct 25 20:28 UTC"
+SIC_37_4349_00,a4705fcb31db477daa03edfb949b2b8b,2026-02-02T13:12:36Z,2025-12-09T14:25:08Z,Windows,Windows 11,Workstation,192.168.93.8,138.118.3.55,5c-cd-5b-da-b2-3b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:32 UTC","platform_default
+09 Dec 25 14:30 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Dec 25 14:32 UTC"
+SIC_38_4349_00,5d7b8070d49c49e8a7e3d627a2e58f22,2026-01-29T14:08:56Z,2023-11-01T16:46:07Z,Windows,Windows 10,Workstation,10.14.28.104,189.75.104.70,d0-94-66-bb-54-00,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",viniciusr4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:13 UTC","Windows - Estacoes - Global
+14 Jan 26 12:14 UTC","platform_default
+17 Apr 25 11:57 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:25 UTC"
+SIC_38_4349_06,c1e1dcacc7204c29b2558c87efef0515,2026-02-02T13:24:57Z,2025-10-22T18:41:51Z,Windows,Windows 11,Workstation,10.14.28.51,189.75.104.70,00-be-43-c8-1e-46,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",julianaa4349_06,"Protecao fase 3 - Global Windows
+13 Jan 26 23:39 UTC","Windows - Estacoes - Global
+14 Jan 26 00:18 UTC","platform_default
+22 Oct 25 18:44 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+22 Oct 25 18:45 UTC"
+SIC_39_4349_00,337d7faefeda4676ae2440231e6540d7,2026-02-02T13:27:14Z,2025-05-02T12:05:43Z,Windows,Windows 11,Workstation,10.14.28.77,189.75.104.70,f0-d4-e2-f0-07-3e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:14 UTC","Windows - Estacoes - Global
+14 Jan 26 12:48 UTC","platform_default
+02 May 25 12:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 May 25 12:07 UTC"
+SIC_39_4349_06,499c7db2f9e54201827c6217260d8484,2026-01-27T20:51:52Z,2023-11-01T17:57:37Z,Windows,Windows 10,Workstation,10.14.28.129,189.75.104.70,00-be-43-60-6b-2b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",marianej4349_97,"Protecao fase 3 - Global Windows
+14 Jan 26 13:10 UTC","Windows - Estacoes - Global
+14 Jan 26 22:05 UTC","platform_default
+17 Apr 25 00:21 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:45 UTC"
+SIC_40_4349_00,697082ce35f749c4a3161f4fbc30dc28,2026-02-02T13:07:10Z,2025-08-25T18:10:59Z,Windows,Windows 10,Workstation,10.14.28.82,189.75.104.70,d0-94-66-cd-74-73,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",laryssap4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:33 UTC","Windows - Estacoes - Global
+14 Jan 26 12:40 UTC","platform_default
+25 Aug 25 18:16 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Aug 25 12:49 UTC"
+SIC_40_4349_06,0b9771d2cbe04167abbd1cad214397d6,2026-02-02T13:25:19Z,2024-04-30T21:00:01Z,Windows,Windows 11,Workstation,192.168.28.10,189.75.104.70,00-d7-6d-7e-63-50,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",carlar4349_00,"Protecao fase 3 - Global Windows
+26 Jan 26 14:14 UTC","Windows - Estacoes - Global
+26 Jan 26 14:43 UTC","platform_default
+17 Apr 25 12:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:32 UTC"
+SIC_41_4349_00,06c99d352fbb4f8e908f3bdb48183255,2026-02-02T13:12:17Z,2025-03-26T19:46:07Z,Windows,Windows 11,Workstation,10.14.28.91,189.75.104.70,d0-94-66-d4-09-0b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",gabrielas4349_00,"Protecao fase 3 - Global Windows
+15 Jan 26 12:23 UTC","Windows - Estacoes - Global
+15 Jan 26 13:01 UTC","platform_default
+17 Apr 25 11:55 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Mar 25 19:50 UTC"
+SIC_41_4349_06,6d40c8b1df2e41808cd59cad6f9c754d,2026-02-02T13:18:47Z,2025-03-10T18:22:22Z,Windows,Windows 10,Workstation,192.168.28.6,189.75.104.70,00-d7-6d-7e-6b-61,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",fabianem4349_06,"Protecao fase 3 - Global Windows
+13 Jan 26 23:39 UTC","Windows - Estacoes - Global
+14 Jan 26 01:00 UTC","platform_default
+17 Apr 25 16:27 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+10 Mar 25 18:24 UTC"
+SIC_42_4349_00,4c40e12bf2d743198626aa7bb5d8c8d6,2026-02-02T13:17:32Z,2025-03-27T17:12:58Z,Windows,Windows 11,Workstation,10.14.28.58,189.75.104.70,d0-94-66-ce-80-a4,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pietraa4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:17 UTC","Windows - Estacoes - Global
+14 Jan 26 12:21 UTC","platform_default
+17 Apr 25 12:04 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+27 Mar 25 17:16 UTC"
+SIC_42_4349_06,fa75645b781d4e2193451890a8ec98e3,2026-02-02T13:03:20Z,2025-03-17T12:45:28Z,Windows,Windows 11,Workstation,192.168.28.47,189.75.104.70,5c-cd-5b-da-b8-7b,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",maysaa4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 12:39 UTC","Windows - Estacoes - Global
+14 Jan 26 12:58 UTC","platform_default
+17 Apr 25 07:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+17 Mar 25 12:48 UTC"
+SIC_44_4349_00,2a92ca317bc440aabd270f3482734fbc,2026-02-02T12:55:49Z,2025-03-28T14:58:54Z,Windows,Windows 10,Workstation,10.14.28.114,189.75.104.70,d0-94-66-c5-d7-c6,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",fabianam4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:13 UTC","Windows - Estacoes - Global
+14 Jan 26 12:04 UTC","platform_default
+17 Apr 25 11:54 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+28 Mar 25 15:02 UTC"
+SIC_46_4349_00,a5806f757c3146279e9a4bd8287574c3,2026-01-28T18:31:06Z,2026-01-08T16:52:25Z,Windows,Windows 11,Workstation,192.168.28.50,189.75.104.70,c8-95-ce-10-90-e6,7.32.20403.0,Estacoes-4349,,pedrom4349_00,"Protecao fase 3 - Global Windows
+27 Jan 26 12:56 UTC","Windows - Estacoes - Global
+27 Jan 26 12:17 UTC","platform_default
+08 Jan 26 16:55 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Jan 26 16:56 UTC"
+SIC_47_4349_00,eec350e0ef604e198236084039f43e5a,2026-02-02T13:11:16Z,2025-03-25T21:05:40Z,Windows,Windows 10,Workstation,10.14.28.127,189.75.104.70,c8-4b-d6-07-58-cb,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pedrom4349_00,"Protecao fase 3 - Global Windows
+26 Jan 26 14:53 UTC","Windows - Estacoes - Global
+26 Jan 26 14:53 UTC","platform_default
+22 Apr 25 12:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+25 Mar 25 21:09 UTC"
+SIC_48_4349_00,455e14ebcb91499d80901174529b78bb,2026-02-02T13:25:08Z,2026-01-08T20:42:41Z,Windows,Windows 11,Workstation,10.14.28.73,189.75.104.70,84-5c-31-e3-fe-40,7.32.20403.0,Estacoes-4349,,karinas4349_97,"Protecao fase 3 - Global Windows
+26 Jan 26 20:38 UTC","Windows - Estacoes - Global
+26 Jan 26 20:40 UTC","platform_default
+08 Jan 26 20:47 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Jan 26 20:48 UTC"
+SIC_50_4349_00,93fa3fef2abd428986b3e03c51976d04,2026-02-02T13:10:05Z,2023-11-24T12:04:23Z,Windows,Windows 11,Workstation,10.14.28.92,189.75.104.70,00-be-43-c8-1e-4c,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",pamelas4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:25 UTC","Windows - Estacoes - Global
+14 Jan 26 12:19 UTC","platform_default
+17 Apr 25 12:14 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:47 UTC"
+SIC_51_4349_00,e221ae868a9f40de9c5fc726cb430b76,2026-01-30T21:19:23Z,2024-06-25T13:10:42Z,Windows,Windows 10,Workstation,192.168.46.6,138.118.3.62,5c-cd-5b-ea-36-98,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",arthurf4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:42 UTC","Windows - Estacoes - Global
+14 Jan 26 12:30 UTC","platform_default
+17 Apr 25 12:09 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:28 UTC"
+SIC_52_4349_00,972aa707fe3d41928764f870e2ee868f,2026-02-02T13:10:56Z,2023-12-13T04:05:35Z,Windows,Windows 10,Workstation,10.14.28.101,189.75.104.70,74-86-e2-db-d1-b2,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",lucasl4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:34 UTC","Windows - Estacoes - Global
+14 Jan 26 12:39 UTC","platform_default
+17 Apr 25 12:04 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:30 UTC"
+SIC_53_4349_00,c0aab10eac964ea79fbef64383a41dc3,2026-01-27T21:14:44Z,2026-01-13T13:57:55Z,Windows,Windows 11,Workstation,10.14.28.58,189.75.104.70,d4-a2-cd-29-7b-ed,7.32.20403.0,Estacoes-4349,,rafaelas4349_97,"Protecao fase 3 - Global Windows
+22 Jan 26 19:39 UTC","Windows - Estacoes - Global
+27 Jan 26 12:10 UTC","platform_default
+13 Jan 26 14:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+13 Jan 26 14:01 UTC"
+SIC_54_4349_00,413a1bb067d5402ba258742aafa1b77a,2026-01-30T21:18:00Z,2024-06-12T14:12:06Z,Windows,Windows 11,Workstation,192.168.93.1,138.118.3.55,00-d7-6d-4c-1c-51,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",deboraf4349_03,"Protecao fase 3 - Global Windows
+13 Jan 26 23:51 UTC","Windows - Estacoes - Global
+14 Jan 26 00:07 UTC","platform_default
+17 Apr 25 09:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:25 UTC"
+SIC_55_4349_00,aeaa607c981946b1b4c411d0a9007ab4,2026-01-30T22:31:36Z,2025-12-11T18:27:43Z,Windows,Windows 11,Workstation,192.168.18.24,138.118.1.47,c8-95-ce-11-d6-4f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",wedersona4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 13:24 UTC","Windows - Estacoes - Global
+14 Jan 26 13:30 UTC","platform_default
+11 Dec 25 18:29 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+11 Dec 25 18:31 UTC"
+SIC_56_4349_00,a7d1db1c4dc94b3d9a8829800cf643c1,2026-01-27T19:46:05Z,2026-01-13T18:37:37Z,Windows,Windows 11,Workstation,10.14.28.52,189.75.104.70,d4-a2-cd-2a-3f-77,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",giovannac4349_97,"Protecao fase 3 - Global Windows
+27 Jan 26 12:18 UTC","Windows - Estacoes - Global
+27 Jan 26 12:12 UTC","platform_default
+13 Jan 26 18:41 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+13 Jan 26 18:43 UTC"
+SIC_57_4349_00,0a16096526274951bdaa483c7a2158c9,2026-02-02T13:24:47Z,2026-01-12T17:44:14Z,Windows,Windows 11,Workstation,10.14.28.85,189.75.104.70,d0-94-66-a7-fb-04,7.32.20403.0,Estacoes-4349,,rafaela4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:33 UTC","Windows - Estacoes - Global
+14 Jan 26 12:31 UTC","platform_default
+12 Jan 26 17:46 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Jan 26 17:48 UTC"
+SIC_59_4349_00,ea70bca75cd342fd91ab62d820f50c42,2026-01-20T18:53:55Z,2025-12-12T18:20:17Z,Windows,Windows 11,Workstation,10.14.28.125,138.118.1.31,b4-45-06-33-1c-09,7.16.18608.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+Changes pending",No policy,"platform_default
+12 Dec 25 18:27 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Dec 25 18:29 UTC"
+SIC_60_4349_00,e180a48e57a84e98a293bd30ac0e297b,2026-02-02T13:23:32Z,2023-10-31T21:11:17Z,Windows,Windows 11,Workstation,10.14.24.51,177.130.29.68,b4-45-06-37-81-77,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",adrianap4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 11:24 UTC","Windows - Estacoes - Global
+14 Jan 26 11:26 UTC","platform_default
+17 Apr 25 11:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Aug 24 10:59 UTC"
+SIC_61_4349_00,74a47885cffe4bb7a227549b27fd6f69,2026-02-02T13:10:32Z,2024-11-25T13:44:04Z,Windows,Windows 10,Workstation,192.168.93.5,138.118.3.55,00-d7-6d-6a-56-0d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",brunar4349_03,"Protecao fase 3 - Global Windows
+14 Jan 26 11:56 UTC","Windows - Estacoes - Global
+14 Jan 26 11:59 UTC","platform_default
+17 Apr 25 15:12 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+25 Nov 24 13:48 UTC"
+SIC_62_4349_00,566372ff3d3e466d9ed56ece8382fece,2026-01-30T21:05:50Z,2026-01-21T16:43:15Z,Windows,Windows 11,Workstation,192.168.1.100,2804:250c:1009:af00:35e5:b14b:344e:dc85,c8-95-ce-11-9d-38,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",higork4349_03,"Protecao fase 3 - Global Windows
+27 Jan 26 12:25 UTC","Windows - Estacoes - Global
+27 Jan 26 12:17 UTC","platform_default
+21 Jan 26 16:47 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+21 Jan 26 16:49 UTC"
+SIC_63_4349_00,10b7de36f9a34f8ba4c7a1758f97dc6e,2026-02-02T13:18:18Z,2023-12-20T13:33:59Z,Windows,Windows 10,Workstation,10.14.28.128,189.75.104.70,b4-45-06-43-64-a4,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",lucasi4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:13 UTC","Windows - Estacoes - Global
+22 Jan 26 15:01 UTC","platform_default
+17 Apr 25 12:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:50 UTC"
+SIC_64_4349_00,555a39767734463094f67054d25dd32a,2026-02-02T13:24:01Z,2023-11-01T13:00:08Z,Windows,Windows 11,Workstation,10.14.142.52,138.118.2.184,b4-45-06-43-64-ac,7.28.20008.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",joaop4349_12,"Protecao fase 3 - Global Windows
+14 Jan 26 13:15 UTC","Windows - Estacoes - Global
+Changes pending","platform_default
+17 Apr 25 12:02 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 20:35 UTC"
+SIC_65_4349_00,9b75e2c3c21d4f228fc8383185436b1d,2026-02-02T13:26:24Z,2025-12-23T13:21:44Z,Windows,Windows 11,Workstation,192.168.28.31,189.75.104.70,30-89-4a-04-e7-28,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",pedrom4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:11 UTC","Windows - Estacoes - Global
+14 Jan 26 12:14 UTC","platform_default
+23 Dec 25 13:24 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+23 Dec 25 13:25 UTC"
+SIC_65_4349_00,afaf7dc4b2ea4ebc89751f5e75cebc1d,2025-12-22T07:46:54Z,2025-05-29T13:36:06Z,Windows,Windows 11,Workstation,192.168.28.30,189.75.104.70,30-89-4a-04-e7-28,7.31.20309.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",isadorab4349_00,"Protecao fase 3 - Global Windows
+02 Oct 25 18:29 UTC","Windows - Estacoes - Global
+09 Dec 25 20:10 UTC","platform_default
+29 May 25 15:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+29 May 25 15:00 UTC"
+SIC_66_4349_00,4f078e8abca54c2c880a6854e5544abb,2026-02-02T13:14:41Z,2025-10-07T18:02:02Z,Windows,Windows 11,Workstation,192.168.28.3,189.75.104.70,00-d7-6d-6e-b0-22,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",cassiaa4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 12:42 UTC","Windows - Estacoes - Global
+14 Jan 26 13:15 UTC","platform_default
+07 Oct 25 18:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+07 Oct 25 18:07 UTC"
+SIC_67_4349_00,cf46c17ed72e487b91a6532eb8e05b4c,2026-02-02T13:11:37Z,2025-06-09T17:00:31Z,Windows,Windows 11,Workstation,10.14.94.50,45.231.20.46,34-73-5a-fc-9e-bd,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",claudemirs4349_07,"Protecao fase 3 - Global Windows
+14 Jan 26 11:14 UTC","Windows - Estacoes - Global
+14 Jan 26 11:41 UTC","platform_default
+09 Jun 25 17:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Jun 25 17:03 UTC"
+SIC_68_4349_00,0b41514c4c114ae3a6de3bdcf36919dc,2026-02-02T13:15:34Z,2023-11-01T11:54:57Z,Windows,Windows 10,Workstation,10.14.28.131,189.75.104.70,b4-45-06-43-94-6a,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",sinthiaa4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 11:45 UTC","Windows - Estacoes - Global
+14 Jan 26 11:47 UTC","platform_default
+17 Apr 25 11:57 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:26 UTC"
+SIC_69_4349_00,7ab266c4c6fd4c91b2651cf34e539a4b,2026-01-16T13:53:07Z,2025-05-02T18:47:08Z,Windows,Windows 10,Workstation,10.14.28.102,189.75.104.70,d0-94-66-a9-fa-2f,7.31.20309.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+Changes pending","Windows - Estacoes - Global
+Changes pending","platform_default
+02 May 25 18:50 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 May 25 18:50 UTC"
+SIC_70_4349_00,6b9a018758c64ca5963adb9ae8b4a58c,2026-01-30T18:22:18Z,2023-11-03T13:51:14Z,Windows,Windows 10,Workstation,10.14.94.52,45.231.20.46,b4-45-06-43-82-f0,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",luannam4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 13:28 UTC","Windows - Estacoes - Global
+14 Jan 26 13:59 UTC","platform_default
+19 Apr 25 22:56 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Aug 24 12:39 UTC"
+SIC_71_4349_00,27e41511112f440495868148a7ae1658,2026-02-02T12:58:37Z,2025-05-20T16:55:12Z,Windows,Windows 10,Workstation,10.14.46.56,138.118.3.62,d0-94-66-ac-26-03,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",guilhermec4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 13:13 UTC","Windows - Estacoes - Global
+14 Jan 26 12:49 UTC","platform_default
+20 May 25 17:00 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+20 May 25 17:00 UTC"
+SIC_72_4349_00,e730d5fac2b141edb3d8b998c4df1844,2026-02-02T13:22:21Z,2023-10-31T21:17:52Z,Windows,Windows 10,Workstation,10.14.28.113,189.75.104.70,b4-45-06-43-89-68,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",fabianas4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:05 UTC","Windows - Estacoes - Global
+14 Jan 26 12:54 UTC","platform_default
+17 Apr 25 13:36 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:25 UTC"
+SIC_73_4349_00,315383a8f59042e9b1e2b7c5204db34d,2026-02-02T13:14:23Z,2025-10-27T20:41:52Z,Windows,Windows 11,Workstation,10.14.28.81,189.75.104.70,d0-94-66-af-af-72,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",gleisianer4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:43 UTC","Windows - Estacoes - Global
+14 Jan 26 12:37 UTC","platform_default
+27 Oct 25 20:44 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+27 Oct 25 20:44 UTC"
+SIC_74_4349_00,ee8bf71ea17d4869bc368a9130178183,2026-01-27T20:59:45Z,2025-10-16T17:45:11Z,Windows,Windows 11,Workstation,10.14.28.67,189.75.104.70,d0-94-66-d9-a5-e8,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",hevilens4349_00,"Protecao fase 3 - Global Windows
+15 Jan 26 12:21 UTC","Windows - Estacoes - Global
+15 Jan 26 12:32 UTC","platform_default
+16 Oct 25 17:48 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+16 Oct 25 17:49 UTC"
+SIC_75_4349_00,dc3b259df836494285a9f199c052fc6e,2026-01-24T14:16:21Z,2025-12-08T20:34:02Z,Windows,Windows 11,Workstation,10.14.28.83,189.75.104.70,30-c5-99-1c-90-6f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",pedrom4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:10 UTC","Windows - Estacoes - Global
+14 Jan 26 12:22 UTC","platform_default
+08 Dec 25 20:39 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Dec 25 20:41 UTC"
+SIC_76_4349_00,da4865d0fe78401d998e7ee17db45fa2,2026-01-27T21:11:25Z,2025-02-03T18:05:59Z,Windows,Windows 10,Workstation,10.14.28.135,189.75.104.70,b4-45-06-43-6c-16,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",julianam4349_21,"Protecao fase 3 - Global Windows
+14 Jan 26 13:57 UTC","Windows - Estacoes - Global
+14 Jan 26 14:08 UTC","platform_default
+17 Apr 25 11:12 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+03 Feb 25 18:07 UTC"
+SIC_77_4349_00,91831eaeac074173ad158f269dd16835,2026-02-02T13:11:47Z,2025-10-07T13:35:23Z,Windows,Windows 11,Workstation,10.14.28.78,179.182.192.236,f4-ee-08-c7-41-eb,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",marior4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 13:21 UTC","Windows - Estacoes - Global
+14 Jan 26 13:23 UTC","platform_default
+07 Oct 25 13:38 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+07 Oct 25 13:39 UTC"
+SIC_78_4349_00,7e6c7dc752fe4750967ea78bf732778b,2026-02-02T13:27:04Z,2025-10-20T16:20:17Z,Windows,Windows 11,Workstation,192.168.46.4,138.118.3.62,5c-cd-5b-4e-c4-7e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",andressag4349_01,"Protecao fase 3 - Global Windows
+14 Jan 26 12:05 UTC","Windows - Estacoes - Global
+14 Jan 26 12:08 UTC","platform_default
+20 Oct 25 16:22 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+20 Oct 25 16:22 UTC"
+SIC_79_4349_00,d088ee0470bf457fb4deae29f42ac12d,2026-02-02T13:02:51Z,2023-11-27T18:44:08Z,Windows,Windows 10,Workstation,10.14.144.52,45.236.213.225,00-be-43-c7-72-06,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",laraf4349_14,"Protecao fase 3 - Global Windows
+14 Jan 26 11:11 UTC","Windows - Estacoes - Global
+14 Jan 26 11:29 UTC","platform_default
+17 Apr 25 11:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:44 UTC"
+SIC_81_4349_00,67dcba6d05004074b4594c6cdd373ec9,2026-02-02T13:07:26Z,2023-11-01T13:10:26Z,Windows,Windows 10,Workstation,10.14.28.119,189.75.104.70,00-be-43-c7-73-00,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",amandao4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:16 UTC","Windows - Estacoes - Global
+14 Jan 26 12:16 UTC","platform_default
+17 Apr 25 12:03 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:37 UTC"
+SIC_82_4349_00,e46b5d7a5dff48af986b2e623ee60bbc,2025-12-30T13:39:57Z,2024-05-23T18:47:32Z,Windows,Windows 11,Workstation,10.13.28.112,189.75.104.70,30-89-4a-04-e7-50,7.31.20309.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",jessikav4349_00,"Protecao fase 3 - Global Windows
+27 Nov 25 21:10 UTC","Windows - Estacoes - Global
+09 Dec 25 20:15 UTC","platform_default
+22 Apr 25 13:40 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:41 UTC"
+SIC_83_4349_00,22b8e0bd79c04ce98566d8c535aad2a7,2026-02-02T13:09:17Z,2023-11-01T13:04:48Z,Windows,Windows 10,Workstation,192.168.28.25,189.75.104.70,00-d7-6d-72-32-ec,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",uamersonc4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:51 UTC","Windows - Estacoes - Global
+14 Jan 26 12:25 UTC","platform_default
+17 Apr 25 12:06 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+26 Aug 24 12:41 UTC"
+SIC_84_4349_00,07441de123bd430bae6b660e81d03213,2026-02-02T13:22:21Z,2024-03-04T14:18:52Z,Windows,Windows 10,Workstation,192.168.28.110,189.75.104.70,00-d7-6d-7e-63-55,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",gabriels4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:24 UTC","Windows - Estacoes - Global
+14 Jan 26 12:55 UTC","platform_default
+17 Apr 25 12:10 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:32 UTC"
+SIC_85_4349_00,2bd75057ed80450195364822de05f15b,2026-02-02T13:06:20Z,2025-09-02T17:41:06Z,Windows,Windows 11,Workstation,10.14.28.105,189.75.104.70,00-be-43-60-85-ed,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",pedrom4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 17:18 UTC","Windows - Estacoes - Global
+15 Jan 26 14:27 UTC","platform_default
+02 Sep 25 17:41 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 Sep 25 17:43 UTC"
+SIC_86_4349_00,39627ed8bdde4331b28c767da641cd39,2026-02-02T13:04:18Z,2023-10-31T21:20:43Z,Windows,Windows 10,Workstation,10.13.24.2,177.130.29.68,00-d7-6d-87-d7-82,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",tatianev4349_05,"Protecao fase 3 - Global Windows
+14 Jan 26 10:36 UTC","Windows - Estacoes - Global
+14 Jan 26 10:55 UTC","platform_default
+17 Apr 25 11:11 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:37 UTC"
+SIC_87_4349_00,744355ce153f412bb8f73c77da7806e4,2026-02-02T12:52:11Z,2023-11-01T12:58:50Z,Windows,Windows 10,Workstation,10.14.28.126,189.75.104.70,00-be-43-34-9f-da,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",brunoa4349_06,"Protecao fase 3 - Global Windows
+13 Jan 26 23:46 UTC","Windows - Estacoes - Global
+14 Jan 26 00:41 UTC","platform_default
+17 Apr 25 00:21 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:45 UTC"
+SIC_88_4349_00,70a3669e7d5b4df991338cd1d763ccdc,2026-02-02T13:17:10Z,2023-10-31T21:15:09Z,Windows,Windows 10,Workstation,192.168.28.19,189.75.104.70,00-d7-6d-87-e1-19,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",crisleyn4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 07:45 UTC","Windows - Estacoes - Global
+14 Jan 26 11:56 UTC","platform_default
+17 Apr 25 12:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+09 Aug 24 11:34 UTC"
+SIC_89_4349_00,c858975455484425b4c46dd2c7d47549,2026-02-02T12:58:23Z,2024-07-17T14:32:28Z,Windows,Windows 10,Workstation,192.168.28.53,189.75.104.70,00-d7-6d-87-e1-2d,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",durvalt4349_06,"Protecao fase 3 - Global Windows
+14 Jan 26 11:56 UTC","Windows - Estacoes - Global
+14 Jan 26 11:37 UTC","platform_default
+17 Apr 25 12:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 20:40 UTC"
+SIC_90_4349_00,176139cbf8b742d790de1ecc7c8603c1,2026-02-02T13:23:09Z,2025-12-17T20:58:58Z,Windows,Windows 11,Workstation,192.168.100.141,189.75.104.70,44-f7-9f-60-54-5f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",,"Protecao fase 3 - Global Windows
+14 Jan 26 12:21 UTC","Windows - Estacoes - Global
+14 Jan 26 12:26 UTC","platform_default
+17 Dec 25 21:05 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+18 Dec 25 12:06 UTC"
+SIC_91_4349_00,8f3f4a5533814ae5b63541d2af9ea3b1,2026-02-02T13:03:07Z,2023-11-01T17:27:45Z,Windows,Windows 11,Workstation,10.14.28.88,189.75.104.70,b4-45-06-65-f7-c1,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",marianas4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 03:03 UTC","Windows - Estacoes - Global
+14 Jan 26 12:56 UTC","platform_default
+17 Apr 25 12:31 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+22 Aug 24 14:57 UTC"
+SIC_92_4349_00,c2845f16372d43098ff7d5a8aec5831e,2026-02-02T13:13:57Z,2026-01-14T13:28:36Z,Windows,Windows 11,Workstation,10.14.28.76,189.75.104.70,84-5c-31-e3-f2-e0,7.32.20403.0,Estacoes-4349,,hevilens4349_00,"Protecao fase 3 - Global Windows
+27 Jan 26 12:17 UTC","Windows - Estacoes - Global
+27 Jan 26 12:11 UTC","platform_default
+14 Jan 26 13:35 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+14 Jan 26 13:35 UTC"
+SIC_93_4349_00,2b6a79e96bc64bb99e1e5c5fa9d33194,2026-02-02T13:22:09Z,2025-12-12T20:14:32Z,Windows,Windows 11,Workstation,10.14.28.72,189.75.104.70,84-5c-31-e4-01-ff,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",fabianas4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:35 UTC","Windows - Estacoes - Global
+14 Jan 26 12:24 UTC","platform_default
+12 Dec 25 20:16 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Dec 25 20:18 UTC"
+SIC_94_4349_00,fa2b3af975e04c26a8155dade1c2eb86,2026-01-29T19:58:26Z,2023-11-01T19:46:17Z,Windows,Windows 10,Workstation,10.14.28.138,189.75.104.70,b4-45-06-d0-ef-53,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",ernandoc4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 18:29 UTC","Windows - Estacoes - Global
+14 Jan 26 20:41 UTC","platform_default
+17 Apr 25 19:33 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+12 Aug 24 15:32 UTC"
+SIC_95_4349_00,54f289975f5645bc9e7ea7c66edd015b,2026-02-02T13:23:11Z,2024-10-31T13:39:57Z,Windows,Windows 11,Workstation,10.14.28.69,189.75.104.70,74-86-e2-d9-bb-95,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",ericar4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:19 UTC","Windows - Estacoes - Global
+14 Jan 26 13:26 UTC","platform_default
+17 Apr 25 12:07 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+31 Oct 24 13:41 UTC"
+SIC_96_4349_00,d98b9d3960144a7eb709fc7efc1f8411,2026-02-02T13:21:13Z,2025-01-10T14:18:46Z,Windows,Windows 10,Workstation,10.14.28.111,189.75.104.70,d0-94-66-b0-fa-0e,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",felipea4349_00,"Protecao fase 3 - Global Windows
+24 Jan 26 21:04 UTC","Windows - Estacoes - Global
+24 Jan 26 21:04 UTC","platform_default
+17 Apr 25 12:12 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+10 Jan 25 14:21 UTC"
+SIC_97_4349_00,baf8d2e1809b482fbbddf5ff352620e9,2026-01-24T13:24:38Z,2025-11-28T19:53:32Z,Windows,Windows 11,Workstation,10.14.28.58,189.75.104.70,d4-a2-cd-28-04-c5,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/SICOOB-CENTRAL-RONDON-2008,SensorGroupingTags/SICOOB-BURITIS-4349",anaa4349_00,"Protecao fase 3 - Global Windows
+14 Jan 26 12:12 UTC","Windows - Estacoes - Global
+14 Jan 26 12:14 UTC","platform_default
+28 Nov 25 19:55 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+28 Nov 25 19:56 UTC"
+SIC_98_4349_00,61a083d01f7d4e39b0de1aca51501775,2026-02-02T13:01:55Z,2024-10-28T16:42:10Z,Windows,Windows 10,Workstation,10.14.28.108,189.75.104.70,f4-ee-08-c7-67-0f,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",renatan4349_00,"Protecao fase 3 - Global Windows
+21 Jan 26 12:08 UTC","Windows - Estacoes - Global
+21 Jan 26 12:11 UTC","platform_default
+17 Apr 25 12:01 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+28 Oct 24 16:48 UTC"
+SIC_99_4349_00,fa60392f2908426b83e1751ec6b1011c,2026-02-02T13:12:09Z,2024-11-08T16:49:18Z,Windows,Windows 11,Workstation,10.14.28.90,189.75.104.70,8c-04-ba-a5-b0-b1,7.32.20403.0,Estacoes-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",hevilens4349_00,"Protecao fase 3 - Global Windows
+19 Jan 26 12:52 UTC","Windows - Estacoes - Global
+19 Jan 26 13:23 UTC","platform_default
+22 Apr 25 12:08 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Nov 24 16:52 UTC"
+SRV-RODC434902,9e1017c54f574f65a4c9c3c5e8ede5c1,2026-02-02T13:14:56Z,2025-10-02T15:48:42Z,Windows,Windows Server 2019,Server,10.14.21.55,45.231.20.62,00-0c-29-85-85-ac,7.32.20403.0,Servidor-AD-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",,"Protecao fase 3 - Global Windows
+13 Jan 26 23:39 UTC","Windows  - Servidores Producao - Global
+14 Jan 26 09:02 UTC","platform_default
+02 Oct 25 15:51 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+02 Oct 25 15:52 UTC"
+SRV-RODC434905,cca4d441fcc94a82a026af7159c07fff,2026-02-02T13:02:42Z,2025-02-20T15:35:15Z,Windows,Windows Server 2019,Domain Controller,10.11.24.1,177.130.29.68,00-0c-29-88-c2-86,7.32.20403.0,Servidor-AD-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",nadim.admin,"Protecao fase 3 - Global Windows
+13 Jan 26 23:28 UTC","Windows  - Servidores Producao - Global
+14 Jan 26 00:23 UTC","platform_default
+17 Apr 25 00:18 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+20 Feb 25 15:36 UTC"
+SRV-RODC4349UAD,1d27acee614c4023a08f9acb1da9e324,2026-02-02T13:18:24Z,2023-11-29T15:43:36Z,Windows,Windows Server 2019,Domain Controller,10.11.28.1,189.75.104.70,00-0c-29-53-35-71,7.32.20403.0,Servidor-AD-4349,"SensorGroupingTags/CENTRAL-RONDON-2008,SensorGroupingTags/BURITIS-4349",ericar4349_00,"Protecao fase 3 - Global Windows
+13 Jan 26 23:22 UTC","Windows  - Servidores Producao - Global
+14 Jan 26 01:10 UTC","platform_default
+17 Apr 25 00:20 UTC","Default Policy (Windows, Linux, Mac, ChromeOS, K8S)
+08 Aug 24 19:31 UTC"

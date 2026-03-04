@@ -1,0 +1,30 @@
+{
+  "ASSET": {
+    "required": ["Nome do ativo"],
+    "optional": ["Produto", "Local", "Fornecedor", "Tipo de produto", "Associado aos ativos", "Estado do ativo", "Custo de Compra", "Departamento", "Código de barras", "Usuário", "Término do empréstimo", "ID"],
+    "header_row_strategy": "dynamic_scan",
+    "notes": "Rows 1-4 are metadata (company name, empty, reporter, record count). Scan each row until a cell matching 'NOME DO ATIVO' is found (case-insensitive). The key column is 'Nome do ativo'."
+  },
+  "UEM": {
+    "required": ["Last Seen", "Friendly Name", "Username"],
+    "optional": ["Ownership", "First Name", "Last Name", "Email", "Platform", "OS", "Model", "Phone", "Tags", "Enrollment", "Compliance Status", "Display Name", "Management", "Asset Number", "Serial Number", "IMEI", "Organization Group", "Compromised", "Home Carrier", "Current Carrier", "Wi-Fi IP Address", "Public IP Address", "Wi-Fi MAC Address", "Notes", "WNS Status", "DM Last Seen", "Build Version", "Wi-Fi SSID", "Android Management", "CPU Architecture", "Supplement Build Version"],
+    "aliases": {
+      "Friendly Name": ["Hostname", "device_friendly_name"],
+      "Username": ["Username"]
+    },
+    "header_row_strategy": "first_row",
+    "notes": "BOM-prefixed UTF-8 file. First row is the header. 'Friendly Name' is used as hostname (fallback: 'Hostname'). 'DM Last Seen' is the management last seen — different from 'Last Seen'."
+  },
+  "AD": {
+    "required": ["Computer Name", "Operating System"],
+    "optional": ["S.No", "DNS Name", "Version", "Last Logon Time", "Password Last Set"],
+    "header_row_strategy": "first_row",
+    "notes": "BOM-prefixed UTF-8 file. First row is the header. WARNING: 'Last Logon Time' and 'Password Last Set' referenced by dashboard_fixed.ts may NOT be present in the current export. This is a non-blocking WARN."
+  },
+  "EDR": {
+    "required": ["Hostname", "Last Seen", "Last Logged In User Account", "OS Version"],
+    "optional": ["Host ID", "First Seen", "Platform", "Type", "Local IP", "External IP", "MAC Address", "Sensor Version", "Host Groups", "Sensor Tags", "Prevention Policy", "Sensor Update Policy", "Content Update Policy", "Host Retention Policy", "Serial Number", "Last User Account Login", "Chassis"],
+    "header_row_strategy": "first_row",
+    "notes": "Standard UTF-8 file. First row is the header. 'Hostname' is the machine key. 'Sensor Tags' contains PA group info."
+  }
+}
