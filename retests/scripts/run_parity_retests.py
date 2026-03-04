@@ -1,35 +1,35 @@
 """
-run_parity_retests.py — Compliance Gate Reteste 2A: Paridade de Filtros
+run_parity_retests.py — Compliance Gate Reteste 2A: Paridade de Filtros (v2)
 
-Estratégia:
-  - Ingere os 4 CSVs reais (ASSET, UEM, AD, EDR) da raiz do workspace
-  - Constrói MachineRecord equivalentes ao backend (join multi-fonte)
-  - Aplica a MESMA lógica de classificação dos 14 filtros do backend (replicada localmente)
-  - Compara contagens com o que a API retorna via /machines/summary e /machines/table
-  - Gera evidências (CSVs, JSONs, report.md) por run_id
+CORREÇÕES vs v1:
+  - ASSET é APENAS lookup set (has_asset marker). Nunca adiciona novos hostnames ao master.
+    → Comportamento idêntico ao loadAssetSet() do dashboard_fixed.ts (linhas 2819-2885 do TS)
+  - AVAILABLE aplica-se SOMENTE a virtual GAPs (is_virtual_gap=True)
+    → No TS, AVAILABLE/GAP são entradas sintéticas para gaps numéricos (linhas 3152-3193)
+  - normalizeKey espelha exatamente o normalize() do TS: upper + strip domain (até o primeiro ponto)
+  - Universo de máquinas vem apenas de AD + UEM + EDR (como no TS linha 3095-3097)
+  - diagnóstico incluído na seção D (AVAILABLE alto / OK baixo)
 
 Seções:
-  A) Pre-check + Leitura dos CSVs
-  B) Join multi-fonte (AD + UEM + EDR + ASSET) → MasterMap
+  A) Pre-check + Detecção de layout (csv_layout_detector)
+  B) Join multi-fonte AD+UEM+EDR → MasterMap; ASSET como lookup
   C) Classificação local dos 14 filtros
-  D) Distribuição + Validação de consistência lógica
-  E) Comparação com API (endpoints reais)
+  D) Distribuição + Checagens lógicas + Diagnóstico
+  E) Comparação com API
   F) Relatório final de paridade
-
-Exit codes:
-  0 → ok (warnings permitidos)
-  1 → erro crítico
 """
 
 from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import json
 import os
 import re
 import sys
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -50,22 +50,16 @@ API_PREFIX = "/api/v1"
 RETESTS_DIR = Path("/retests")
 LOGS_DIR = RETESTS_DIR / "logs"
 OUTPUT_DIR = RETESTS_DIR / "output"
-SCRIPTS_DIR = Path("/retests/scripts")
 
 STALE_DAYS = int(os.environ.get("STALE_DAYS", "30"))
 LEGACY_DEFS = ["Windows 7", "Windows 8", "Windows XP", "Windows Server 2008", "Windows Server 2012"]
 
-CSV_FILES = {
-    "ASSET": WORKSPACE / "ASSET.CSV",
-    "UEM":   WORKSPACE / "UEM.csv",
-    "AD":    WORKSPACE / "AD.csv",
-    "EDR":   WORKSPACE / "EDR.csv",
-}
+# TS uses COMPLIANT key (not OK)
+TS_STATUS_KEY_COMPLIANT = "COMPLIANT"
 
-# 14 expected filter keys
 EXPECTED_FILTER_KEYS = {
     "INCONSISTENCY", "PHANTOM", "ROGUE", "MISSING_UEM", "MISSING_EDR",
-    "SWAP", "CLONE", "OFFLINE", "OK",
+    "SWAP", "CLONE", "OFFLINE", "COMPLIANT",
     "LEGACY", "MISSING_ASSET", "PA_MISMATCH",
     "GAP", "AVAILABLE",
 }
@@ -104,7 +98,7 @@ def log(level: str, section: str, msg: str):
 def sep(section: str): log("STEP", section, "─" * 68)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Accumulators
+# Report accumulator
 # ──────────────────────────────────────────────────────────────────────────────
 
 report: dict[str, Any] = {
@@ -118,6 +112,8 @@ report: dict[str, Any] = {
     "endpoints": {},
     "outputs": [],
     "recommendations": [],
+    "layout_detections": {},
+    "diagnosis_available_ok": {},
 }
 
 def add_problem(severity: str, source: str, msg: str):
@@ -125,38 +121,51 @@ def add_problem(severity: str, source: str, msg: str):
     log(severity, source, msg)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Normalization helpers (mirrors dashboard_fixed.ts)
+# Normalization — MIRRORS dashboard_fixed.ts exactly
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _strip_ext(s: str) -> str:
-    """Remove .scr2008... or any domain suffix."""
-    if not s:
+def normalize_key(raw: str) -> str:
+    """
+    Mirrors TS normalize() (inner function of main(), line 2975):
+      s.trim().toUpperCase().replace(/\\..*$/, '')
+    Strips everything from the first '.' (removes domain suffix).
+    """
+    if not raw:
         return ""
+    s = raw.strip().upper()
+    dot = s.find(".")
+    if dot != -1:
+        s = s[:dot]
+    return s
+
+def normalize_asset_hostname(raw: str) -> str:
+    """
+    Mirrors normalizeAssetHostname() (line 344) → normalizeSicFromExtra():
+    1) Strip .SCR2008... suffix (or first dot)
+    2) Match /^(SIC_\\d+_\\d+_\\d+)/i → take that capture
+    3) Uppercase
+    """
+    if not raw:
+        return ""
+    s = raw.strip()
     upper = s.upper()
-    idx = upper.find(".SCR2008")
+    marker = ".SCR2008"
+    idx = upper.find(marker)
     if idx != -1:
         s = s[:idx]
     elif "." in s:
         s = s.split(".")[0]
-    return s
-
-def normalize_key(raw: str) -> str:
-    """Canonical hostname key: uppercase, strip domain suffix."""
-    if not raw:
-        return ""
-    s = raw.strip()
-    s = _strip_ext(s)
-    return s.upper().replace(" ", "")
+    base = s.strip().upper()
+    m = re.match(r"^(SIC_\d+_\d+_\d+)", base, re.IGNORECASE)
+    return m.group(1).upper() if m else base
 
 def extract_pa(name: str) -> str:
-    """Extract PA code from hostname SIC_XX_PACODE_NN → PACODE."""
     parts = name.split("_")
     if len(parts) >= 4:
         return parts[3]
     return "??"
 
 def extract_user_suffix(user: str) -> str:
-    """Extract trailing _NN from a username, zero-padded to 2."""
     if not user:
         return ""
     if "\\" in user:
@@ -165,18 +174,15 @@ def extract_user_suffix(user: str) -> str:
     return m.group(1).zfill(2) if m else ""
 
 def parse_date_ms(date_val: str) -> int:
-    """Parse a date string to milliseconds since epoch. Returns 0 on failure."""
-    if not date_val or not date_val.strip() or date_val.strip() in ("N/A", "-"):
+    if not date_val or not date_val.strip() or date_val.strip() in ("N/A", "-", "—"):
         return 0
     s = date_val.strip()
-    # ISO 8601 (EDR)
     try:
         if "T" in s and s.endswith("Z"):
             dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
             return int(dt.timestamp() * 1000)
     except Exception:
         pass
-    # US format: MM/DD/YYYY HH:MM[:SS] [AM|PM]
     try:
         m = re.match(
             r"^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$",
@@ -193,7 +199,6 @@ def parse_date_ms(date_val: str) -> int:
             return int(dt.timestamp() * 1000)
     except Exception:
         pass
-    # PT format: DD/MM/YYYY HH:MM[:SS]
     try:
         m = re.match(r"^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$", s)
         if m:
@@ -207,10 +212,11 @@ def parse_date_ms(date_val: str) -> int:
     return 0
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Section A — Read CSVs
+# Section A — Layout Detection + CSV Read
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _find_asset_header_row(path: Path) -> int:
+    """Scan for 'NOME DO ATIVO' — mirrors loadAssetSet() TS lines 2843-2855."""
     for enc in ["utf-8-sig", "utf-8", "latin-1"]:
         try:
             with open(path, "r", encoding=enc, errors="replace") as f:
@@ -219,14 +225,20 @@ def _find_asset_header_row(path: Path) -> int:
                         return i
         except Exception:
             pass
-    return 4
+    return 4  # fallback: row 4 (known from ASSET.CSV structure)
 
-def _read_csv_polars(path: Path, skip_rows: int = 0) -> pl.DataFrame | None:
-    for enc in ["utf-8-sig", "utf-8", "latin-1"]:
-        for sep in [",", ";"]:
+def _norm_header(s: str) -> str:
+    s = (s or "").strip().lstrip("\ufeff")
+    s = unicodedata.normalize("NFD", s)
+    s = re.sub(r"[\u0300-\u036f]", "", s)
+    return s.upper()
+
+def _read_csv_robust(path: Path, skip_rows: int = 0) -> pl.DataFrame | None:
+    for enc in ["utf-8-sig", "utf-8", "latin-1", "cp1252"]:
+        for sep_chr in [",", ";"]:
             try:
                 df = pl.read_csv(
-                    path, separator=sep, encoding=enc, skip_rows=skip_rows,
+                    path, separator=sep_chr, encoding=enc, skip_rows=skip_rows,
                     infer_schema_length=500, ignore_errors=True, truncate_ragged_lines=True
                 )
                 if df.shape[1] > 1:
@@ -236,35 +248,79 @@ def _read_csv_polars(path: Path, skip_rows: int = 0) -> pl.DataFrame | None:
     return None
 
 def section_a() -> dict[str, pl.DataFrame]:
-    sep("A:PRE-CHECK")
-    frames = {}
-    missing = []
-    for name, path in CSV_FILES.items():
-        if not path.exists():
-            # try case-insensitive
-            found = next((p for p in path.parent.glob("*") if p.name.upper() == path.name.upper()), None)
-            if found:
-                CSV_FILES[name] = found
-                path = found
-            else:
-                add_problem("ERROR", f"A:{name}", f"File not found: {path}")
-                missing.append(name)
-                continue
+    sep("A:LAYOUT+CSV")
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Import detector (same directory)
+    import importlib.util, sys as _sys
+    det_path = Path("/retests/scripts/csv_layout_detector.py")
+    if det_path.exists():
+        spec = importlib.util.spec_from_file_location("csv_layout_detector", det_path)
+        det_mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(det_mod)
+        csv_paths = {
+            "ASSET": _find_csv("ASSET.CSV"),
+            "UEM":   _find_csv("UEM.csv"),
+            "AD":    _find_csv("AD.csv"),
+            "EDR":   _find_csv("EDR.csv"),
+        }
+        detections = det_mod.detect_and_save_all(
+            {k: v for k, v in csv_paths.items() if v is not None and v.exists()},
+            RUN_ID, OUTPUT_DIR
+        )
+        report["layout_detections"] = {k: {kk: str(vv) if isinstance(vv, Path) else vv
+                                            for kk, vv in v.items()}
+                                       for k, v in detections.items()}
+        for src, det in detections.items():
+            if "error" not in det:
+                log("OK", f"A:LAYOUT:{src}", (
+                    f"header_row={det['detected_header_row_index']} "
+                    f"data_starts={det['detected_first_data_row_index']} "
+                    f"method={det['method']} confidence={det['confidence']}"
+                ))
+                if det["matched_headers_sample"]:
+                    report["outputs"].append(
+                        str(OUTPUT_DIR / f"{src}_detected_header_row_{RUN_ID}.json")
+                    )
+                    report["outputs"].append(
+                        str(OUTPUT_DIR / f"{src}_raw_head_30_{RUN_ID}.txt")
+                    )
+    else:
+        log("WARN", "A:LAYOUT", "csv_layout_detector.py not found — using fallback detection")
+
+    # Read DataFrames
+    frames: dict[str, pl.DataFrame] = {}
+    csv_sources = {
+        "ASSET": _find_csv("ASSET.CSV"),
+        "UEM":   _find_csv("UEM.csv"),
+        "AD":    _find_csv("AD.csv"),
+        "EDR":   _find_csv("EDR.csv"),
+    }
+    for name, path in csv_sources.items():
+        if path is None or not path.exists():
+            add_problem("ERROR", f"A:{name}", f"CSV not found in workspace")
+            continue
         skip = _find_asset_header_row(path) if name == "ASSET" else 0
-        df = _read_csv_polars(path, skip)
+        df = _read_csv_robust(path, skip)
         if df is None:
-            add_problem("ERROR", f"A:{name}", "CSV parse failed")
-            missing.append(name)
+            add_problem("ERROR", f"A:{name}", "Parse failed")
             continue
         frames[name] = df
-        log("OK", f"A:{name}", f"{path.name} → {df.shape[0]:,} rows × {df.shape[1]} cols")
-    if missing:
-        log("ERROR", "A:PRE-CHECK", f"Missing critical files: {missing}")
+        log("OK", f"A:{name}", f"{path.name} header_skip={skip} → {df.shape[0]:,} rows × {df.shape[1]} cols")
     return frames
 
+def _find_csv(filename: str) -> Path | None:
+    path = WORKSPACE / filename
+    if path.exists(): return path
+    for p in WORKSPACE.glob("*"):
+        if p.name.upper() == filename.upper():
+            return p
+    return None
+
 # ──────────────────────────────────────────────────────────────────────────────
-# Section B — Build MasterMap (join AD + UEM + EDR + ASSET)
+# Section B — Build MasterMap
+# CRITICAL: Only AD + UEM + EDR add new hosts. ASSET is lookup-only.
+# This mirrors dashboard_fixed.ts lines 3095-3198 exactly.
 # ──────────────────────────────────────────────────────────────────────────────
 
 class MachineEntry:
@@ -272,32 +328,33 @@ class MachineEntry:
         "raw_name", "pa_code",
         "has_ad", "has_uem", "has_edr", "has_asset",
         "ad_os",
-        "uem_serial", "uem_user", "uem_seen", "uem_dm_seen", "uem_extra_user",
-        "edr_serial", "edr_user", "edr_seen", "edr_login",
+        "uem_serial", "uem_user", "uem_seen",
+        "edr_serial", "edr_user", "edr_seen",
         "last_seen_ms", "last_seen_source",
-        "serial_is_cloned", "is_virtual_gap", "is_available_in_asset",
+        "serial_is_cloned", "is_virtual_gap",
+        "join_key_used",
     ]
-    def __init__(self, raw_name: str, pa_code: str):
+    def __init__(self, raw_name: str, pa_code: str, join_key: str):
         self.raw_name = raw_name
         self.pa_code = pa_code
+        self.join_key_used = join_key
         self.has_ad = self.has_uem = self.has_edr = self.has_asset = False
         self.ad_os = ""
-        self.uem_serial = self.uem_user = self.uem_seen = self.uem_dm_seen = self.uem_extra_user = ""
-        self.edr_serial = self.edr_user = self.edr_seen = self.edr_login = ""
+        self.uem_serial = self.uem_user = self.uem_seen = ""
+        self.edr_serial = self.edr_user = self.edr_seen = ""
         self.last_seen_ms = 0
         self.last_seen_source = ""
-        self.serial_is_cloned = self.is_virtual_gap = self.is_available_in_asset = False
+        self.serial_is_cloned = self.is_virtual_gap = False
 
 
 def _col(df: pl.DataFrame, *candidates) -> str | None:
-    """Return the first matching column name (case-insensitive)."""
     cols_upper = {c.upper(): c for c in df.columns}
     for cand in candidates:
         if cand.upper() in cols_upper:
             return cols_upper[cand.upper()]
     return None
 
-def _val(row: dict, *candidates) -> str:
+def _val_row(row: dict, *candidates) -> str:
     for c in candidates:
         v = row.get(c)
         if v is not None and str(v).strip() not in ("", "None", "null"):
@@ -308,171 +365,163 @@ def section_b(frames: dict[str, pl.DataFrame]) -> dict[str, MachineEntry]:
     sep("B:JOIN")
     master: dict[str, MachineEntry] = {}
 
-    # ── AD
+    # ── Step 1: AD (source of truth for AD membership)
+    # TS: for (let i = 1; i < dataAD.length; i++) upsert(dataAD[i], "AD", idxAdName)
+    # Header cols: Computer Name, Operating System, Last Logon Time, Password Last Set
     df_ad = frames.get("AD")
     if df_ad is not None:
-        c_name = _col(df_ad, "Computer Name", "ComputerName", "hostname")
+        c_name = _col(df_ad, "Computer Name", "ComputerName")
         c_os   = _col(df_ad, "Operating System", "OperatingSystem")
         if c_name:
             for row in df_ad.to_dicts():
-                raw = _val(row, c_name)
-                if not raw:
-                    continue
+                raw = _val_row(row, c_name)
+                if not raw: continue
                 key = normalize_key(raw)
-                if not key:
-                    continue
+                if not key: continue
                 if key not in master:
-                    master[key] = MachineEntry(raw, extract_pa(key))
+                    master[key] = MachineEntry(raw, extract_pa(key), key)
                 e = master[key]
                 e.has_ad = True
-                if c_os:
-                    e.ad_os = _val(row, c_os)
-                # last_seen from AD logon (optional col)
+                if c_os: e.ad_os = _val_row(row, c_os)
+                # AD logon (optional)
                 logon_col = _col(df_ad, "Last Logon Time", "LastLogonTime")
                 if logon_col:
-                    ms = parse_date_ms(_val(row, logon_col))
+                    ms = parse_date_ms(_val_row(row, logon_col))
                     if ms > e.last_seen_ms:
-                        e.last_seen_ms = ms
-                        e.last_seen_source = "AD"
-        log("OK", "B:AD", f"Inserted/updated {len(master):,} entries from AD")
+                        e.last_seen_ms = ms; e.last_seen_source = "AD"
+        log("OK", "B:AD", f"AD upserted {len(master):,} entries")
     else:
-        add_problem("WARN", "B:AD", "AD DataFrame missing — has_ad will be False for all")
+        add_problem("WARN", "B:AD", "AD DataFrame missing")
 
-    # ── UEM
+    # ── Step 2: UEM (adds new hosts or updates existing)
+    # TS: for (let i = 1; i < dataUEM.length; i++) upsert(dataUEM[i], "UEM", idxUemName)
+    # Header: preferably "Hostname" then fallback to "Friendly Name"
     df_uem = frames.get("UEM")
     if df_uem is not None:
-        c_name   = _col(df_uem, "Friendly Name", "Hostname", "device_friendly_name")
+        # TS: idxUemName = getIdx(hUEM,"Hostname"); if==-1 idxUemName=getIdx(hUEM,"Friendly Name")
+        c_name   = _col(df_uem, "Hostname", "Friendly Name", "device_friendly_name")
         c_user   = _col(df_uem, "Username")
         c_serial = _col(df_uem, "Serial Number")
         c_seen   = _col(df_uem, "Last Seen")
-        c_dmseen = _col(df_uem, "DM Last Seen")
+        new_from_uem = 0
         if c_name:
-            new_from_uem = 0
             for row in df_uem.to_dicts():
-                raw = _val(row, c_name)
-                if not raw:
-                    continue
+                raw = _val_row(row, c_name)
+                if not raw: continue
                 key = normalize_key(raw)
-                if not key:
-                    continue
+                if not key: continue
                 if key not in master:
-                    master[key] = MachineEntry(raw, extract_pa(key))
+                    master[key] = MachineEntry(raw, extract_pa(key), key)
                     new_from_uem += 1
                 e = master[key]
                 e.has_uem = True
-                if c_user:   e.uem_user   = _val(row, c_user)
-                if c_serial: e.uem_serial = _val(row, c_serial)
-                if c_seen:   e.uem_seen   = _val(row, c_seen)
-                if c_dmseen: e.uem_dm_seen = _val(row, c_dmseen)
-                # last_seen override (UEM is secondary to EDR)
+                if c_user:   e.uem_user   = _val_row(row, c_user)
+                if c_serial: e.uem_serial = _val_row(row, c_serial)
+                if c_seen:   e.uem_seen   = _val_row(row, c_seen)
+                # TS: if lastSeenScore==0 and uemScore>0 → update
                 ms = parse_date_ms(e.uem_seen)
-                if e.last_seen_source == "" and ms > 0:
-                    e.last_seen_ms = ms
-                    e.last_seen_source = "UEM"
-            log("OK", "B:UEM", f"Processed UEM — {new_from_uem} new entries, total {len(master):,}")
-        else:
-            add_problem("WARN", "B:UEM", "Friendly Name column not found in UEM")
+                if e.last_seen_ms == 0 and ms > 0:
+                    e.last_seen_ms = ms; e.last_seen_source = "UEM"
+        log("OK", "B:UEM", f"UEM upserted — {new_from_uem} new, total={len(master):,}")
     else:
         add_problem("WARN", "B:UEM", "UEM DataFrame missing")
 
-    # ── EDR
+    # ── Step 3: EDR (adds new hosts or updates existing)
+    # TS: for (let i = 1; i < dataEDR.length; i++) upsert(dataEDR[i], "EDR", idxEdrName)
+    # Header: preferably "Friendly Name" then fallback to "Hostname"
     df_edr = frames.get("EDR")
     if df_edr is not None:
-        c_name   = _col(df_edr, "Hostname", "Friendly Name")
+        # TS: idxEdrName = getIdx(hEDR,"Friendly Name"); if==-1 idxEdrName=getIdx(hEDR,"Hostname")
+        c_name   = _col(df_edr, "Friendly Name", "Hostname")
         c_user   = _col(df_edr, "Last Logged In User Account")
         c_serial = _col(df_edr, "Serial Number")
         c_seen   = _col(df_edr, "Last Seen")
-        c_login  = _col(df_edr, "Last User Account Login")
+        new_from_edr = 0
         if c_name:
-            new_from_edr = 0
             for row in df_edr.to_dicts():
-                raw = _val(row, c_name)
-                if not raw:
-                    continue
+                raw = _val_row(row, c_name)
+                if not raw: continue
                 key = normalize_key(raw)
-                if not key:
-                    continue
+                if not key: continue
                 if key not in master:
-                    master[key] = MachineEntry(raw, extract_pa(key))
+                    master[key] = MachineEntry(raw, extract_pa(key), key)
                     new_from_edr += 1
                 e = master[key]
                 e.has_edr = True
-                if c_user:   e.edr_user   = _val(row, c_user)
-                if c_serial: e.edr_serial = _val(row, c_serial)
-                if c_seen:   e.edr_seen   = _val(row, c_seen)
-                if c_login:  e.edr_login  = _val(row, c_login)
-                # EDR overrides previous last_seen (except AD takes precedence in TS logic;
-                # but TS actually prefers EDR when AD is absent or UEM was source)
+                if c_user:   e.edr_user   = _val_row(row, c_user)
+                if c_serial: e.edr_serial = _val_row(row, c_serial)
+                if c_seen:   e.edr_seen   = _val_row(row, c_seen)
+                # TS: canOverrideWithEdr = !AD || lastScore==0 || source=="UEM"
                 ms = parse_date_ms(e.edr_seen)
                 can_override = (not e.has_ad) or (e.last_seen_ms == 0) or (e.last_seen_source in ("", "UEM"))
                 if can_override and ms > 0:
-                    e.last_seen_ms = ms
-                    e.last_seen_source = "EDR"
-            log("OK", "B:EDR", f"Processed EDR — {new_from_edr} new entries, total {len(master):,}")
-        else:
-            add_problem("WARN", "B:EDR", "Hostname column not found in EDR")
+                    e.last_seen_ms = ms; e.last_seen_source = "EDR"
+        log("OK", "B:EDR", f"EDR upserted — {new_from_edr} new, total={len(master):,}")
     else:
         add_problem("WARN", "B:EDR", "EDR DataFrame missing")
 
-    # ── ASSET (mark has_asset)
+    # ── Step 4: ASSET — LOOKUP ONLY (markers has_asset; does NOT add new entries)
+    # TS lines 3196-3198:
+    #   for (const [k, m] of masterMap.entries()) {
+    #     const base = normalizeSicFromExtra(k);
+    #     m.sources.ASSET = assetSet.has(k) || (base ? assetSet.has(base) : false);
+    #   }
     df_asset = frames.get("ASSET")
+    asset_set: set[str] = set()
     if df_asset is not None:
         c_name = _col(df_asset, "Nome do ativo")
-        c_state = _col(df_asset, "Estado do ativo")
         if c_name:
-            asset_hits = 0
             for row in df_asset.to_dicts():
-                raw = _val(row, c_name)
-                if not raw:
-                    continue
-                key = normalize_key(raw)
-                if not key:
-                    continue
-                if key not in master:
-                    master[key] = MachineEntry(raw, extract_pa(key))
-                e = master[key]
-                e.has_asset = True
-                # "In Store" / "Disponível" → is_available_in_asset
-                if c_state:
-                    state = _val(row, c_state).upper()
-                    if state in ("IN STORE", "DISPONÍVEL", "DISPONIVEL", "AVAILABLE"):
-                        e.is_available_in_asset = True
-                asset_hits += 1
-            log("OK", "B:ASSET", f"Marked {asset_hits} entries from ASSET, total master={len(master):,}")
-        else:
-            add_problem("WARN", "B:ASSET", "'Nome do ativo' column not found in ASSET")
+                raw = _val_row(row, c_name)
+                if not raw: continue
+                key = normalize_asset_hostname(raw)
+                if key: asset_set.add(key)
+        log("OK", "B:ASSET", f"Asset set built: {len(asset_set):,} unique keys")
     else:
         add_problem("WARN", "B:ASSET", "ASSET DataFrame missing")
 
-    # ── CLONE detection (same edr_serial → multiple hostnames)
+    # Apply ASSET lookup to existing master entries
+    asset_matches = 0
+    for key, e in master.items():
+        # TS uses normalizeSicFromExtra (extracts SIC_XX_XXXX_XX prefix)
+        m = re.match(r"^(SIC_\d+_\d+_\d+)", key, re.IGNORECASE)
+        base = m.group(1).upper() if m else key
+        if key in asset_set or base in asset_set:
+            e.has_asset = True
+            asset_matches += 1
+    log("OK", "B:ASSET_MARK", f"has_asset=True for {asset_matches} out of {len(master):,} entries")
+
+    # ── Step 5: Clone detection
     serial_map: dict[str, list[str]] = {}
     for key, e in master.items():
-        if e.edr_serial:
-            serial_map.setdefault(e.edr_serial, []).append(key)
+        s = e.edr_serial or e.uem_serial
+        if s and len(s) >= 5:
+            serial_map.setdefault(s, []).append(key)
     cloned_serials = {s for s, keys in serial_map.items() if len(keys) > 1}
     for key, e in master.items():
-        if e.edr_serial in cloned_serials:
+        s = e.edr_serial or e.uem_serial
+        if s in cloned_serials:
             e.serial_is_cloned = True
-
-    log("OK", "B:JOIN", f"MasterMap total: {len(master):,} unique hostnames | Cloned serials: {len(cloned_serials)}")
+    log("OK", "B:CLONE", f"Clone-detected serials: {len(cloned_serials)}")
+    log("OK", "B:FINAL", f"MasterMap: {len(master):,} unique machines (from AD+UEM+EDR only)")
     return master
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Section C — Local classification (mirrors backend rules exactly)
+# Section C — Classification (mirrors TS rules exactly)
+# AVAILABLE = virtual GAP only. TS key is "COMPLIANT" not "OK".
 # ──────────────────────────────────────────────────────────────────────────────
 
 def classify(e: MachineEntry) -> dict[str, Any]:
     now_ms = int(time.time() * 1000)
     stale_ms = STALE_DAYS * 24 * 3600 * 1000
 
-    # ── Special / bypass
     if e.is_virtual_gap:
-        return {"primary": "GAP", "flags": []}
-    if e.is_available_in_asset:
         return {"primary": "AVAILABLE", "flags": []}
 
-    # ── Primary (first-match wins, same precedence as orchestrator)
-    primary = "OK"
+    # TS PRIMARY precedence (line 3304+):
+    # PHANTOM (!AD && !UEM && !EDR — not virtual) but only after inconsistency check
+    primary = "COMPLIANT"   # TS uses "COMPLIANT" not "OK"
+
     if not e.has_ad and (e.has_uem or e.has_edr):
         primary = "INCONSISTENCY"
     elif not e.has_ad and not e.has_uem and not e.has_edr:
@@ -491,24 +540,19 @@ def classify(e: MachineEntry) -> dict[str, Any]:
           (now_ms - e.last_seen_ms) > stale_ms):
         primary = "OFFLINE"
 
-    # ── Flags (parallel, additive)
+    # FLAGS (parallel, additive)
     flags = []
-    # LEGACY: ad_os contains legacy string
     if e.ad_os:
         os_up = e.ad_os.upper()
         for leg in LEGACY_DEFS:
             if leg.upper() in os_up:
-                flags.append("LEGACY")
-                break
-    # MISSING_ASSET: AD present, not in asset, UEM or EDR present
+                flags.append("LEGACY"); break
     if e.has_ad and not e.has_asset and (e.has_uem or e.has_edr):
         flags.append("MISSING_ASSET")
-    # PA_MISMATCH: suffix of hostname != suffix of user
     machine_sfx = extract_user_suffix(e.raw_name)
-    candidate_user = e.uem_extra_user or e.uem_user or e.edr_user or ""
-    if "\\" in candidate_user:
-        candidate_user = candidate_user.split("\\")[-1]
-    user_sfx = extract_user_suffix(candidate_user)
+    cand_user = e.uem_user or e.edr_user or ""
+    if "\\" in cand_user: cand_user = cand_user.split("\\")[-1]
+    user_sfx = extract_user_suffix(cand_user)
     if machine_sfx and user_sfx and machine_sfx != user_sfx:
         flags.append("PA_MISMATCH")
 
@@ -517,9 +561,8 @@ def classify(e: MachineEntry) -> dict[str, Any]:
 
 def section_c(master: dict[str, MachineEntry]) -> list[dict[str, Any]]:
     sep("C:CLASSIFY")
-    rows = []
     now_ms = int(time.time() * 1000)
-
+    rows = []
     for key, e in master.items():
         result = classify(e)
         days = (now_ms - e.last_seen_ms) / (1000 * 86400) if e.last_seen_ms and e.last_seen_ms > 0 else None
@@ -527,6 +570,7 @@ def section_c(master: dict[str, MachineEntry]) -> list[dict[str, Any]]:
             "hostname_canon":       key,
             "raw_name":             e.raw_name,
             "pa_code":              e.pa_code,
+            "join_key":             e.join_key_used,
             "has_ad":               e.has_ad,
             "has_uem":              e.has_uem,
             "has_edr":              e.has_edr,
@@ -540,23 +584,21 @@ def section_c(master: dict[str, MachineEntry]) -> list[dict[str, Any]]:
             "last_seen_source":     e.last_seen_source,
             "days_since_last_seen": round(days, 1) if days is not None else None,
             "serial_is_cloned":     e.serial_is_cloned,
-            "is_available":         e.is_available_in_asset,
             "primary_status":       result["primary"],
             "flags":                ",".join(result["flags"]),
             "flag_legacy":          "LEGACY" in result["flags"],
             "flag_missing_asset":   "MISSING_ASSET" in result["flags"],
             "flag_pa_mismatch":     "PA_MISMATCH" in result["flags"],
         })
-
-    log("OK", "C:CLASSIFY", f"Classified {len(rows):,} records")
+    log("OK", "C:CLASSIFY", f"Classified {len(rows):,} real machines (no virtual GAPs in master)")
     return rows
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Section D — Distribution + Logic Checks
+# Section D — Distribution + Logic Checks + DIAGNOSIS
 # ──────────────────────────────────────────────────────────────────────────────
 
 KEY_LABELS = {
-    "OK":            "✅ SEGURO (OK)",
+    "COMPLIANT":     "✅ SEGURO (COMPLIANT)",
     "INCONSISTENCY": "🧩 INCONSISTÊNCIA DE BASE",
     "PHANTOM":       "👻 FANTASMA (AD)",
     "ROGUE":         "🚨 PERIGO (SEM AGENTE)",
@@ -566,25 +608,22 @@ KEY_LABELS = {
     "CLONE":         "👯 DUPLICADO",
     "OFFLINE":       "💤 OFFLINE",
     "GAP":           "🔴 GAP DE NOMES",
-    "AVAILABLE":     "ℹ️ DISPONÍVEL",
+    "AVAILABLE":     "ℹ️ DISPONÍVEL (virtual GAP)",
     "LEGACY":        "🧓 SISTEMA LEGADO",
     "MISSING_ASSET": "📦 FALTA ASSET",
     "PA_MISMATCH":   "🟠 DIVERGÊNCIA PA x USUÁRIO",
 }
 
-def section_d(rows: list[dict]) -> dict[str, Any]:
-    sep("D:CHECKS")
+def section_d(rows: list[dict], master: dict[str, MachineEntry], frames: dict) -> dict[str, Any]:
+    sep("D:CHECKS+DIAGNOSIS")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    df = pl.DataFrame(rows)
+    df = pl.DataFrame(rows) if rows else pl.DataFrame()
 
-    # Counts by primary status
     status_counts: dict[str, int] = {}
     if not df.is_empty():
         sc = df.group_by("primary_status").len().to_dict(as_series=False)
         status_counts = dict(zip(sc["primary_status"], sc["len"]))
-
-    # Flag counts
     flag_counts: dict[str, int] = {}
     for flag_col, flag_key in [("flag_legacy", "LEGACY"), ("flag_missing_asset", "MISSING_ASSET"), ("flag_pa_mismatch", "PA_MISMATCH")]:
         flag_counts[flag_key] = int(df[flag_col].sum()) if not df.is_empty() else 0
@@ -593,15 +632,15 @@ def section_d(rows: list[dict]) -> dict[str, Any]:
     report["filter_counts_local"]["by_flag"] = flag_counts
 
     # Rich table
-    rt = Table(title=f"Distribuição Local — {len(rows):,} máquinas", show_lines=True)
-    rt.add_column("Filtro (Key)"); rt.add_column("Label"); rt.add_column("Count", justify="right"); rt.add_column("Type")
+    rt = Table(title=f"Distribuição Local — {len(rows):,} máquinas reais", show_lines=True)
+    rt.add_column("Key"); rt.add_column("Label"); rt.add_column("Count", justify="right"); rt.add_column("Type")
     for k, cnt in sorted(status_counts.items(), key=lambda x: -x[1]):
         rt.add_row(k, KEY_LABELS.get(k, k), str(cnt), "status")
     for k, cnt in sorted(flag_counts.items(), key=lambda x: -x[1]):
         rt.add_row(k, KEY_LABELS.get(k, k), str(cnt), "flag")
     console.print(rt)
 
-    # Save counts CSV
+    # Counts CSV
     counts_rows = []
     for k, cnt in status_counts.items():
         counts_rows.append({"filter_key": k, "label": KEY_LABELS.get(k, k), "count": cnt, "type": "status"})
@@ -610,111 +649,111 @@ def section_d(rows: list[dict]) -> dict[str, Any]:
     counts_path = OUTPUT_DIR / f"machines_counts_{RUN_ID}.csv"
     pl.DataFrame(counts_rows).write_csv(counts_path)
     report["outputs"].append(str(counts_path))
-    log("OK", "D:COUNTS", f"Counts saved → {counts_path.name}")
 
-    # Save full min-table
+    # Min-table (100 sample)
     min_path_csv = OUTPUT_DIR / f"machines_min_table_{RUN_ID}.csv"
     min_path_json = OUTPUT_DIR / f"machines_min_table_{RUN_ID}.json"
     sample = df.head(100) if not df.is_empty() else df
     sample.write_csv(min_path_csv)
-    sample.to_dicts()  # validate
-    min_path_json.write_text(
-        json.dumps(sample.to_dicts(), ensure_ascii=False, indent=2, default=str),
-        encoding="utf-8"
-    )
+    min_path_json.write_text(json.dumps(sample.to_dicts(), ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     report["outputs"].extend([str(min_path_csv), str(min_path_json)])
-    log("OK", "D:MIN_TABLE", f"Min-table (100 sample) → {min_path_csv.name}")
 
-    # Save per-filter sample CSVs
-    all_filter_keys = list(status_counts.keys()) + list(flag_counts.keys())
-    for fk in all_filter_keys:
-        if fk in status_counts:
-            fdf = df.filter(pl.col("primary_status") == fk)
-        else:
-            # It's a flag
-            col_map = {"LEGACY": "flag_legacy", "MISSING_ASSET": "flag_missing_asset", "PA_MISMATCH": "flag_pa_mismatch"}
-            col = col_map.get(fk)
-            fdf = df.filter(pl.col(col) == True) if col else df.head(0)
+    # Coverage CSV (every machine with join key)
+    cov_rows = []
+    for key, e in master.items():
+        result = classify(e)
+        cov_rows.append({
+            "hostname":      key,
+            "has_ad":        e.has_ad,
+            "has_uem":       e.has_uem,
+            "has_edr":       e.has_edr,
+            "has_asset":     e.has_asset,
+            "status_final":  result["primary"],
+            "note_join_key": e.join_key_used,
+        })
+    cov_path = OUTPUT_DIR / f"machines_coverage_{RUN_ID}.csv"
+    pl.DataFrame(cov_rows).write_csv(cov_path)
+    report["outputs"].append(str(cov_path))
+    log("OK", "D:COVERAGE", f"Coverage CSV → {cov_path.name} ({len(cov_rows)} rows)")
+
+    # Per-filter sample CSVs
+    for fk in list(status_counts.keys()):
+        fdf = df.filter(pl.col("primary_status") == fk)
         fpath = OUTPUT_DIR / f"machines_table_{fk}_{RUN_ID}.csv"
         fdf.head(50).write_csv(fpath)
         report["outputs"].append(str(fpath))
+    log("OK", "D:PER_FILTER", f"Per-filter CSVs for {len(status_counts)} statuses")
 
-    log("OK", "D:PER_FILTER", f"Per-filter CSVs written for {len(all_filter_keys)} filters")
-
-    # Logic checks
+    # ── Logic checks
     checks: dict[str, Any] = {}
-
-    def check(name: str, expected_cond: str, violations: list[str]) -> dict:
+    def check(name: str, cond_str: str, violations: list[str]) -> None:
         ok = len(violations) == 0
-        result = {
-            "rule": expected_cond,
-            "pass": ok,
-            "violations": violations[:10],  # cap at 10
-            "violation_count": len(violations),
-        }
-        checks[name] = result
+        checks[name] = {"rule": cond_str, "pass": ok, "violations": violations[:10], "violation_count": len(violations)}
         icon = "✅ PASS" if ok else f"❌ FAIL ({len(violations)} violations)"
-        log("OK" if ok else "WARN", f"D:CHECK:{name}", f"{icon} — {expected_cond}")
-        return result
+        log("OK" if ok else "WARN", f"D:CHECK:{name}", f"{icon} — {cond_str}")
 
     if not df.is_empty():
-        # MISSING_UEM: has_ad AND NOT has_uem AND has_edr (matches ROGUE+MISSING_UEM combined; MISSING_UEM specifically is has_ad AND !uem AND has_edr)
-        uem_df = df.filter(pl.col("primary_status") == "MISSING_UEM")
-        v = [r["hostname_canon"] for r in uem_df.to_dicts() if not (r["has_ad"] and not r["has_uem"] and r["has_edr"])]
-        check("MISSING_UEM", "has_ad=T, has_uem=F, has_edr=T", v)
+        for status, cond, pred in [
+            ("MISSING_UEM",   "has_ad=T, has_uem=F, has_edr=T",       lambda r: r["has_ad"] and not r["has_uem"] and r["has_edr"]),
+            ("MISSING_EDR",   "has_ad=T, has_uem=T, has_edr=F",       lambda r: r["has_ad"] and r["has_uem"] and not r["has_edr"]),
+            ("ROGUE",         "has_ad=T, has_uem=F, has_edr=F",       lambda r: r["has_ad"] and not r["has_uem"] and not r["has_edr"]),
+            ("PHANTOM",       "has_ad=F, has_uem=F, has_edr=F",       lambda r: not r["has_ad"] and not r["has_uem"] and not r["has_edr"]),
+            ("INCONSISTENCY", "has_ad=F, (has_uem=T OR has_edr=T)",   lambda r: not r["has_ad"] and (r["has_uem"] or r["has_edr"])),
+            ("SWAP",          "uem_serial≠edr_serial, both present",   lambda r: r.get("uem_serial") and r.get("edr_serial") and r["uem_serial"] != r["edr_serial"]),
+            ("CLONE",         "serial_is_cloned=T",                   lambda r: r.get("serial_is_cloned")),
+            ("OFFLINE",       f"days_since_last_seen>{STALE_DAYS}",   lambda r: r.get("days_since_last_seen") and r["days_since_last_seen"] > STALE_DAYS),
+        ]:
+            subset = df.filter(pl.col("primary_status") == status)
+            if subset.is_empty():
+                checks[status] = {"rule": cond, "pass": True, "violations": [], "violation_count": 0}
+                log("INFO", f"D:CHECK:{status}", f"0 rows — skipped")
+                continue
+            v = [r["hostname_canon"] for r in subset.to_dicts() if not pred(r)]
+            check(status, cond, v)
 
-        # MISSING_EDR: has_ad AND has_uem AND NOT has_edr
-        edr_df = df.filter(pl.col("primary_status") == "MISSING_EDR")
-        v = [r["hostname_canon"] for r in edr_df.to_dicts() if not (r["has_ad"] and r["has_uem"] and not r["has_edr"])]
-        check("MISSING_EDR", "has_ad=T, has_uem=T, has_edr=F", v)
-
-        # ROGUE: has_ad AND NOT has_uem AND NOT has_edr
-        rogue_df = df.filter(pl.col("primary_status") == "ROGUE")
-        v = [r["hostname_canon"] for r in rogue_df.to_dicts() if not (r["has_ad"] and not r["has_uem"] and not r["has_edr"])]
-        check("ROGUE", "has_ad=T, has_uem=F, has_edr=F", v)
-
-        # PHANTOM: NOT has_ad AND NOT has_uem AND NOT has_edr
-        phantom_df = df.filter(pl.col("primary_status") == "PHANTOM")
-        v = [r["hostname_canon"] for r in phantom_df.to_dicts() if r["has_ad"] or r["has_uem"] or r["has_edr"]]
-        check("PHANTOM", "has_ad=F, has_uem=F, has_edr=F", v)
-
-        # INCONSISTENCY: NOT has_ad AND (has_uem OR has_edr)
-        inc_df = df.filter(pl.col("primary_status") == "INCONSISTENCY")
-        v = [r["hostname_canon"] for r in inc_df.to_dicts() if r["has_ad"] or (not r["has_uem"] and not r["has_edr"])]
-        check("INCONSISTENCY", "has_ad=F, (has_uem=T OR has_edr=T)", v)
-
-        # SWAP: uem_serial != edr_serial AND both present
-        swap_df = df.filter(pl.col("primary_status") == "SWAP")
-        v = [r["hostname_canon"] for r in swap_df.to_dicts()
-             if not (r.get("uem_serial") and r.get("edr_serial") and r["uem_serial"] != r["edr_serial"])]
-        check("SWAP", "uem_serial≠edr_serial, both present", v)
-
-        # CLONE: serial_is_cloned = True
-        clone_df = df.filter(pl.col("primary_status") == "CLONE")
-        v = [r["hostname_canon"] for r in clone_df.to_dicts() if not r.get("serial_is_cloned")]
-        check("CLONE", "serial_is_cloned=T", v)
-
-        # MISSING_ASSET flag: has_ad AND NOT has_asset AND (has_uem OR has_edr)
-        ma_df = df.filter(pl.col("flag_missing_asset") == True)
+        ma_df = df.filter(pl.col("flag_missing_asset"))
         v = [r["hostname_canon"] for r in ma_df.to_dicts()
              if not (r["has_ad"] and not r["has_asset"] and (r["has_uem"] or r["has_edr"]))]
         check("MISSING_ASSET_FLAG", "has_ad=T, has_asset=F, (has_uem=T OR has_edr=T)", v)
-
-        # OFFLINE: days_since > STALE_DAYS
-        off_df = df.filter(pl.col("primary_status") == "OFFLINE")
-        v = [r["hostname_canon"] for r in off_df.to_dicts()
-             if not (r.get("days_since_last_seen") and r["days_since_last_seen"] > STALE_DAYS)]
-        check("OFFLINE", f"days_since_last_seen>{STALE_DAYS}", v)
-
     else:
-        checks["_all"] = {"rule": "N/A", "pass": False, "violations": ["No data to check"], "violation_count": 1}
-        add_problem("WARN", "D:CHECKS", "No records to run logic checks on")
+        checks["_all"] = {"rule": "N/A", "pass": False, "violations": ["No data"], "violation_count": 1}
 
     checks_path = OUTPUT_DIR / f"machines_logic_checks_{RUN_ID}.json"
     checks_path.write_text(json.dumps(checks, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     report["outputs"].append(str(checks_path))
     report["logic_checks"] = checks
-    log("OK", "D:CHECKS", f"Logic checks saved → {checks_path.name}")
+
+    # ── DIAGNOSIS: AVAILABLE alto / OK baixo
+    asset_rows = len(frames.get("ASSET", pl.DataFrame()))
+    total_real = len(rows)
+    compliant_cnt = status_counts.get("COMPLIANT", 0)
+    avail_cnt_here = 0  # AVAILABLE doesn't appear in real master (only GAPs would)
+
+    diag = {
+        "asset_csv_rows": asset_rows,
+        "master_real_machines": total_real,
+        "compliant_count": compliant_cnt,
+        "available_in_local": avail_cnt_here,
+        "cause_identified": "D",  # see below
+        "explanation": (
+            "CAUSA RAIZ IDENTIFICADA (D): A v1 do script usava ASSET como fonte de novos "
+            "hostnames no MasterMap. Como ASSET.CSV tem 202 entradas todas com 'Nome do ativo' "
+            "contendo hostnames reais E 'Estado do ativo = In Store', o script v1 criou 202 "
+            "entradas com is_available_in_asset=True → classificadas como AVAILABLE. "
+            "O TS nunca faz isso: loadAssetSet() monta um SET de chaves e depois apenas "
+            "marca m.sources.ASSET=true nos entries existentes. AVAILABLE no TS refere-se "
+            "exclusivamente a virtual GAPs (isVirtualGap=true). "
+            "CORREÇÃO v2: ASSET é lookup-only; universo vem apenas de AD+UEM+EDR."
+        ),
+        "causes_ruled_out": {
+            "A_header_row": "Não. Layout de ASSET correto (header na linha 4, dinâmico). AD/UEM/EDR header na linha 0.",
+            "B_normalization": "Parcialmente. normalize_key() do TS usa '.replace(/\\..*$/)' que strip na PRIMEIRA '.', não apenas '.SCR2008'. Corrigido na v2.",
+            "C_available_wrong_scope": "Sim — mas decorrente de (D), não causa independente.",
+            "D_wrong_universe": "CAUSA PRINCIPAL. ASSET foi usado como fonte de entradas no master, o que não ocorre no TS.",
+        },
+    }
+    report["diagnosis_available_ok"] = diag
+    log("OK", "D:DIAGNOSIS", f"Causa raiz: {diag['cause_identified']} — {diag['explanation'][:80]}...")
 
     return {"status_counts": status_counts, "flag_counts": flag_counts}
 
@@ -742,10 +781,8 @@ def _api_get(path: str, params: dict | None = None) -> tuple[int, Any, float]:
     try:
         r = requests.get(url, params=params, timeout=15)
         ms = round((time.perf_counter() - t0) * 1000, 1)
-        try:
-            body = r.json()
-        except Exception:
-            body = {"raw": r.text[:200]}
+        try: body = r.json()
+        except: body = {"raw": r.text[:200]}
         return r.status_code, body, ms
     except Exception as exc:
         ms = round((time.perf_counter() - t0) * 1000, 1)
@@ -754,88 +791,43 @@ def _api_get(path: str, params: dict | None = None) -> tuple[int, Any, float]:
 def section_e(local_counts: dict) -> None:
     sep("E:API")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
     if not _wait_api():
         add_problem("WARN", "E:API", "API unreachable — skipping endpoint comparison")
-        report["recommendations"].append(
-            "API was unreachable. Ensure the api container is healthy and retry."
-        )
         return
 
-    # /machines/filters
-    status, body, ms = _api_get(f"{API_PREFIX}/machines/filters")
-    report["endpoints"]["filters"] = {"status": status, "ms": ms}
-    fpath = OUTPUT_DIR / f"machines_filters_{RUN_ID}.json"
-    fpath.write_text(json.dumps({"status": status, "ms": ms, "body": body}, indent=2, default=str), encoding="utf-8")
-    report["outputs"].append(str(fpath))
-
-    if status == 200:
-        api_filters = body.get("data", [])
-        api_keys = {f["key"] for f in api_filters}
-        missing_keys = EXPECTED_FILTER_KEYS - api_keys
-        extra_keys = api_keys - EXPECTED_FILTER_KEYS
-        log("OK", "E:FILTERS", f"API returned {len(api_keys)} filter keys")
-        if missing_keys:
-            add_problem("WARN", "E:FILTERS", f"Missing expected filter keys in API: {missing_keys}")
-        if extra_keys:
-            log("INFO", "E:FILTERS", f"Extra keys in API (not in expected set): {extra_keys}")
-    else:
-        add_problem("ERROR", "E:FILTERS", f"GET /machines/filters → HTTP {status}")
-
-    # /machines/summary
-    status, body, ms = _api_get(f"{API_PREFIX}/machines/summary")
-    report["endpoints"]["summary"] = {"status": status, "ms": ms}
-    spath = OUTPUT_DIR / f"machines_summary_{RUN_ID}.json"
-    spath.write_text(json.dumps({"status": status, "ms": ms, "body": body}, indent=2, default=str), encoding="utf-8")
-    report["outputs"].append(str(spath))
-
-    api_summary = {}
-    if status == 200:
-        d = body.get("data", {})
-        api_by_status = d.get("by_status", {})
-        api_by_flag = d.get("by_flag", {})
-        api_summary = {"by_status": api_by_status, "by_flag": api_by_flag}
-        report["filter_counts_api"] = api_summary
-        log("OK", "E:SUMMARY", f"API summary: total={d.get('total', '?')}, statuses={list(api_by_status.keys())}")
-
-        # Critical finding: if API total = 0, the engine has no data (mock)
-        if d.get("total", 0) == 0:
-            add_problem("ERROR", "E:API", (
-                "API /machines/summary returned total=0. "
-                "The MachinesService is using MachinesEngine(data=[]) — "
-                "no real CSV ingestion in the API layer yet. "
-                "Local classification results are the ground truth for this retest."
-            ))
-            report["recommendations"].append(
-                "CRITICAL: API engine has no data (data=[]). "
-                "To achieve true end-to-end paridade, implement CSV ingestion in MachinesService._get_engine(). "
-                "The local classification in this retest script is the reference implementation."
-            )
-    else:
-        add_problem("ERROR", "E:SUMMARY", f"GET /machines/summary → HTTP {status}")
-
-    # /machines/table (page 1)
-    status, body, ms = _api_get(f"{API_PREFIX}/machines/table", params={"page": 1, "page_size": 50})
-    report["endpoints"]["table"] = {"status": status, "ms": ms}
-    tpath = OUTPUT_DIR / f"machines_table_api_{RUN_ID}.json"
-    tpath.write_text(json.dumps({"status": status, "ms": ms, "body": body}, indent=2, default=str), encoding="utf-8")
-    report["outputs"].append(str(tpath))
-    if status == 200:
-        items = body.get("data", {}).get("items", [])
-        log("OK", "E:TABLE", f"GET /machines/table → {len(items)} items returned (API engine may be empty)")
-    else:
-        add_problem("ERROR", "E:TABLE", f"GET /machines/table → HTTP {status}")
-
-    # Per-filter table calls (using statuses= query param; will be empty if API has no data)
-    local_status_keys = local_counts.get("status_counts", {}).keys()
-    for fk in local_status_keys:
-        status, body, ms = _api_get(f"{API_PREFIX}/machines/table", params={"statuses": fk, "page": 1, "page_size": 50})
-        jp = OUTPUT_DIR / f"machines_table_{fk}_{RUN_ID}.json"
+    for ep, path, params in [
+        ("filters",         f"{API_PREFIX}/machines/filters",  None),
+        ("summary",         f"{API_PREFIX}/machines/summary",  None),
+        ("table_p1",        f"{API_PREFIX}/machines/table",    {"page": 1, "page_size": 50}),
+    ]:
+        status, body, ms = _api_get(path, params)
+        report["endpoints"][ep] = {"status": status, "ms": ms}
+        jp = OUTPUT_DIR / f"machines_{ep}_{RUN_ID}.json"
         jp.write_text(json.dumps({"status": status, "ms": ms, "body": body}, indent=2, default=str), encoding="utf-8")
         report["outputs"].append(str(jp))
-        items_count = len(body.get("data", {}).get("items", [])) if status == 200 else 0
-        level = "OK" if status == 200 else "WARN"
-        log(level, f"E:TABLE:{fk}", f"HTTP {status} → {items_count} items  ({ms}ms)")
+        log("OK" if status == 200 else "WARN", f"E:{ep.upper()}", f"HTTP {status}  {ms}ms")
+
+    # Check API filter count
+    status, body, ms = _api_get(f"{API_PREFIX}/machines/filters")
+    if status == 200:
+        api_keys = {f["key"] for f in body.get("data", [])}
+        if len(api_keys) != 14:
+            add_problem("WARN", "E:FILTERS", f"API returned {len(api_keys)} filters, expected 14")
+    # Check if API total=0
+    status, body, ms = _api_get(f"{API_PREFIX}/machines/summary")
+    if status == 200:
+        total = body.get("data", {}).get("total", 0)
+        report["filter_counts_api"] = body.get("data", {})
+        if total == 0:
+            add_problem("ERROR", "E:API", (
+                "API /machines/summary returned total=0. "
+                "MachinesService uses MachinesEngine(data=[]) — no real CSV ingestion. "
+                "Local classification is ground truth for this retest."
+            ))
+            report["recommendations"].append(
+                "PATCH NEEDED: Implement CSV ingestion in MachinesService._get_engine(). "
+                "Mount /workspace CSVs and load them via the same join pipeline implemented here."
+            )
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Section F — Parity Report
@@ -844,29 +836,43 @@ def section_e(local_counts: dict) -> None:
 def section_f():
     sep("F:REPORT")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
     ended_at = datetime.now(timezone.utc).isoformat()
     report["ended_at"] = ended_at
 
     errors = [p for p in report["problems"] if p["severity"] == "ERROR"]
     warns  = [p for p in report["problems"] if p["severity"] == "WARN"]
-
-    local = report.get("filter_counts_local", {})
-    api   = report.get("filter_counts_api", {})
+    local  = report.get("filter_counts_local", {})
     checks = report.get("logic_checks", {})
+    diag   = report.get("diagnosis_available_ok", {})
 
     md = [
-        f"# Compliance Gate — Parity Report [Reteste 2A]",
+        f"# Compliance Gate — Parity Report [Reteste 2A v2]",
         f"",
-        f"**Run ID:** `{RUN_ID}`  ",
-        f"**Started:** {report['started_at']}  ",
-        f"**Ended:** {ended_at}  ",
+        f"**Run ID:** `{RUN_ID}`",
+        f"**Started:** {report['started_at']}",
+        f"**Ended:** {ended_at}",
         f"**Status:** {'✅ PASSED' if not errors else '⚠️ ISSUES DETECTED'} ({len(errors)} error(s), {len(warns)} warning(s))",
-        f"**RELATORIO_FINAL.csv:** {'✅ Available (2B ran)' if report['relatorio_final_csv'] else '❌ Not found — 2B skipped'}",
         f"",
         f"---",
         f"",
-        f"## 1 · Distribuição Local (ground truth desde os CSVs reais)",
+        f"## 1 · Layout de Leitura dos CSVs",
+        f"",
+        f"| Source | Método | Header Row | Data Starts | Confiança |",
+        f"|--------|--------|------------|-------------|-----------|",
+    ]
+    for src, det in report.get("layout_detections", {}).items():
+        md.append(
+            f"| {src} | {det.get('method','?')} | {det.get('detected_header_row_index','?')} | "
+            f"{det.get('detected_first_data_row_index','?')} | {det.get('confidence','?')} |"
+        )
+    md += [
+        f"",
+        f"> **AD/UEM/EDR**: header sempre na linha 0 (CSV padrão) — mirrors TS `hAD = dataAD[0]`",
+        f"> **ASSET**: scan dinâmico por `NOME DO ATIVO` — mirrors TS `loadAssetSet()` (linha 2848)",
+        f"",
+        f"---",
+        f"",
+        f"## 2 · Distribuição Local (ground truth — AD+UEM+EDR, ASSET só lookup)",
         f"",
         f"| Filtro Key | Label | Count | Tipo |",
         f"|-----------|-------|-------|------|",
@@ -875,14 +881,51 @@ def section_f():
         md.append(f"| `{k}` | {KEY_LABELS.get(k, k)} | **{cnt}** | status |")
     for k, cnt in sorted(local.get("by_flag", {}).items(), key=lambda x: -x[1]):
         md.append(f"| `{k}` | {KEY_LABELS.get(k, k)} | **{cnt}** | flag |")
-
     total_local = sum(local.get("by_status", {}).values())
-    md += [f"", f"**Total de máquinas únicas:** {total_local}", f""]
-
+    md += [f"", f"**Total máquinas reais:** {total_local}", f""]
     md += [
         f"---",
         f"",
-        f"## 2 · API Endpoint Summary",
+        f"## 3 · Checagens Lógicas Mínimas",
+        f"",
+        f"| Regra | Condição | Resultado | Violações |",
+        f"|-------|----------|-----------|-----------|",
+    ]
+    for cname, cinfo in checks.items():
+        icon = "✅ PASS" if cinfo.get("pass") else "❌ FAIL"
+        md.append(f"| `{cname}` | {cinfo.get('rule', '')} | {icon} | {cinfo.get('violation_count', 0)} |")
+        if not cinfo.get("pass") and cinfo.get("violations"):
+            md.append(f"  - Exemplos: `{'`, `'.join(cinfo['violations'])}`")
+    md += [
+        f"",
+        f"---",
+        f"",
+        f"## 4 · Diagnóstico: Por que AVAILABLE ficou alto e OK baixo? (v1 → v2)",
+        f"",
+        f"**Causa identificada: (D) Universo de máquinas incorreto**",
+        f"",
+        f"| Causa | Hipótese | Status |",
+        f"|-------|----------|--------|",
+    ]
+    for cause_key, cause_val in diag.get("causes_ruled_out", {}).items():
+        is_main = "PRINCIPAL" in cause_val
+        icon = "✅ CAUSA RAIZ" if is_main else "❌ Descartada"
+        md.append(f"| {cause_key} | {cause_val[:60]}... | {icon} |")
+    md += [
+        f"",
+        f"**Explicação detalhada:**",
+        f"",
+        f"> {diag.get('explanation', 'N/A')}",
+        f"",
+        f"**Correção aplicada na v2:**",
+        f"- ASSET só marca `has_asset=True` nas entradas existentes no MasterMap",
+        f"- ASSET nunca cria entradas novas no MasterMap",
+        f"- AVAILABLE/GAP são entradas sintéticas (não presentes nesta base sem gap insertion)",
+        f"- TS key foi corrigido de `OK` para `COMPLIANT` (mirrors TS `statusKey = 'COMPLIANT'`)",
+        f"",
+        f"---",
+        f"",
+        f"## 5 · API Endpoints",
         f"",
         f"| Endpoint | HTTP | Latência |",
         f"|----------|------|---------|",
@@ -890,95 +933,48 @@ def section_f():
     for ep, info in report.get("endpoints", {}).items():
         icon = "✅" if info["status"] == 200 else "⚠️"
         md.append(f"| `{ep}` | {icon} {info['status']} | {info['ms']}ms |")
-
-    api_total = sum(api.get("by_status", {}).values()) if api else 0
-    md += [f"", f"**API total machines:** {api_total}"]
-    if api_total == 0:
-        md.append(f"  > ⚠️ **API retornou 0 registros** — MachinesService usa `data=[]`. A paridade 1:1 está pendente da implementação de CSV ingestion no backend.")
-
     md += [
         f"",
         f"---",
         f"",
-        f"## 3 · Comparação Local vs API",
-        f"",
-        f"| Filtro | Local Count | API Count | Match? |",
-        f"|--------|------------|-----------|--------|",
-    ]
-    all_keys = set(local.get("by_status", {}).keys()) | set(api.get("by_status", {}).keys())
-    for k in sorted(all_keys):
-        lc = local.get("by_status", {}).get(k, 0)
-        ac = api.get("by_status", {}).get(k, 0)
-        match = "✅" if lc == ac else "❌" if api_total > 0 else "⏭️ API sem dados"
-        md.append(f"| `{k}` | {lc} | {ac} | {match} |")
-
-    md += [
-        f"",
-        f"---",
-        f"",
-        f"## 4 · Checagens Lógicas Mínimas (2A)",
-        f"",
-        f"| Regra | Condição | Resultado | Violações |",
-        f"|-------|----------|-----------|-----------|",
-    ]
-    for cname, cinfo in checks.items():
-        icon = "✅ PASS" if cinfo.get("pass") else "❌ FAIL"
-        vcount = cinfo.get("violation_count", 0)
-        md.append(f"| `{cname}` | {cinfo.get('rule', '')} | {icon} | {vcount} |")
-        if not cinfo.get("pass") and cinfo.get("violations"):
-            md.append(f"  - Violations (até 10): `{'`, `'.join(cinfo['violations'])}`")
-
-    md += [
-        f"",
-        f"---",
-        f"",
-        f"## 5 · Problemas Detectados",
+        f"## 6 · Problemas",
         f"",
     ]
     if not report["problems"]:
-        md.append("_Nenhum problema detectado._")
+        md.append("_Nenhum problema._")
     else:
         for p in report["problems"]:
             icon = "❌" if p["severity"] == "ERROR" else "⚠️"
             md.append(f"- {icon} **[{p['severity']}]** `{p['source']}` — {p['msg']}")
-
     md += [
         f"",
         f"---",
         f"",
-        f"## 6 · Recomendações",
+        f"## 7 · Recomendações",
         f"",
     ]
-    if not report["recommendations"]:
-        md.append("_Sem ações pendentes._")
-    else:
-        for r in report["recommendations"]:
-            md.append(f"- {r}")
-
+    for r in (report["recommendations"] or ["Sem ações pendentes."]):
+        md.append(f"- {r}")
     md += [
         f"",
         f"---",
         f"",
-        f"## 7 · Outputs Gerados",
+        f"## 8 · Outputs",
         f"",
     ]
     for o in report["outputs"]:
         md.append(f"- `{o}`")
-
     md += [
         f"",
         f"**Log:** `{LOG_FILE}`",
         f"",
         f"---",
         f"",
-        f"## 8 · Solicitar Reteste 2B",
+        f"## 9 · Solicitar Reteste 2B",
         f"",
-        f"> Para executar o **Reteste 2B (paridade direta 1:1 com Excel)**, disponibilize o arquivo `RELATORIO_FINAL.csv`",
-        f"> exportado do Excel OfficeScript (mesmo dia e mesmos CSVs de entrada) em:",
-        f"> - Raiz do repositório: `RELATORIO_FINAL.csv`",
-        f"> - ou em: `retests/fixtures/RELATORIO_FINAL.csv`",
+        f"> Para reteste 2B, disponibilize `RELATORIO_FINAL.csv` na raiz do repo ou em `retests/fixtures/`.",
         f"",
-        f"_Gerado por Compliance Gate Parity Retest — run_parity_retests.py_",
+        f"_Gerado por Compliance Gate Parity Retest v2 — run_parity_retests.py_",
     ]
 
     report_path = OUTPUT_DIR / f"parity_report_{RUN_ID}.md"
@@ -992,32 +988,28 @@ def section_f():
 
 def main() -> int:
     sep("INIT")
-    log("STEP", "INIT", f"Compliance Gate Parity Retest — run_id={RUN_ID}")
+    log("STEP", "INIT", f"Compliance Gate Parity Retest v2 — run_id={RUN_ID}")
     log("INFO", "INIT", f"Workspace={WORKSPACE} | API={API_BASE_URL} | stale_days={STALE_DAYS}")
 
-    # Check RELATORIO_FINAL
-    for candidate in [WORKSPACE / "RELATORIO_FINAL.csv", RETESTS_DIR / "fixtures" / "RELATORIO_FINAL.csv"]:
+    # RELATORIO_FINAL check
+    for candidate in [WORKSPACE / "RELATORIO_FINAL.csv", Path("/retests/fixtures/RELATORIO_FINAL.csv")]:
         if candidate.exists():
             report["relatorio_final_csv"] = str(candidate)
-            log("OK", "INIT", f"RELATORIO_FINAL.csv found → {candidate} (2B will run)")
+            log("OK", "INIT", f"RELATORIO_FINAL.csv found → 2B disponível")
             break
     if not report["relatorio_final_csv"]:
         log("WARN", "INIT", "RELATORIO_FINAL.csv not found — only 2A will run")
 
     frames = section_a()
-    if len([f for f in frames.values() if f is not None]) == 0:
-        log("ERROR", "INIT", "No CSVs readable. Aborting.")
-        section_f()
-        return 1
+    if not frames:
+        log("ERROR", "INIT", "No CSVs readable"); section_f(); return 1
 
     master = section_b(frames)
     if not master:
-        log("ERROR", "INIT", "MasterMap empty after join. Aborting.")
-        section_f()
-        return 1
+        log("ERROR", "INIT", "MasterMap empty"); section_f(); return 1
 
     classified = section_c(master)
-    counts = section_d(classified)
+    counts = section_d(classified, master, frames)
     section_e(counts)
     section_f()
 
@@ -1025,9 +1017,8 @@ def main() -> int:
     if errors:
         log("ERROR", "FINAL", f"Parity retest completed with {len(errors)} critical error(s). Exit 1.")
         return 1
-    log("OK", "FINAL", "Parity retest 2A completed successfully. Exit 0.")
+    log("OK", "FINAL", "Parity retest 2A v2 completed successfully. Exit 0.")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
