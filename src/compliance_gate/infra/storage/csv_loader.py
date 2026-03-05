@@ -22,6 +22,8 @@ from typing import Optional
 
 import polars as pl
 
+from compliance_gate.infra.logging import debug_logger
+
 log = logging.getLogger(__name__)
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -140,14 +142,17 @@ def load_machines_sources(data_dir: Optional[Path] = None) -> MachinesSources:
         if df is not None:
             sources.ad_df = df
             log.info("Loaded AD: rows=%d cols=%d  path=%s", df.height, df.width, ad_path.name)
+            debug_logger.add_event("load_csv", "Loaded AD.csv", {"rows": df.height, "cols": df.width})
         else:
             msg = f"AD.csv parse failed at {ad_path}"
             log.error(msg)
             sources.load_errors.append(msg)
+            debug_logger.add_event("load_csv_error", msg)
     else:
         msg = f"AD.csv not found in {data_dir}"
         log.warning(msg)
         sources.load_errors.append(msg)
+        debug_logger.add_event("load_csv_warn", msg)
 
     # ── UEM ───────────────────────────────────────────────────────────────────
     uem_path = _find_file(data_dir, "UEM.csv")
@@ -156,14 +161,17 @@ def load_machines_sources(data_dir: Optional[Path] = None) -> MachinesSources:
         if df is not None:
             sources.uem_df = df
             log.info("Loaded UEM: rows=%d cols=%d  path=%s", df.height, df.width, uem_path.name)
+            debug_logger.add_event("load_csv", "Loaded UEM.csv", {"rows": df.height, "cols": df.width})
         else:
             msg = f"UEM.csv parse failed at {uem_path}"
             log.error(msg)
             sources.load_errors.append(msg)
+            debug_logger.add_event("load_csv_error", msg)
     else:
         msg = f"UEM.csv not found in {data_dir}"
         log.warning(msg)
         sources.load_errors.append(msg)
+        debug_logger.add_event("load_csv_warn", msg)
 
     # ── EDR ───────────────────────────────────────────────────────────────────
     edr_path = _find_file(data_dir, "EDR.csv")
@@ -172,14 +180,17 @@ def load_machines_sources(data_dir: Optional[Path] = None) -> MachinesSources:
         if df is not None:
             sources.edr_df = df
             log.info("Loaded EDR: rows=%d cols=%d  path=%s", df.height, df.width, edr_path.name)
+            debug_logger.add_event("load_csv", "Loaded EDR.csv", {"rows": df.height, "cols": df.width})
         else:
             msg = f"EDR.csv parse failed at {edr_path}"
             log.error(msg)
             sources.load_errors.append(msg)
+            debug_logger.add_event("load_csv_error", msg)
     else:
         msg = f"EDR.csv not found in {data_dir}"
         log.warning(msg)
         sources.load_errors.append(msg)
+        debug_logger.add_event("load_csv_warn", msg)
 
     # ── ASSET (lookup-only) ───────────────────────────────────────────────────
     asset_path = _find_file(data_dir, "ASSET.CSV") or _find_file(data_dir, "ASSET.csv")
@@ -192,15 +203,19 @@ def load_machines_sources(data_dir: Optional[Path] = None) -> MachinesSources:
                 "Loaded ASSET: rows=%d cols=%d  header_row=%d  path=%s",
                 df.height, df.width, skip, asset_path.name,
             )
+            debug_logger.add_event("load_csv", "Loaded ASSET.csv", {"rows": df.height, "cols": df.width, "header_row": skip})
         else:
             msg = f"ASSET.CSV parse failed at {asset_path}"
             log.error(msg)
             sources.load_errors.append(msg)
+            debug_logger.add_event("load_csv_error", msg)
     else:
         msg = f"ASSET.CSV not found in {data_dir}"
         log.warning(msg)
         sources.load_errors.append(msg)
+        debug_logger.add_event("load_csv_warn", msg)
 
     elapsed = round((time.perf_counter() - t0) * 1000, 1)
     log.info("CSV load complete in %sms — errors=%d", elapsed, len(sources.load_errors))
+    debug_logger.add_event("load_csv_complete", "All CSVs processed", {"elapsed_ms": elapsed, "errors": len(sources.load_errors)})
     return sources

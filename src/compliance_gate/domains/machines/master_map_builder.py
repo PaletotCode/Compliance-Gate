@@ -25,6 +25,7 @@ from typing import Any, Optional
 import polars as pl
 
 from compliance_gate.infra.storage.csv_loader import MachinesSources
+from compliance_gate.infra.logging import debug_logger
 
 log = logging.getLogger(__name__)
 
@@ -200,8 +201,10 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
                         e.last_seen_ms = ms
                         e.last_seen_source = "AD"
         log.info("AD upsert done: %d new entries (total=%d)", n_new, len(master))
+        debug_logger.add_event("join_ad", f"Processed AD: {n_new} new entries", {"new": n_new, "total": len(master)})
     else:
         log.warning("AD DataFrame missing — skipping AD join")
+        debug_logger.add_event("join_ad_skip", "AD DataFrame missing")
 
     # ── 2. UEM (TS line 3096: for i=1..dataUEM → upsert(..., "UEM", idxUemName))
     # TS: idxUemName = getIdx(hUEM,"Hostname"); if -1 → getIdx(hUEM,"Friendly Name")
@@ -232,8 +235,10 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
                     e.last_seen_ms = seen_ms
                     e.last_seen_source = "UEM"
         log.info("UEM upsert done: %d new entries (total=%d)", n_new, len(master))
+        debug_logger.add_event("join_uem", f"Processed UEM: {n_new} new entries", {"new": n_new, "total": len(master)})
     else:
         log.warning("UEM DataFrame missing — skipping UEM join")
+        debug_logger.add_event("join_uem_skip", "UEM DataFrame missing")
 
     # ── 3. EDR (TS line 3097: for i=1..dataEDR → upsert(..., "EDR", idxEdrName))
     # TS: idxEdrName = getIdx(hEDR,"Friendly Name"); if -1 → getIdx(hEDR,"Hostname")
@@ -265,8 +270,10 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
                     e.last_seen_ms = seen_ms
                     e.last_seen_source = "EDR"
         log.info("EDR upsert done: %d new entries (total=%d)", n_new, len(master))
+        debug_logger.add_event("join_edr", f"Processed EDR: {n_new} new entries", {"new": n_new, "total": len(master)})
     else:
         log.warning("EDR DataFrame missing — skipping EDR join")
+        debug_logger.add_event("join_edr_skip", "EDR DataFrame missing")
 
     # ── 4. ASSET — lookup-only (TS lines 3196-3198)
     # Build asset_set from 'Nome do ativo' column → normalizeAssetHostname keys
@@ -292,6 +299,7 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
             e.has_asset = True
             matched += 1
     log.info("Asset lookup: has_asset=True for %d / %d entries", matched, len(master))
+    debug_logger.add_event("join_asset", f"Asset lookup matched {matched} entries", {"matched": matched, "unique_keys": len(asset_set)})
 
     # ── 5. Clone detection
     serial_map: dict[str, list[str]] = {}
@@ -308,8 +316,11 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
 
     # ── 6. Convert to List[Dict] expected by MachineRecord(**dict)
     records = []
+    
+    # Store up to 50 samples in the debug_logger
+    sample_count = 0
     for e in master.values():
-        records.append({
+        rec = {
             "hostname":               e.hostname,
             "pa_code":                e.pa_code,
             "has_ad":                 e.has_ad,
@@ -325,8 +336,13 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
             "serial_is_cloned":       e.serial_is_cloned,
             "is_virtual_gap":         e.is_virtual_gap,
             "is_available_in_asset":  e.is_available_in_asset,
-        })
+        }
+        records.append(rec)
+        if sample_count < 50:
+            debug_logger.add_sample(rec)
+            sample_count += 1
 
     elapsed = round((time.perf_counter() - t0) * 1000, 1)
     log.info("MasterMap built: %d real machines in %sms", len(records), elapsed)
+    debug_logger.add_event("build_master_map", f"MasterMap built {len(records)} machines", {"total": len(records), "elapsed_ms": elapsed})
     return records

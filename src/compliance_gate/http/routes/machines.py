@@ -10,6 +10,7 @@ from compliance_gate.domains.machines.schemas import (
     FilterDefinitionSchema
 )
 from compliance_gate.domains.machines.service import MachinesService
+from compliance_gate.infra.logging import debug_logger
 
 router = APIRouter(prefix="/machines", tags=["machines"])
 
@@ -62,3 +63,15 @@ def get_timeline():
 def get_item_history(id: str = Path(...)):
     # Stub: empty history
     return ApiResponse(data=[])
+
+@router.get("/debug/logs")
+def get_debug_logs(limit: int = Query(200, ge=1, le=2000)):
+    """DEV-only endpoint: returns internal metrics logs from processing CSVs / master map logic."""
+    logs = debug_logger.get_logs(limit)
+    return {"status": 200, "data": logs}
+
+@router.get("/debug/sample")
+def get_debug_sample(limit: int = Query(50, ge=1, le=500)):
+    """DEV-only endpoint: returns samples of constructed machine records directly from engine build."""
+    samples = debug_logger.get_samples(limit)
+    return {"status": 200, "data": samples}
