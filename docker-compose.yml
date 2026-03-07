@@ -30,14 +30,20 @@ services:
       dockerfile: docker/Dockerfile
     container_name: compliance_gate_api
     command: uvicorn src.compliance_gate.main:app --host 0.0.0.0 --port 8000 --reload
-    volumes:
-      - .:/app
     ports:
       - "8000:8000"
     environment:
+      - PYTHONPATH=/app/src
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-compliance_gate}
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=development
+      - CG_DATA_DIR=/workspace
+      - CG_UPLOAD_DIR=/workspace/uploads
+      - DEFAULT_TENANT_ID=default
+    volumes:
+      - .:/app
+      - ./workspace:/workspace
+      - uploads_data:/workspace/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -46,3 +52,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:
