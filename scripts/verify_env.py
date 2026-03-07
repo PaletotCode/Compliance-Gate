@@ -39,12 +39,13 @@ def verify():
     else:
         print("  ❌ Backend is OFFLINE (Port 8000 closed)")
 
-    # 3. Check Frontend
-    print("\n[3] Checking Frontend (Port 3000):")
-    if check_port(3000):
-        print("  ✅ Frontend dev server is ONLINE")
+    # 3. Check Workspace
+    print("\n[3] Checking Workspace:")
+    workspace = os.path.join(os.getcwd(), "workspace")
+    if os.path.exists(workspace):
+        print("  ✅ Workspace directory exists.")
     else:
-        print("  ❌ Frontend dev server is OFFLINE (Port 3000 closed)")
+        print("  ❌ Workspace directory MISSING.")
 
     print("\n--- Verification Complete ---")
 
