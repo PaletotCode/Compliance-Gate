@@ -58,19 +58,21 @@ def _to_machines_final_df(records: list[dict]) -> pl.DataFrame:
         )
 
     if not rows:
-        return pl.DataFrame(schema={
-            "machine_id": pl.String,
-            "hostname": pl.String,
-            "pa_code": pl.String,
-            "primary_status": pl.String,
-            "primary_status_label": pl.String,
-            "flags": pl.List(pl.String),
-            "has_ad": pl.Boolean,
-            "has_uem": pl.Boolean,
-            "has_edr": pl.Boolean,
-            "has_asset": pl.Boolean,
-            "last_seen_date_ms": pl.Int64,
-        })
+        return pl.DataFrame(
+            schema={
+                "machine_id": pl.String,
+                "hostname": pl.String,
+                "pa_code": pl.String,
+                "primary_status": pl.String,
+                "primary_status_label": pl.String,
+                "flags": pl.List(pl.String),
+                "has_ad": pl.Boolean,
+                "has_uem": pl.Boolean,
+                "has_edr": pl.Boolean,
+                "has_asset": pl.Boolean,
+                "last_seen_date_ms": pl.Int64,
+            }
+        )
 
     df = pl.DataFrame(rows)
     # Keep deterministic schema ordering for parquet contracts.

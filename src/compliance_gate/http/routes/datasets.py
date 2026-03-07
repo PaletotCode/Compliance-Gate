@@ -11,6 +11,7 @@ Endpoints:
 from __future__ import annotations
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any, Optional
@@ -29,11 +30,13 @@ from compliance_gate.infra.storage import datasets_store as store
 from compliance_gate.infra.storage import profiles_store
 
 router = APIRouter(prefix="/datasets/machines", tags=["datasets"])
+log = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Request / Response schemas
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class PreviewRequest(BaseModel):
     data_dir: Optional[str] = None
@@ -41,7 +44,7 @@ class PreviewRequest(BaseModel):
 
 
 class IngestRequest(BaseModel):
-    source: str = "path"          # "path" only for Chat 1
+    source: str = "path"  # "path" only for Chat 1
     data_dir: Optional[str] = None
     # Deprecated. Tenant comes from authenticated user token.
     tenant_id: Optional[str] = None
@@ -65,6 +68,7 @@ class DatasetVersionSchema(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _resolve_data_dir(requested: Optional[str]) -> Path:
     """Resolve the data directory from request or env/default."""
@@ -90,21 +94,23 @@ def _resolve_data_dir(requested: Optional[str]) -> Path:
 
 def _version_to_schema(v) -> dict:
     files_out = []
-    for f in (v.files or []):
-        files_out.append({
-            "id": f.id,
-            "source": f.source,
-            "original_filename": f.original_filename,
-            "checksum_sha256": f.checksum_sha256,
-            "file_size_bytes": f.file_size_bytes,
-            "detected_encoding": f.detected_encoding,
-            "detected_delimiter": f.detected_delimiter,
-            "header_row_index": f.header_row_index,
-            "headers": json.loads(f.detected_headers or "[]"),
-            "rows_read": f.rows_read,
-            "rows_valid": f.rows_valid,
-            "warnings": json.loads(f.parse_warnings or "[]"),
-        })
+    for f in v.files or []:
+        files_out.append(
+            {
+                "id": f.id,
+                "source": f.source,
+                "original_filename": f.original_filename,
+                "checksum_sha256": f.checksum_sha256,
+                "file_size_bytes": f.file_size_bytes,
+                "detected_encoding": f.detected_encoding,
+                "detected_delimiter": f.detected_delimiter,
+                "header_row_index": f.header_row_index,
+                "headers": json.loads(f.detected_headers or "[]"),
+                "rows_read": f.rows_read,
+                "rows_valid": f.rows_valid,
+                "warnings": json.loads(f.parse_warnings or "[]"),
+            }
+        )
 
     metrics_out = None
     if v.metrics:
@@ -142,6 +148,7 @@ def _version_to_schema(v) -> dict:
 # POST /preview
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @router.post("/preview")
 def preview_machines(
     body: PreviewRequest,
@@ -160,6 +167,7 @@ def preview_machines(
 # POST /ingest
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @router.post("/ingest")
 def ingest_machines(
     body: IngestRequest,
@@ -177,10 +185,28 @@ def ingest_machines(
     for src_name, p_id in body.profile_ids.items():
         profile = profiles_store.get_profile_by_id(db, p_id)
         if not profile or profile.tenant_id != current_user.tenant_id:
-            raise HTTPException(status_code=404, detail=f"profile {p_id} not found")
+            log.warning(
+                "datasets.ingest invalid profile id source=%s profile_id=%s tenant_id=%s",
+                src_name,
+                p_id,
+                current_user.tenant_id,
+            )
+            raise HTTPException(
+                status_code=400, detail=f"profile_id inválido para source={src_name}"
+            )
         payload = profiles_store.get_active_payload(db, p_id)
-        if payload:
-            configs[src_name] = payload
+        if payload is None:
+            log.warning(
+                "datasets.ingest missing active payload source=%s profile_id=%s tenant_id=%s",
+                src_name,
+                p_id,
+                current_user.tenant_id,
+            )
+            raise HTTPException(
+                status_code=400,
+                detail=f"profile_id sem payload ativo para source={src_name}",
+            )
+        configs[src_name] = payload
 
     # Create pending version
     version = store.create_dataset_version(
@@ -264,9 +290,12 @@ def ingest_machines(
 # GET / (list)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @router.get("")
 def list_versions(
-    tenant_id: Optional[str] = Query(None, description="Deprecated. Ignored in favor of current tenant"),
+    tenant_id: Optional[str] = Query(
+        None, description="Deprecated. Ignored in favor of current tenant"
+    ),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -290,6 +319,7 @@ def list_versions(
 # ─────────────────────────────────────────────────────────────────────────────
 # GET /{id}
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @router.get("/{version_id}")
 def get_version(

@@ -16,7 +16,9 @@ log = logging.getLogger(__name__)
 
 def run_cli() -> int:
     if len(sys.argv) < 3:
-        log.error("Usage: python -m compliance_gate.Engine.interfaces.cli [materialize|report] <dataset_version_id> [template_name]")
+        log.error(
+            "Usage: python -m compliance_gate.Engine.interfaces.cli [materialize|report] <dataset_version_id> [template_name]"
+        )
         return 1
 
     action = sys.argv[1]
@@ -38,7 +40,13 @@ def run_cli() -> int:
                 dataset_version_id=dataset_version_id,
                 request=ReportRequest(template_name=template_name),
             )
-            print(json.dumps({"query": plan.query, "row_count": len(rows), "data": rows[:20]}, ensure_ascii=False, indent=2))
+            print(
+                json.dumps(
+                    {"query": plan.query, "row_count": len(rows), "data": rows[:20]},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
             return 0
 
         log.error("unknown action: %s", action)

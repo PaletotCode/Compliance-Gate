@@ -79,6 +79,10 @@ python retests/scripts/run_auth_retests.py
 - Materialização: `POST /api/v1/engine/materialize/machines`
 - Report obrigatório: `machines_status_summary`
 
+## Ingest de datasets (machines)
+- Endpoint: `POST /api/v1/datasets/machines/ingest`
+- Quando `profile_ids` for enviado, cada perfil deve existir no tenant e ter payload ativo; caso contrário a API retorna `400` com mensagem curta de diagnóstico.
+
 Reteste e2e da Engine:
 ```bash
 python retests/scripts/run_engine_retests.py

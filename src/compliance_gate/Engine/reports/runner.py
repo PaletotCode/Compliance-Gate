@@ -27,7 +27,9 @@ log = logging.getLogger(__name__)
 
 class ReportRunner:
     @staticmethod
-    def _artifact_for_report(db: Session, tenant_id: str, dataset_version_id: str) -> EngineArtifact:
+    def _artifact_for_report(
+        db: Session, tenant_id: str, dataset_version_id: str
+    ) -> EngineArtifact:
         artifact = (
             db.query(EngineArtifact)
             .filter(

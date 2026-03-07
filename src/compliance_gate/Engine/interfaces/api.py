@@ -53,7 +53,9 @@ class ReportRunResponse(BaseModel):
 @router.post("/materialize/machines", response_model=ApiResponse[MaterializeResponse])
 def materialize_machines(
     dataset_version_id: str = Query(..., description="dataset_version id"),
-    tenant_id: str | None = Query(None, description="Optional. Must match authenticated tenant when provided."),
+    tenant_id: str | None = Query(
+        None, description="Optional. Must match authenticated tenant when provided."
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(Role.TI_ADMIN)),
 ):
@@ -84,7 +86,9 @@ def materialize_machines(
 def preview_report(
     body: dict[str, Any],
     dataset_version_id: str = Query(...),
-    tenant_id: str | None = Query(None, description="Optional. Must match authenticated tenant when provided."),
+    tenant_id: str | None = Query(
+        None, description="Optional. Must match authenticated tenant when provided."
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):
@@ -121,7 +125,9 @@ def preview_report(
 def run_report(
     body: dict[str, Any],
     dataset_version_id: str = Query(...),
-    tenant_id: str | None = Query(None, description="Optional. Must match authenticated tenant when provided."),
+    tenant_id: str | None = Query(
+        None, description="Optional. Must match authenticated tenant when provided."
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):

@@ -12,6 +12,7 @@ class PADimRow(BaseModel):
     name: str | None = None
     region: str | None = None
 
+
 class PADimSpine(SpineTable):
     domain: str = "pa"
     spine_name: str = "pa_dim"

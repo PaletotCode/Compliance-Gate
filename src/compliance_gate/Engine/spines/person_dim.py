@@ -12,6 +12,7 @@ class PersonDimRow(BaseModel):
     name: str | None = None
     role: str | None = None
 
+
 class PersonDimSpine(SpineTable):
     domain: str = "person"
     spine_name: str = "person_dim"

@@ -37,7 +37,9 @@ class EngineArtifact(TimestampMixin, Base):
     )
 
     id = Column(String(36), primary_key=True, default=_uuid)
-    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    tenant_id = Column(
+        String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     dataset_version_id = Column(
         String(36),
         ForeignKey("dataset_versions.id", ondelete="CASCADE"),
@@ -63,13 +65,17 @@ class EngineReportDefinition(TimestampMixin, Base):
     )
 
     id = Column(String(36), primary_key=True, default=_uuid)
-    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    tenant_id = Column(
+        String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name = Column(String(256), nullable=False)
     scope = Column(String(32), nullable=False, default="TENANT")
     active_version = Column(Integer, default=1, nullable=False)
 
     tenant = relationship("Tenant")
-    versions = relationship("EngineReportVersion", back_populates="report", cascade="all, delete-orphan")
+    versions = relationship(
+        "EngineReportVersion", back_populates="report", cascade="all, delete-orphan"
+    )
 
 
 class EngineReportVersion(Base):
@@ -79,7 +85,12 @@ class EngineReportVersion(Base):
     )
 
     id = Column(String(36), primary_key=True, default=_uuid)
-    report_id = Column(String(36), ForeignKey("engine_report_definitions.id", ondelete="CASCADE"), nullable=False, index=True)
+    report_id = Column(
+        String(36),
+        ForeignKey("engine_report_definitions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     version = Column(Integer, nullable=False)
     payload_json = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -92,9 +103,18 @@ class EngineRun(TimestampMixin, Base):
     __tablename__ = "engine_runs"
 
     id = Column(String(36), primary_key=True, default=_uuid)
-    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
-    dataset_version_id = Column(String(36), ForeignKey("dataset_versions.id", ondelete="SET NULL"), nullable=True, index=True)
-    report_version_id = Column(String(36), ForeignKey("engine_report_versions.id", ondelete="SET NULL"), nullable=True)
+    tenant_id = Column(
+        String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    dataset_version_id = Column(
+        String(36),
+        ForeignKey("dataset_versions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    report_version_id = Column(
+        String(36), ForeignKey("engine_report_versions.id", ondelete="SET NULL"), nullable=True
+    )
     run_type = Column(String(32), nullable=False)
     status = Column(String(32), nullable=False, default="pending")
     started_at = Column(DateTime(timezone=True), nullable=True)
