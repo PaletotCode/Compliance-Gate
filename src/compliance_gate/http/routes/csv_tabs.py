@@ -83,6 +83,8 @@ def create_profile(req: CreateProfileRequest, db: Session = Depends(get_db)):
     if req.is_default_for_source:
         profile = profiles_store.promote_to_default(db, profile.id)
 
+    db.commit()
+
     result = CsvTabProfileSchema.model_validate(profile)
     result.payload = req.payload
     return result
@@ -100,8 +102,9 @@ def update_profile(profile_id: str, req: UpdateProfileRequest, db: Session = Dep
             profile_id,
             new_payload=req.payload,
             change_note=req.change_note,
-            actor_user_id=MOCK_USER_ID,
+            actor_user_id=None,
         )
+        db.commit()
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return {"status": "ok", "message": "Appended new version"}
@@ -111,6 +114,7 @@ def update_profile(profile_id: str, req: UpdateProfileRequest, db: Session = Dep
 def promote_default(profile_id: str, db: Session = Depends(get_db)):
     try:
         profiles_store.promote_to_default(db, profile_id)
+        db.commit()
         return {"status": "ok", "message": "Promoted to default"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

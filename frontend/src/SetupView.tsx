@@ -42,14 +42,17 @@ export default function SetupView() {
                 // Fetch full payload
                 defaultProf = await api.csv.getProfile(defaultProf.id);
                 setProfile(defaultProf);
-                setHeaderRow(defaultProf.payload?.header_row ?? 0);
-                setSicCol(defaultProf.payload?.sic_column ?? '');
-                await fetchPreview(src, defaultProf.payload?.header_row ?? 0);
+                const targetHr = defaultProf.payload?.header_row ?? 0;
+                const targetSic = defaultProf.payload?.sic_column ?? '';
+
+                setHeaderRow(targetHr);
+                setSicCol(targetSic);
+                await fetchPreview(src, targetHr, targetSic);
             } else {
                 setProfile(null);
                 setHeaderRow(0);
                 setSicCol('');
-                await fetchPreview(src, 0);
+                await fetchPreview(src, 0, '');
             }
         } catch (e) {
             console.error(e);
@@ -59,13 +62,13 @@ export default function SetupView() {
         }
     }
 
-    async function fetchPreview(src: string, hr: number) {
+    async function fetchPreview(src: string, hr: number, currentSic: string) {
         setLoading(true);
         try {
             const res = await api.csv.previewRaw(src, hr);
             setPreview(res);
             // Auto-select SIC if empty and we have headers
-            if (!sicCol && res.detected_headers.length > 0) {
+            if (!currentSic && res.detected_headers.length > 0) {
                 setSicCol(res.detected_headers[0]);
             }
         } catch (e) {
@@ -81,7 +84,7 @@ export default function SetupView() {
     }
 
     function handleApplyHeader() {
-        fetchPreview(activeSource, headerRow);
+        fetchPreview(activeSource, headerRow, sicCol);
     }
 
     async function handleSave() {
@@ -108,17 +111,6 @@ export default function SetupView() {
         }
     }
 
-    async function handleForceIngest() {
-        try {
-            // Send active profiles if needed, or backend can auto-detect defaults.
-            // Let's rely on backend defaults for now.
-            showToast('Iniciando ingestão...', 'info');
-            await api.datasets.ingest({});
-            showToast('Ingestão concluída e salva na nova versão (Latest)!');
-        } catch (e: any) {
-            showToast('Erro no Ingest: ' + e.message, 'error');
-        }
-    }
 
     return (
         <div className="flex h-full">
@@ -164,9 +156,9 @@ export default function SetupView() {
                                 min="0"
                                 value={headerRow}
                                 onChange={handleHeaderChange}
+                                onBlur={handleApplyHeader}
                                 className="w-16 p-1 border rounded text-center"
                             />
-                            <button onClick={handleApplyHeader} className="btn-outline btn-sm">Aplicar</button>
                         </div>
 
                         <div className="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200">
@@ -184,9 +176,6 @@ export default function SetupView() {
                     </div>
 
                     <div className="flex space-x-3">
-                        <button onClick={handleForceIngest} className="btn-outline border-blue-600 text-blue-600 hover:bg-blue-50 bg-white">
-                            ▶ Processar Ingestão Global
-                        </button>
                         <div className="relative">
                             {isDirty && (
                                 <span className="absolute -top-1 -right-1 flex h-3 w-3 z-10" title="Alterações não salvas">
