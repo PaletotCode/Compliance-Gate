@@ -1,7 +1,10 @@
+import json
 import logging
 import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple, Dict
+
+from sqlalchemy.orm import Session
 
 from compliance_gate.domains.machines.schemas import (
     FilterDefinitionSchema, MachineFilterSchema, MachineItemSchema, MachineSummarySchema,
@@ -10,16 +13,19 @@ from compliance_gate.domains.machines.classification.orchestrator import (
     load_rule, PRIMARY_FILTERS_ORDER, FLAG_FILTERS, SPECIAL_FILTERS,
 )
 from compliance_gate.domains.machines.engine import MachinesEngine
+from compliance_gate.infra.storage import datasets_store, profiles_store
+from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig
 
 log = logging.getLogger(__name__)
 
 
 class MachinesService:
+    class NoDatasetError(Exception):
+        """Raised when no dataset_version is found and raw CSVs are also unavailable."""
+
     @staticmethod
     def get_available_filters() -> List[FilterDefinitionSchema]:
-        """
-        Dynamically load all status definitions from the isolated rules.
-        """
+        """Dynamically load all status definitions from the isolated rules."""
         filters = []
         all_modules = PRIMARY_FILTERS_ORDER + FLAG_FILTERS + SPECIAL_FILTERS
         for module_name in all_modules:
@@ -36,22 +42,37 @@ class MachinesService:
         return filters
 
     @staticmethod
-    def _get_engine() -> MachinesEngine:
+    def _get_engine(db: Session, dataset_version_id: Optional[str] = None) -> MachinesEngine:
         """
-        Build a MachinesEngine loaded with real CSV data.
+        Build a MachinesEngine loaded with data.
 
-        Data directory resolution (in order):
-          1. CG_DATA_DIR environment variable
-          2. /workspace (Docker mount)
-          3. Project root (detected heuristically)
+        Resolution order:
+          1. dataset_version_id → load by ID from DB (not yet implemented, Chat 2)
+          2. CG_DATA_DIR env var or /workspace → load from raw CSV files
+          3. Heuristic walk-up from __file__ → project root
+          4. If nothing found: raise NoDatasetError
 
-        If CSVs are not found, falls back to empty engine and logs a warning.
-        The join logic mirrors dashboard_fixed.ts:
-          - Universe = AD + UEM + EDR only
-          - ASSET = lookup-only (marks has_asset, never creates new entries)
+        Note: In Chat 1, dataset_version storage means metadata + metrics only.
+        Record re-loading from a specific version will be implemented in Chat 2.
+        For now, if dataset_version_id is provided but DB record loading is not yet
+        implemented, we fall through to CSV loading with a warning.
         """
         from compliance_gate.infra.storage.csv_loader import load_machines_sources
         from compliance_gate.domains.machines.master_map_builder import build_master_records
+
+        # Chat 2: Resolve dataset version and used_profile_ids
+        configs: Dict[str, CsvTabConfig] = {}
+        if dataset_version_id:
+            version = datasets_store.get_version_by_id(db, dataset_version_id)
+            if version and version.used_profile_ids:
+                try:
+                    pids = json.loads(version.used_profile_ids)
+                    for src, pid in pids.items():
+                        payload = profiles_store.get_active_payload(db, pid)
+                        if payload:
+                            configs[src] = payload
+                except Exception as e:
+                    log.warning("Failed to parse used_profile_ids for version %s: %s", dataset_version_id, e)
 
         # Resolve data directory
         data_dir_env = os.environ.get("CG_DATA_DIR", "")
@@ -62,7 +83,6 @@ class MachinesService:
         ):
             data_dir = Path("/workspace")
         else:
-            # Heuristic: walk up from this file to project root
             here = Path(__file__).resolve()
             data_dir = None
             for parent in here.parents:
@@ -71,12 +91,10 @@ class MachinesService:
                     break
 
         if data_dir is None:
-            log.warning(
-                "MachinesService: CSV data directory not found. "
-                "Set CG_DATA_DIR env var or mount CSVs at /workspace. "
-                "Serving empty engine."
+            raise MachinesService.NoDatasetError(
+                "CSV data directory not found. "
+                "Run POST /api/v1/datasets/machines/ingest or set CG_DATA_DIR."
             )
-            return MachinesEngine(data=[])
 
         log.info("MachinesService: loading CSVs from %s", data_dir)
 
@@ -84,7 +102,7 @@ class MachinesService:
             sources = load_machines_sources(data_dir)
         except Exception as exc:
             log.error("MachinesService: CSV load failed — %s", exc)
-            return MachinesEngine(data=[])
+            raise MachinesService.NoDatasetError(str(exc)) from exc
 
         if sources.load_errors:
             for err in sources.load_errors:
@@ -94,20 +112,25 @@ class MachinesService:
             records = build_master_records(sources)
         except Exception as exc:
             log.error("MachinesService: master map build failed — %s", exc)
-            return MachinesEngine(data=[])
+            raise MachinesService.NoDatasetError(str(exc)) from exc
 
         log.info("MachinesService: Universe size=%d records — engine ready", len(records))
-        return MachinesEngine(data=records)
+        return MachinesEngine(data=records, configs=configs)
 
     @staticmethod
     def get_table_data(
-        filters: MachineFilterSchema, page: int, size: int
+        db: Session,
+        filters: MachineFilterSchema, page: int, size: int,
+        dataset_version_id: Optional[str] = None,
     ) -> Tuple[List[MachineItemSchema], int]:
-        engine = MachinesService._get_engine()
+        engine = MachinesService._get_engine(db, dataset_version_id)
         return engine.get_table(filters, page, size)
 
     @staticmethod
-    def get_summary_data(filters: MachineFilterSchema) -> MachineSummarySchema:
-        engine = MachinesService._get_engine()
+    def get_summary_data(
+        db: Session,
+        filters: MachineFilterSchema,
+        dataset_version_id: Optional[str] = None,
+    ) -> MachineSummarySchema:
+        engine = MachinesService._get_engine(db, dataset_version_id)
         return engine.get_summary(filters)
-

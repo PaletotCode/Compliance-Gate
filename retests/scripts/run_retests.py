@@ -58,6 +58,7 @@ ENDPOINTS = {
     "machines_filters": f"{API_PREFIX}/machines/filters",
     "machines_summary": f"{API_PREFIX}/machines/summary",
     "machines_table": f"{API_PREFIX}/machines/table?page=1&page_size=50",
+    "datasets_list": f"{API_PREFIX}/datasets/machines",
 }
 
 API_WAIT_RETRIES = 10
@@ -491,6 +492,79 @@ def section_e():
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Section G — Dataset pipeline: preview → ingest → versioned summary
+# ──────────────────────────────────────────────────────────────────────────────
+
+def section_g():
+    log_separator("G:DATASET-PIPELINE")
+    if not RUN_ENDPOINT_TESTS:
+        log("INFO", "G:DATASET-PIPELINE", "RUN_ENDPOINT_TESTS=false — skipping dataset pipeline tests.")
+        return
+
+    workspace_str = str(WORKSPACE)
+
+    # ── G1: Preview (dry-run) ────────────────────────────────────────────────
+    preview_url = f"{API_BASE_URL}{API_PREFIX}/datasets/machines/preview"
+    log("STEP", "G:PREVIEW", f"POST {preview_url}")
+    t0 = time.perf_counter()
+    try:
+        r = requests.post(preview_url, json={"data_dir": workspace_str}, timeout=60)
+        elapsed = round((time.perf_counter() - t0) * 1000, 1)
+        body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+        out_path = OUTPUT_DIR / f"api_preview_{RUN_ID}.json"
+        out_path.write_text(json.dumps({"status": r.status_code, "body": body}, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+        results["outputs"].append(str(out_path))
+        if r.status_code == 200:
+            log("OK", "G:PREVIEW", f"HTTP {r.status_code}  {elapsed}ms  layouts={len(body.get('layouts', []))}")
+        else:
+            add_problem("WARN", "G:PREVIEW", f"HTTP {r.status_code}  url={preview_url}")
+    except Exception as exc:
+        add_problem("ERROR", "G:PREVIEW", f"Request failed: {exc}")
+        return
+
+    # ── G2: Ingest (persists dataset_version) ────────────────────────────────
+    ingest_url = f"{API_BASE_URL}{API_PREFIX}/datasets/machines/ingest"
+    log("STEP", "G:INGEST", f"POST {ingest_url}")
+    t0 = time.perf_counter()
+    dataset_version_id = None
+    try:
+        r = requests.post(ingest_url, json={"source": "path", "data_dir": workspace_str}, timeout=120)
+        elapsed = round((time.perf_counter() - t0) * 1000, 1)
+        body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+        out_path = OUTPUT_DIR / f"api_ingest_{RUN_ID}.json"
+        out_path.write_text(json.dumps({"status": r.status_code, "body": body}, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+        results["outputs"].append(str(out_path))
+        if r.status_code == 200:
+            dataset_version_id = body.get("dataset_version_id")
+            total = body.get("total_records", "?")
+            log("OK", "G:INGEST", f"HTTP {r.status_code}  {elapsed}ms  records={total}  version_id={dataset_version_id}")
+        else:
+            add_problem("WARN", "G:INGEST", f"HTTP {r.status_code}  url={ingest_url}")
+    except Exception as exc:
+        add_problem("ERROR", "G:INGEST", f"Request failed: {exc}")
+        return
+
+    # ── G3: Versioned summary ─────────────────────────────────────────────────
+    if dataset_version_id:
+        summary_url = f"{API_BASE_URL}{API_PREFIX}/machines/summary?dataset_version_id={dataset_version_id}"
+        log("STEP", "G:SUMMARY-VERSIONED", f"GET {summary_url}")
+        t0 = time.perf_counter()
+        try:
+            r = requests.get(summary_url, timeout=30)
+            elapsed = round((time.perf_counter() - t0) * 1000, 1)
+            body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+            out_path = OUTPUT_DIR / f"api_summary_versioned_{RUN_ID}.json"
+            out_path.write_text(json.dumps({"status": r.status_code, "body": body}, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+            results["outputs"].append(str(out_path))
+            if r.status_code in (200, 422):
+                log("OK", "G:SUMMARY-VERSIONED", f"HTTP {r.status_code}  {elapsed}ms")
+            else:
+                add_problem("WARN", "G:SUMMARY-VERSIONED", f"HTTP {r.status_code}  url={summary_url}")
+        except Exception as exc:
+            add_problem("ERROR", "G:SUMMARY-VERSIONED", f"Request failed: {exc}")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Section F — Final report
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -678,6 +752,9 @@ def main() -> int:
 
     # ── E: Endpoints
     section_e()
+
+    # ── G: Dataset pipeline
+    section_g()
 
     # ── F: Report
     section_f()

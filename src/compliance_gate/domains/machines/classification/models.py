@@ -33,10 +33,18 @@ class MachineRecord(BaseModel):
     ad_os: Optional[str] = None
     uem_serial: Optional[str] = None
     edr_serial: Optional[str] = None
+    chassis: Optional[str] = None
+    edr_os: Optional[str] = None
+    
+    # Formatted date strings for display (U.S AD, U.S UEM, U.S EDR)
+    us_ad: Optional[str] = None
+    us_uem: Optional[str] = None
+    us_edr: Optional[str] = None
     
     # For matching login user and hostname suffix (PA mismatch)
     main_user: Optional[str] = None
     uem_extra_user_logado: Optional[str] = None
+    status_check_win11: Optional[str] = None
 
     # Stale/Offline calculations
     last_seen_date_ms: Optional[int] = None
@@ -45,6 +53,9 @@ class MachineRecord(BaseModel):
     serial_is_cloned: bool = False
     is_virtual_gap: bool = False
     is_available_in_asset: bool = False
+    
+    # Store complete row exports per source for UI mappings
+    raw_sources: dict[str, dict] = Field(default_factory=dict)
 
 class MachineStatusResult(BaseModel):
     """

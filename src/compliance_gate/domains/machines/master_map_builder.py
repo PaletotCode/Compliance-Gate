@@ -114,11 +114,18 @@ class _Entry:
     uem_user: str = ""
     edr_serial: str = ""
     edr_user: str = ""
+    chassis: str = ""
+    edr_os: str = ""
+    us_ad: str = ""
+    us_uem: str = ""
+    us_edr: str = ""
+    status_check_win11: str = ""
     last_seen_ms: int = 0
     last_seen_source: str = ""
     serial_is_cloned: bool = False
     is_virtual_gap: bool = False
     is_available_in_asset: bool = False
+    raw_sources: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
 def _parse_date_ms(date_val: str) -> int:
@@ -155,6 +162,20 @@ def _parse_date_ms(date_val: str) -> int:
     except Exception:
         pass
     return 0
+
+def _format_days_ago(ms: int) -> str:
+    """Format an epoch ms date as 'a X dias'."""
+    if not ms or ms <= 0:
+        return ""
+    
+    import time
+    now_ms = int(time.time() * 1000)
+    diff_ms = now_ms - ms
+    days = diff_ms // (1000 * 60 * 60 * 24)
+    if days < 0: 
+        days = 0 
+    return f"a {days} dias"
+
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -193,10 +214,13 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
                     n_new += 1
                 e = master[key]
                 e.has_ad = True
+                e.raw_sources["AD"] = row
                 if c_os:
                     e.ad_os = _val(row, c_os)
                 if c_logon:
-                    ms = _parse_date_ms(_val(row, c_logon))
+                    logon_val = _val(row, c_logon)
+                    ms = _parse_date_ms(logon_val)
+                    e.us_ad = _format_days_ago(ms)
                     if ms > e.last_seen_ms:
                         e.last_seen_ms = ms
                         e.last_seen_source = "AD"
@@ -227,9 +251,17 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
                     n_new += 1
                 e = master[key]
                 e.has_uem = True
+                e.raw_sources["UEM"] = row
                 if c_user:   e.uem_user   = _val(row, c_user)
                 if c_serial: e.uem_serial = _val(row, c_serial)
-                seen_ms = _parse_date_ms(_val(row, c_seen) if c_seen else "")
+                
+                check_w11 = _col(sources.uem_df, "CheckWin11", "status_check_win11", "Atualização Windows 11 - Auto", "Tags")
+                if check_w11:
+                    e.status_check_win11 = _val(row, check_w11)
+                
+                seen_val = _val(row, c_seen) if c_seen else ""
+                seen_ms = _parse_date_ms(seen_val)
+                e.us_uem = _format_days_ago(seen_ms)
                 # TS: if lastSeenScore==0 and uemScore>0 → update
                 if e.last_seen_ms == 0 and seen_ms > 0:
                     e.last_seen_ms = seen_ms
@@ -261,9 +293,21 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
                     n_new += 1
                 e = master[key]
                 e.has_edr = True
+                e.raw_sources["EDR"] = row
                 if c_user:   e.edr_user   = _val(row, c_user)
                 if c_serial: e.edr_serial = _val(row, c_serial)
-                seen_ms = _parse_date_ms(_val(row, c_seen) if c_seen else "")
+                
+                edr_os_col = _col(sources.edr_df, "OSPlatform", "OS Version")
+                if edr_os_col:
+                     e.edr_os = _val(row, edr_os_col)
+                     
+                chassis_col = _col(sources.edr_df, "ChassisType", "Type")
+                if chassis_col:
+                     e.chassis = _val(row, chassis_col)
+                
+                seen_val = _val(row, c_seen) if c_seen else ""
+                seen_ms = _parse_date_ms(seen_val)
+                e.us_edr = _format_days_ago(seen_ms)
                 # TS: canOverrideWithEdr = !AD || score==0 || source=="UEM"
                 can_override = (not e.has_ad) or (e.last_seen_ms == 0) or (e.last_seen_source in ("", "UEM"))
                 if can_override and seen_ms > 0:
@@ -330,12 +374,19 @@ def build_master_records(sources: MachinesSources) -> list[dict[str, Any]]:
             "ad_os":                  e.ad_os or None,
             "uem_serial":             e.uem_serial or None,
             "edr_serial":             e.edr_serial or None,
+            "chassis":                e.chassis or None,
+            "edr_os":                 e.edr_os or None,
+            "us_ad":                  e.us_ad or None,
+            "us_uem":                 e.us_uem or None,
+            "us_edr":                 e.us_edr or None,
             "main_user":              e.edr_user or e.uem_user or None,
-            "uem_extra_user_logado":  None,
+            "uem_extra_user_logado":  e.uem_user or None,
+            "status_check_win11":     e.status_check_win11 or None,
             "last_seen_date_ms":      e.last_seen_ms if e.last_seen_ms > 0 else None,
             "serial_is_cloned":       e.serial_is_cloned,
             "is_virtual_gap":         e.is_virtual_gap,
             "is_available_in_asset":  e.is_available_in_asset,
+            "raw_sources":            e.raw_sources,
         }
         records.append(rec)
         if sample_count < 50:

@@ -16,7 +16,7 @@ def applies(record: MachineRecord, context: dict = None) -> bool:
     """
     if record.last_seen_date_ms and record.last_seen_date_ms > 0:
         now_ms = int(time.time() * 1000)
-        stale_days = context.get("stale_days", 30) if context else 30
+        stale_days = context.get("stale_days", 45) if context else 45
         
         diff_ms = now_ms - record.last_seen_date_ms
         days = diff_ms / (1000 * 60 * 60 * 24)

@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from pydantic import BaseModel, ConfigDict
 from compliance_gate.domains.machines.classification.models import StatusSeverity
 
@@ -34,10 +34,20 @@ class MachineItemSchema(BaseModel):
     model: Optional[str] = None
     ip: Optional[str] = None
     tags: Optional[str] = None
+    selected_data: Dict[str, Any] = None
     
-    # Extra fields for details
+    # Extra fields for details (Unified Data columns for the UI)
     main_user: Optional[str] = None
     ad_os: Optional[str] = None
+    us_ad: Optional[str] = None
+    us_uem: Optional[str] = None
+    us_edr: Optional[str] = None
+    uem_extra_user_logado: Optional[str] = None
+    edr_os: Optional[str] = None
+    status_check_win11: Optional[str] = None
+    uem_serial: Optional[str] = None
+    edr_serial: Optional[str] = None
+    chassis: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

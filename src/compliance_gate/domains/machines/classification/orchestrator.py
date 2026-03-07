@@ -10,6 +10,7 @@ PRIMARY_FILTERS_ORDER = [
     "perigo_sem_agente",
     "falta_uem",
     "falta_edr",
+    "falta_asset",
     "troca_serial",
     "duplicado",
     "offline",
@@ -19,7 +20,6 @@ PRIMARY_FILTERS_ORDER = [
 # Enumerate parallel flag filters
 FLAG_FILTERS = [
     "sistema_legado",
-    "falta_asset",
     "divergencia_pa_x_usuario",
 ]
 
@@ -35,7 +35,7 @@ def load_rule(module_name: str):
     module_path = f"compliance_gate.domains.machines.classification.filters.{module_name}.rule"
     return importlib.import_module(module_path)
 
-def evaluate_machine(record: MachineRecord, stale_days_config: int = 30) -> MachineStatusResult:
+def evaluate_machine(record: MachineRecord, stale_days_config: int = 45) -> MachineStatusResult:
     """
     Evaluates a single MachineRecord through the chain of isolated filters.
     Returns the MachineStatusResult with exactly 1 primary status and N flags.

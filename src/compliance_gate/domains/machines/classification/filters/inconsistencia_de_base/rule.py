@@ -9,6 +9,8 @@ STATUS_DEF = MachineStatusDef(
 
 def applies(record: MachineRecord, context: dict = None) -> bool:
     """
-    INCONSISTÊNCIA DE BASE: !AD && (UEM || EDR)
+    INCONSISTÊNCIA DE BASE: (!AD && (UEM || EDR)) OR (!UEM && !ASSET)
     """
-    return not record.has_ad and (record.has_uem or record.has_edr)
+    missing_ad = not record.has_ad and (record.has_uem or record.has_edr)
+    missing_both_uem_asset = not record.has_uem and not record.has_asset
+    return missing_ad or missing_both_uem_asset

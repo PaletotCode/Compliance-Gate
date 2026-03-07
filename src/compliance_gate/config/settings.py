@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     # Redis Config
     redis_url: str = "redis://localhost:6379/0"
 
+    # Data Platform
+    cg_data_dir: str = "/workspace"
+    cg_upload_dir: str = "/workspace/uploads"
+    default_tenant_id: str = "default"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

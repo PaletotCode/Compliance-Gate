@@ -1,61 +1,33 @@
-/// <reference types="vite/client" />
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
-import {
-  FilterDefinition,
-  MachineFilterParams,
-  MachineItem,
-  MachineSummary,
-  PaginatedResult
-} from './types';
+export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${BASE_URL}${endpoint}`;
+    const defaultHeaders: Record<string, string> = {
+        'Accept': 'application/json',
+    };
 
-// Depending on the dev setup (Docker proxy or local env), Vite proxy handles /api
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+    if (options.body && typeof options.body === 'string') {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
 
-async function fetchApi<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-  let url = `${BASE_URL}${endpoint}`;
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...defaultHeaders,
+            ...options.headers,
+        },
+    });
 
-  if (params) {
-    const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== null && value !== '') {
-        if (Array.isArray(value)) {
-          value.forEach(v => searchParams.append(key, v));
-        } else {
-          searchParams.append(key, value.toString());
+    if (!response.ok) {
+        let errorMsg = `HTTP Error ${response.status}`;
+        try {
+            const errBody = await response.json();
+            errorMsg = errBody.detail || errorMsg;
+        } catch {
+            // Ignore
         }
-      }
+        throw new Error(errorMsg);
     }
-    const query = searchParams.toString();
-    if (query) {
-      url += `?${query}`;
-    }
-  }
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.statusText}`);
-  }
-
-  const json = await response.json();
-  // Using our standard wrapper parsing
-  return json.body?.data ?? json.data;
+    return response.json();
 }
-
-export const api = {
-  machines: {
-    getFilters: () => fetchApi<FilterDefinition[]>('/machines/filters'),
-
-    getSummary: (params?: MachineFilterParams) =>
-      fetchApi<MachineSummary>('/machines/summary', params),
-
-    getTable: (params?: MachineFilterParams) =>
-      fetchApi<PaginatedResult<MachineItem>>('/machines/table', {
-        page: 1,
-        page_size: 500, // Load a chunk big enough to emulate the spreadsheet
-        ...params
-      }),
-
-    getDebugLogs: (limit = 200) => fetchApi<any[]>('/machines/debug/logs', { limit }),
-    getDebugSample: (limit = 50) => fetchApi<any[]>('/machines/debug/sample', { limit }),
-  }
-};
