@@ -7,10 +7,16 @@ from typing import List, Optional, Tuple, Dict
 from sqlalchemy.orm import Session
 
 from compliance_gate.domains.machines.schemas import (
-    FilterDefinitionSchema, MachineFilterSchema, MachineItemSchema, MachineSummarySchema,
+    FilterDefinitionSchema,
+    MachineFilterSchema,
+    MachineItemSchema,
+    MachineSummarySchema,
 )
 from compliance_gate.domains.machines.classification.orchestrator import (
-    load_rule, PRIMARY_FILTERS_ORDER, FLAG_FILTERS, SPECIAL_FILTERS,
+    load_rule,
+    PRIMARY_FILTERS_ORDER,
+    FLAG_FILTERS,
+    SPECIAL_FILTERS,
 )
 from compliance_gate.domains.machines.engine import MachinesEngine
 from compliance_gate.infra.storage import datasets_store, profiles_store
@@ -22,6 +28,9 @@ log = logging.getLogger(__name__)
 class MachinesService:
     class NoDatasetError(Exception):
         """Raised when no dataset_version is found and raw CSVs are also unavailable."""
+
+    class DatasetAccessError(Exception):
+        """Raised when a dataset_version does not belong to the authenticated tenant."""
 
     @staticmethod
     def get_available_filters() -> List[FilterDefinitionSchema]:
@@ -68,8 +77,8 @@ class MachinesService:
         configs: Dict[str, CsvTabConfig] = {}
         if dataset_version_id:
             version = datasets_store.get_version_by_id(db, dataset_version_id)
-            if version and version.tenant_id != tenant_id:
-                raise MachinesService.NoDatasetError("dataset_version not found for tenant")
+            if not version or version.tenant_id != tenant_id:
+                raise MachinesService.DatasetAccessError("dataset_version not found for tenant")
             if version and version.used_profile_ids:
                 try:
                     pids = json.loads(version.used_profile_ids)
@@ -78,7 +87,9 @@ class MachinesService:
                         if payload:
                             configs[src] = payload
                 except Exception as e:
-                    log.warning("Failed to parse used_profile_ids for version %s: %s", dataset_version_id, e)
+                    log.warning(
+                        "Failed to parse used_profile_ids for version %s: %s", dataset_version_id, e
+                    )
 
         # Resolve data directory
         data_dir_env = os.environ.get("CG_DATA_DIR", "")
@@ -126,11 +137,15 @@ class MachinesService:
     @staticmethod
     def get_table_data(
         db: Session,
-        filters: MachineFilterSchema, page: int, size: int,
+        filters: MachineFilterSchema,
+        page: int,
+        size: int,
         tenant_id: str,
         dataset_version_id: Optional[str] = None,
     ) -> Tuple[List[MachineItemSchema], int]:
-        engine = MachinesService._get_engine(db, tenant_id=tenant_id, dataset_version_id=dataset_version_id)
+        engine = MachinesService._get_engine(
+            db, tenant_id=tenant_id, dataset_version_id=dataset_version_id
+        )
         return engine.get_table(filters, page, size)
 
     @staticmethod
@@ -140,5 +155,7 @@ class MachinesService:
         tenant_id: str,
         dataset_version_id: Optional[str] = None,
     ) -> MachineSummarySchema:
-        engine = MachinesService._get_engine(db, tenant_id=tenant_id, dataset_version_id=dataset_version_id)
+        engine = MachinesService._get_engine(
+            db, tenant_id=tenant_id, dataset_version_id=dataset_version_id
+        )
         return engine.get_summary(filters)

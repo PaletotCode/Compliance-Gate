@@ -81,10 +81,11 @@ def _to_machines_final_df(records: list[dict]) -> pl.DataFrame:
 
 def materialize_machines_spine(
     db: Session,
-    tenant_id: str | None,
+    tenant_id: str,
     dataset_version_id: str | None,
 ) -> EngineArtifact:
-    tenant_id = dataset_catalog.resolve_tenant_id(tenant_id)
+    if not tenant_id:
+        raise ValueError("tenant_id is required")
     version = dataset_catalog.get_dataset_version(
         db,
         tenant_id=tenant_id,

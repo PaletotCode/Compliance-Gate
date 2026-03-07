@@ -2,13 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from typing import List, Optional
 from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
-from compliance_gate.shared.schemas.responses import ApiResponse, PaginatedResponse, PaginatedResult, PaginationMeta
+from compliance_gate.shared.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    PaginatedResult,
+    PaginationMeta,
+)
 from compliance_gate.shared.schemas.pagination import PaginationParams
 from compliance_gate.domains.machines.schemas import (
     MachineFilterSchema,
     MachineItemSchema,
     MachineSummarySchema,
-    FilterDefinitionSchema
+    FilterDefinitionSchema,
 )
 from compliance_gate.domains.machines.service import MachinesService
 from compliance_gate.infra.logging import debug_logger
@@ -18,8 +23,7 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/machines", tags=["machines"])
 
 _NO_DATASET_MSG = (
-    "Nenhum dataset_version encontrado. "
-    "Execute POST /api/v1/datasets/machines/ingest primeiro."
+    "Nenhum dataset_version encontrado. Execute POST /api/v1/datasets/machines/ingest primeiro."
 )
 
 
@@ -37,7 +41,9 @@ def get_table(
     pa_code: Optional[str] = Query(None, description="Filtro por PA"),
     statuses: Optional[List[str]] = Query(None, description="Filtro por lista de Primary Statuses"),
     flags: Optional[List[str]] = Query(None, description="Filtro por lista de Flags"),
-    dataset_version_id: Optional[str] = Query(None, description="UUID do dataset_version a usar (default: latest)"),
+    dataset_version_id: Optional[str] = Query(
+        None, description="UUID do dataset_version a usar (default: latest)"
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):
@@ -46,10 +52,15 @@ def get_table(
 
     try:
         items, total = MachinesService.get_table_data(
-            db, filters, pagination.page, pagination.size,
+            db,
+            filters,
+            pagination.page,
+            pagination.size,
             tenant_id=current_user.tenant_id,
             dataset_version_id=dataset_version_id,
         )
+    except MachinesService.DatasetAccessError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
     except MachinesService.NoDatasetError:
         raise HTTPException(status_code=422, detail=_NO_DATASET_MSG)
 
@@ -58,7 +69,7 @@ def get_table(
         page=pagination.page,
         size=pagination.size,
         has_next=(pagination.page * pagination.size) < total,
-        has_previous=pagination.page > 1
+        has_previous=pagination.page > 1,
     )
     return PaginatedResponse(data=PaginatedResult(items=items, meta=meta))
 
@@ -69,7 +80,9 @@ def get_summary(
     pa_code: Optional[str] = Query(None),
     statuses: Optional[List[str]] = Query(None),
     flags: Optional[List[str]] = Query(None),
-    dataset_version_id: Optional[str] = Query(None, description="UUID do dataset_version (default: latest)"),
+    dataset_version_id: Optional[str] = Query(
+        None, description="UUID do dataset_version (default: latest)"
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):
@@ -83,6 +96,8 @@ def get_summary(
             tenant_id=current_user.tenant_id,
             dataset_version_id=dataset_version_id,
         )
+    except MachinesService.DatasetAccessError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
     except MachinesService.NoDatasetError:
         raise HTTPException(status_code=422, detail=_NO_DATASET_MSG)
 

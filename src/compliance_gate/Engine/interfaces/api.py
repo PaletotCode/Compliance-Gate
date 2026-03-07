@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 
 from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
-from compliance_gate.Engine.catalog import datasets as dataset_catalog
 from compliance_gate.Engine.materialization.materialize_machines import materialize_machines_spine
 from compliance_gate.Engine.reports.definitions import ReportRequest
 from compliance_gate.Engine.reports.runner import ReportRunner
@@ -62,7 +61,7 @@ def materialize_machines(
     try:
         if tenant_id and tenant_id != current_user.tenant_id:
             raise HTTPException(status_code=403, detail="cross-tenant access is not allowed")
-        resolved_tenant = current_user.tenant_id or dataset_catalog.resolve_tenant_id(tenant_id)
+        resolved_tenant = current_user.tenant_id
         artifact = materialize_machines_spine(db, resolved_tenant, dataset_version_id)
         return ApiResponse(
             data=MaterializeResponse(
@@ -97,7 +96,7 @@ def preview_report(
         request = ReportRequest(**body)
         if tenant_id and tenant_id != current_user.tenant_id:
             raise HTTPException(status_code=403, detail="cross-tenant access is not allowed")
-        resolved_tenant = current_user.tenant_id or dataset_catalog.resolve_tenant_id(tenant_id)
+        resolved_tenant = current_user.tenant_id
         preview = explain_report(
             db,
             tenant_id=resolved_tenant,
@@ -136,7 +135,7 @@ def run_report(
         request = ReportRequest(**body)
         if tenant_id and tenant_id != current_user.tenant_id:
             raise HTTPException(status_code=403, detail="cross-tenant access is not allowed")
-        resolved_tenant = current_user.tenant_id or dataset_catalog.resolve_tenant_id(tenant_id)
+        resolved_tenant = current_user.tenant_id
         rows, resolved_plan = ReportRunner.execute(
             db,
             tenant_id=resolved_tenant,

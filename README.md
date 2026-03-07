@@ -74,6 +74,11 @@ Após instalar com `.[dev]`:
 python retests/scripts/run_auth_retests.py
 ```
 
+## Reteste RBAC (auth + isolamento multi-tenant)
+```bash
+python retests/scripts/run_rbac_retests.py
+```
+
 ## Engine Core v1
 - API: `/api/v1/engine/*`
 - Materialização: `POST /api/v1/engine/materialize/machines`
