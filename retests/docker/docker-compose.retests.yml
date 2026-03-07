@@ -31,7 +31,9 @@ services:
       context: ../..
       dockerfile: docker/Dockerfile
     container_name: retests_api
-    command: uvicorn src.compliance_gate.main:app --host 0.0.0.0 --port 8000
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn src.compliance_gate.main:app --host 0.0.0.0 --port 8000"
     environment:
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-compliance_gate}
       - REDIS_URL=redis://redis:6379/0
@@ -41,6 +43,11 @@ services:
       - CSV_UEM_PATH=/workspace/UEM.csv
       - CSV_AD_PATH=/workspace/AD.csv
       - CSV_EDR_PATH=/workspace/EDR.csv
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-change-me-in-production}
+      - AUTH_RECOVERY_PEPPER=${AUTH_RECOVERY_PEPPER:-change-recovery-pepper}
+      - AUTH_SECRET_PROTECTION_KEY=${AUTH_SECRET_PROTECTION_KEY:-change-secret-protection-key}
+      - AUTH_BOOTSTRAP_ADMIN_USERNAME=${AUTH_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      - AUTH_BOOTSTRAP_ADMIN_PASSWORD=${AUTH_BOOTSTRAP_ADMIN_PASSWORD:-Admin1234}
     volumes:
       # Mount repo root read-only so the api can find the CSVs + source
       - ../..:/workspace:ro
@@ -102,4 +109,3 @@ services:
       tester:
         condition: service_completed_successfully
     restart: "no"
-

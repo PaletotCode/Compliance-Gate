@@ -1,8 +1,16 @@
-[tool.ruff]
 line-length = 100
 target-version = "py312"
+include = [
+    "create_db.py",
+    "retests/scripts/run_engine_retests.py",
+    "src/compliance_gate/Engine/**/*.py",
+    "src/compliance_gate/infra/db/migrations/versions/9c2de6a84f1b_engine_hardening_v1.py",
+    "src/compliance_gate/infra/db/models_engine.py",
+    "src/compliance_gate/main.py",
+    "src/compliance_gate/tests/engine/**/*.py",
+]
 
-[tool.ruff.lint]
+[lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -17,7 +25,7 @@ ignore = [
     "B008", # do not perform function calls in argument defaults (ok for FastAPI Depends)
 ]
 
-[tool.ruff.format]
+[format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false

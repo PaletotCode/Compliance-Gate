@@ -9,6 +9,6 @@ STATUS_DEF = MachineStatusDef(
 
 def applies(record: MachineRecord, context: dict = None) -> bool:
     """
-    FALTA ASSET: Primary Status (AD && !ASSET && (UEM || EDR))
+    FALTA ASSET: Primary Status (AD && !ASSET && exactly one of UEM/EDR)
     """
-    return record.has_ad and not record.has_asset and (record.has_uem or record.has_edr)
+    return record.has_ad and not record.has_asset and (record.has_uem != record.has_edr)

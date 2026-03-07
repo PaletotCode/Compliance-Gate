@@ -7,25 +7,22 @@ and share them across tenants/users.
 
 from __future__ import annotations
 
-import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from compliance_gate.authentication.http.dependencies import require_role
+from compliance_gate.authentication.models import Role, User
 from compliance_gate.config.settings import settings
 from compliance_gate.infra.db.session import get_db
 from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig, CsvTabProfileSchema
 from compliance_gate.infra.storage import profiles_store
 from compliance_gate.domains.machines.ingest import preview
 
-log = logging.getLogger(__name__)
 router = APIRouter(prefix="/csv-tabs", tags=["CSV Tabs"])
-
-# Fake user_id for MVP
-MOCK_USER_ID = "00000000-0000-0000-0000-000000000001"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -33,25 +30,37 @@ MOCK_USER_ID = "00000000-0000-0000-0000-000000000001"
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/sources", response_model=list[str])
-def list_sources() -> list[str]:
+def list_sources(_: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR))) -> list[str]:
     """Returns the list of available source kinds."""
     return ["AD", "UEM", "EDR", "ASSET"]
 
 
 @router.get("/profiles", response_model=list[CsvTabProfileSchema])
-def list_profiles(source: Optional[str] = None, db: Session = Depends(get_db)):
+def list_profiles(
+    source: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
+):
     """List profiles visible to the user in the tenant."""
-    tenant_id = settings.default_tenant_id
-    profiles = profiles_store.list_profiles(db, tenant_id, source=source, user_id=MOCK_USER_ID)
+    profiles = profiles_store.list_profiles(
+        db,
+        current_user.tenant_id,
+        source=source,
+        user_id=current_user.id,
+    )
     
     # We do not include the full payload in the list for lighter payload
     return [CsvTabProfileSchema.model_validate(p) for p in profiles]
 
 
 @router.get("/profiles/{profile_id}", response_model=CsvTabProfileSchema)
-def get_profile(profile_id: str, db: Session = Depends(get_db)):
+def get_profile(
+    profile_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
+):
     profile = profiles_store.get_profile_by_id(db, profile_id)
-    if not profile:
+    if not profile or profile.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=404, detail="Profile not found")
 
     payload = profiles_store.get_active_payload(db, profile_id)
@@ -68,16 +77,18 @@ class CreateProfileRequest(BaseModel):
     is_default_for_source: bool = False
 
 @router.post("/profiles", response_model=CsvTabProfileSchema, status_code=status.HTTP_201_CREATED)
-def create_profile(req: CreateProfileRequest, db: Session = Depends(get_db)):
-    tenant_id = settings.default_tenant_id
+def create_profile(
+    req: CreateProfileRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
     profile = profiles_store.create_profile(
         db,
-        tenant_id=tenant_id,
+        tenant_id=current_user.tenant_id,
         source=req.source,
         scope=req.scope,
         name=req.name,
-        # Set to None to avoid violating Postgres FK constraint against missing users.
-        owner_user_id=None,
+        owner_user_id=current_user.id,
         payload=req.payload,
     )
     if req.is_default_for_source:
@@ -95,14 +106,22 @@ class UpdateProfileRequest(BaseModel):
     change_note: Optional[str] = None
 
 @router.put("/profiles/{profile_id}")
-def update_profile(profile_id: str, req: UpdateProfileRequest, db: Session = Depends(get_db)):
+def update_profile(
+    profile_id: str,
+    req: UpdateProfileRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
     try:
+        profile = profiles_store.get_profile_by_id(db, profile_id)
+        if not profile or profile.tenant_id != current_user.tenant_id:
+            raise HTTPException(status_code=404, detail="Profile not found")
         profiles_store.update_profile_payload(
             db,
             profile_id,
             new_payload=req.payload,
             change_note=req.change_note,
-            actor_user_id=None,
+            actor_user_id=current_user.id,
         )
         db.commit()
     except ValueError as e:
@@ -111,8 +130,15 @@ def update_profile(profile_id: str, req: UpdateProfileRequest, db: Session = Dep
 
 
 @router.post("/profiles/{profile_id}/promote-default")
-def promote_default(profile_id: str, db: Session = Depends(get_db)):
+def promote_default(
+    profile_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
     try:
+        profile = profiles_store.get_profile_by_id(db, profile_id)
+        if not profile or profile.tenant_id != current_user.tenant_id:
+            raise HTTPException(status_code=404, detail="Profile not found")
         profiles_store.promote_to_default(db, profile_id)
         db.commit()
         return {"status": "ok", "message": "Promoted to default"}
@@ -121,7 +147,16 @@ def promote_default(profile_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/profiles/{profile_id}/share")
-def share_profile(profile_id: str, target_user_id: str, permission: str = "READ", db: Session = Depends(get_db)):
+def share_profile(
+    profile_id: str,
+    target_user_id: str,
+    permission: str = "READ",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
+    profile = profiles_store.get_profile_by_id(db, profile_id)
+    if not profile or profile.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="Profile not found")
     # Stub for future auth ACL updates
     return {"status": "ok", "message": "Stub: share ok"}
 
@@ -169,7 +204,10 @@ class PreviewRawRequest(BaseModel):
     header_row_override: Optional[int] = None
 
 @router.post("/preview/raw")
-def preview_raw(req: PreviewRawRequest):
+def preview_raw(
+    req: PreviewRawRequest,
+    _: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
+):
     d = _resolve_dir(req.data_dir)
     f = _resolve_file(req.source, d)
     
@@ -186,9 +224,17 @@ class PreviewParsedRequest(BaseModel):
     data_dir: Optional[str] = None
 
 @router.post("/preview/parsed")
-def preview_parsed(req: PreviewParsedRequest, db: Session = Depends(get_db)):
+def preview_parsed(
+    req: PreviewParsedRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
+):
     d = _resolve_dir(req.data_dir)
     f = _resolve_file(req.source, d)
+
+    profile = profiles_store.get_profile_by_id(db, req.profile_id)
+    if not profile or profile.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail=f"Profile {req.profile_id} not found")
 
     payload = profiles_store.get_active_payload(db, req.profile_id)
     if not payload:

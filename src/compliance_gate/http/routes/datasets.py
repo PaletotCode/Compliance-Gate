@@ -13,12 +13,14 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path as FPath, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from compliance_gate.authentication.http.dependencies import require_role
+from compliance_gate.authentication.models import Role, User
 from compliance_gate.config.settings import settings
 from compliance_gate.domains.machines.ingest.pipeline import run_ingest_pipeline
 from compliance_gate.domains.machines.ingest.preview import run_preview
@@ -41,6 +43,7 @@ class PreviewRequest(BaseModel):
 class IngestRequest(BaseModel):
     source: str = "path"          # "path" only for Chat 1
     data_dir: Optional[str] = None
+    # Deprecated. Tenant comes from authenticated user token.
     tenant_id: Optional[str] = None
     profile_ids: dict[str, str] = Field(default_factory=dict)
 
@@ -140,7 +143,10 @@ def _version_to_schema(v) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.post("/preview")
-def preview_machines(body: PreviewRequest):
+def preview_machines(
+    body: PreviewRequest,
+    _: User = Depends(require_role(Role.TI_ADMIN)),
+):
     """
     Dry-run ingest: detects layouts, validates headers, builds master map.
     Nothing is written to the database.
@@ -155,7 +161,11 @@ def preview_machines(body: PreviewRequest):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.post("/ingest")
-def ingest_machines(body: IngestRequest, db: Session = Depends(get_db)):
+def ingest_machines(
+    body: IngestRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
     """
     Full ingest: run pipeline, persist dataset_version + files + metrics.
     Returns dataset_version_id for use in subsequent queries.
@@ -165,17 +175,21 @@ def ingest_machines(body: IngestRequest, db: Session = Depends(get_db)):
     # Load configs
     configs: dict[str, Any] = {}
     for src_name, p_id in body.profile_ids.items():
-        payload = store.profiles_store.get_active_payload(db, p_id)
+        profile = profiles_store.get_profile_by_id(db, p_id)
+        if not profile or profile.tenant_id != current_user.tenant_id:
+            raise HTTPException(status_code=404, detail=f"profile {p_id} not found")
+        payload = profiles_store.get_active_payload(db, p_id)
         if payload:
             configs[src_name] = payload
 
     # Create pending version
     version = store.create_dataset_version(
         db,
-        tenant_id=body.tenant_id,
+        tenant_id=current_user.tenant_id,
         source_type="machines",
         data_dir=str(data_dir),
         profile_ids_map=body.profile_ids,
+        actor=current_user.id,
     )
 
     try:
@@ -224,7 +238,7 @@ def ingest_machines(body: IngestRequest, db: Session = Depends(get_db)):
             warnings_count=len(ingest_result.warnings),
         )
 
-        store.finalize_dataset_version(db, version, status="success")
+        store.finalize_dataset_version(db, version, status="success", actor=current_user.id)
         db.commit()
 
         return {
@@ -241,9 +255,9 @@ def ingest_machines(body: IngestRequest, db: Session = Depends(get_db)):
         }
 
     except Exception as exc:
-        store.finalize_dataset_version(db, version, status="failed")
+        store.finalize_dataset_version(db, version, status="failed", actor=current_user.id)
         db.commit()
-        raise HTTPException(status_code=500, detail=f"Ingest failed: {exc}") from exc
+        raise HTTPException(status_code=500, detail="Ingest failed") from exc
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -252,13 +266,19 @@ def ingest_machines(body: IngestRequest, db: Session = Depends(get_db)):
 
 @router.get("")
 def list_versions(
-    tenant_id: Optional[str] = Query(None),
+    tenant_id: Optional[str] = Query(None, description="Deprecated. Ignored in favor of current tenant"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):
     """List dataset_versions for a tenant, newest first."""
-    versions, total = store.list_versions(db, tenant_id=tenant_id, limit=limit, offset=offset)
+    versions, total = store.list_versions(
+        db,
+        tenant_id=current_user.tenant_id,
+        limit=limit,
+        offset=offset,
+    )
     return {
         "total": total,
         "limit": limit,
@@ -275,9 +295,10 @@ def list_versions(
 def get_version(
     version_id: str = FPath(..., description="dataset_version UUID"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):
     """Get a specific dataset_version with files and metrics."""
     v = store.get_version_by_id(db, version_id)
-    if not v:
+    if not v or v.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=404, detail=f"dataset_version {version_id} not found")
     return _version_to_schema(v)

@@ -1,0 +1,8 @@
+{
+  "template_name": "machines_status_summary",
+  "description": "Status and flag counts from machines_final parquet",
+  "base_spine": "machines_final",
+  "kind": "machines_status_summary",
+  "default_limit": 1000,
+  "max_limit": 10000
+}

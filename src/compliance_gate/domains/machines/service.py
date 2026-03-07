@@ -42,7 +42,11 @@ class MachinesService:
         return filters
 
     @staticmethod
-    def _get_engine(db: Session, dataset_version_id: Optional[str] = None) -> MachinesEngine:
+    def _get_engine(
+        db: Session,
+        tenant_id: str,
+        dataset_version_id: Optional[str] = None,
+    ) -> MachinesEngine:
         """
         Build a MachinesEngine loaded with data.
 
@@ -64,6 +68,8 @@ class MachinesService:
         configs: Dict[str, CsvTabConfig] = {}
         if dataset_version_id:
             version = datasets_store.get_version_by_id(db, dataset_version_id)
+            if version and version.tenant_id != tenant_id:
+                raise MachinesService.NoDatasetError("dataset_version not found for tenant")
             if version and version.used_profile_ids:
                 try:
                     pids = json.loads(version.used_profile_ids)
@@ -121,16 +127,18 @@ class MachinesService:
     def get_table_data(
         db: Session,
         filters: MachineFilterSchema, page: int, size: int,
+        tenant_id: str,
         dataset_version_id: Optional[str] = None,
     ) -> Tuple[List[MachineItemSchema], int]:
-        engine = MachinesService._get_engine(db, dataset_version_id)
+        engine = MachinesService._get_engine(db, tenant_id=tenant_id, dataset_version_id=dataset_version_id)
         return engine.get_table(filters, page, size)
 
     @staticmethod
     def get_summary_data(
         db: Session,
         filters: MachineFilterSchema,
+        tenant_id: str,
         dataset_version_id: Optional[str] = None,
     ) -> MachineSummarySchema:
-        engine = MachinesService._get_engine(db, dataset_version_id)
+        engine = MachinesService._get_engine(db, tenant_id=tenant_id, dataset_version_id=dataset_version_id)
         return engine.get_summary(filters)

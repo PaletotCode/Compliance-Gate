@@ -2,7 +2,6 @@
 models.py — SQLAlchemy ORM models for Compliance Gate.
 
 Tables:
-  - tenants           : multi-tenancy seed (placeholder)
   - dataset_versions  : one row per ingest run
   - dataset_files     : one row per source file (AD/UEM/EDR/ASSET) per version
   - dataset_metrics   : aggregated metrics per dataset_version
@@ -12,10 +11,8 @@ Tables:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean,
     Column,
     DateTime,
     Float,
@@ -25,7 +22,6 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from .session import Base
@@ -51,22 +47,6 @@ class TimestampMixin:
         onupdate=func.now(),
         nullable=True,
     )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Tenants (multi-tenancy seed — placeholder for auth integration)
-# ─────────────────────────────────────────────────────────────────────────────
-
-class Tenant(TimestampMixin, Base):
-    __tablename__ = "tenants"
-
-    id = Column(String(36), primary_key=True, default=_uuid)
-    slug = Column(String(64), unique=True, nullable=False)                # e.g. "sicoob-central"
-    display_name = Column(String(256), nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
-
-    dataset_versions = relationship("DatasetVersion", back_populates="tenant")
-    audit_logs = relationship("AuditLog", back_populates="tenant")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

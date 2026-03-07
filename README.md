@@ -22,6 +22,23 @@ docker compose up -d
 ```
 A API estará exposta em `http://localhost:8000`.
 
+### Bootstrap de Admin (AUTH CORE v1)
+No primeiro run, é possível bootstrap de admin local por env:
+
+```bash
+export AUTH_BOOTSTRAP_ADMIN_USERNAME=admin
+export AUTH_BOOTSTRAP_ADMIN_PASSWORD=Admin1234
+```
+
+Depois faça login em `POST /api/v1/auth/login` com `username/password`.
+
+## Autenticação (resumo)
+- Prefixo: `/api/v1/auth`
+- Login local com JWT (`HS256`)
+- MFA TOTP (Microsoft Authenticator) com setup via QR code
+- Reset de senha sem e-mail/SMS usando `totp_code` ou `recovery_code`
+- RBAC mínimo: `TI_ADMIN` e `DIRECTOR`
+
 ### Execução Local (Desenvolvimento)
 1. Crie e ative um ambiente virtual:
    ```bash
@@ -51,3 +68,18 @@ Após instalar com `.[dev]`:
 - Linting: `ruff check .`
 - Testes: `pytest`
 - Type checking: `mypy .`
+
+## Reteste end-to-end de auth
+```bash
+python retests/scripts/run_auth_retests.py
+```
+
+## Engine Core v1
+- API: `/api/v1/engine/*`
+- Materialização: `POST /api/v1/engine/materialize/machines`
+- Report obrigatório: `machines_status_summary`
+
+Reteste e2e da Engine:
+```bash
+python retests/scripts/run_engine_retests.py
+```

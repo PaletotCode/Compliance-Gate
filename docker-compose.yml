@@ -29,7 +29,9 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     container_name: compliance_gate_api
-    command: uvicorn src.compliance_gate.main:app --host 0.0.0.0 --port 8000 --reload
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn src.compliance_gate.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
     environment:
@@ -40,6 +42,11 @@ services:
       - CG_DATA_DIR=/workspace
       - CG_UPLOAD_DIR=/workspace/uploads
       - DEFAULT_TENANT_ID=default
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-change-me-in-production}
+      - AUTH_RECOVERY_PEPPER=${AUTH_RECOVERY_PEPPER:-change-recovery-pepper}
+      - AUTH_SECRET_PROTECTION_KEY=${AUTH_SECRET_PROTECTION_KEY:-change-secret-protection-key}
+      - AUTH_BOOTSTRAP_ADMIN_USERNAME=${AUTH_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      - AUTH_BOOTSTRAP_ADMIN_PASSWORD=${AUTH_BOOTSTRAP_ADMIN_PASSWORD:-Admin1234}
     volumes:
       - .:/app
       - ./workspace:/workspace

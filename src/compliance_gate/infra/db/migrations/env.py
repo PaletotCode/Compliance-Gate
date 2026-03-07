@@ -23,6 +23,8 @@ if str(_SRC) not in sys.path:
 from compliance_gate.infra.db.session import Base  # noqa: E402
 import compliance_gate.infra.db.models  # noqa: F401 — registers all ORM classes
 import compliance_gate.infra.db.models_profiles # noqa: F401
+import compliance_gate.infra.db.models_engine # noqa: F401
+import compliance_gate.authentication.models  # noqa: F401
 
 # ── Alembic config ────────────────────────────────────────────────────────────
 config = context.config

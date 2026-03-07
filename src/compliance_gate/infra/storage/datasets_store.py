@@ -13,12 +13,12 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from compliance_gate.authentication.models import Tenant
 from compliance_gate.infra.db.models import (
     AuditLog,
     DatasetFile,
     DatasetMetric,
     DatasetVersion,
-    Tenant,
 )
 
 log = logging.getLogger(__name__)
@@ -40,14 +40,14 @@ def get_or_create_tenant(db: Session, tenant_id: Optional[str] = None) -> Tenant
         t = db.query(Tenant).filter(Tenant.id == tenant_id).first()
         if t:
             return t
-        log.warning("Tenant id=%s not found — falling back to default", tenant_id)
+        raise ValueError("tenant not found")
 
     t = db.query(Tenant).filter(Tenant.slug == _DEFAULT_TENANT_SLUG).first()
     if t:
         return t
 
     # Bootstrap default tenant
-    t = Tenant(slug=_DEFAULT_TENANT_SLUG, display_name=_DEFAULT_TENANT_NAME)
+    t = Tenant(slug=_DEFAULT_TENANT_SLUG, display_name=_DEFAULT_TENANT_NAME, name=_DEFAULT_TENANT_NAME)
     db.add(t)
     db.flush()
     log.info("Bootstrapped default tenant id=%s", t.id)

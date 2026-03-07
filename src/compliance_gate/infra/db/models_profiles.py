@@ -2,7 +2,7 @@
 models_profiles.py — SQLAlchemy ORM models for CSV Tab Config Profiles.
 
 Tables:
-  - users & groups                : placeholders for permissions
+  - groups                        : optional grouping for profile sharing
   - group_memberships             : associative table
   - csv_tab_profiles              : central profile container
   - csv_tab_profile_versions      : append-only config payload versions
@@ -26,23 +26,8 @@ from compliance_gate.infra.db.session import Base
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Auth Placeholders
+# Grouping helpers
 # ─────────────────────────────────────────────────────────────────────────────
-
-class User(TimestampMixin, Base):
-    __tablename__ = "users"
-
-    id = Column(String(36), primary_key=True, default=_uuid)
-    tenant_id = Column(
-        String(36),
-        ForeignKey("tenants.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    email = Column(String(255), nullable=False)
-    name = Column(String(255), nullable=False)
-
-    tenant = relationship("Tenant")
 
 
 class Group(TimestampMixin, Base):
