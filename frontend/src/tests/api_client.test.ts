@@ -8,27 +8,26 @@ let mock: MockAdapter
 
 beforeEach(() => {
   mock = new MockAdapter(api)
+  document.cookie = 'cg_csrf=test-csrf-token'
 })
 
 afterEach(() => {
   mock.restore()
   vi.restoreAllMocks()
+  document.cookie = 'cg_csrf=; Max-Age=0; path=/'
 })
 
 describe('api client', () => {
-  it('attaches bearer token when available', async () => {
-    vi.spyOn(session, 'isCookieMode').mockReturnValue(false)
-    vi.spyOn(session, 'getToken').mockReturnValue('test-token')
-
-    mock.onGet('/secure').reply((config) => {
-      expect(config.headers?.Authorization).toBe('Bearer test-token')
+  it('attaches csrf header for state-changing requests', async () => {
+    mock.onPost('/secure').reply((config) => {
+      expect(config.headers?.['X-CSRF-Token']).toBe('test-csrf-token')
       return [200, { ok: true }]
     })
 
-    await api.get('/secure')
+    await api.post('/secure', { ok: true })
   })
 
-  it('fires unauthorized notification on 401/403', async () => {
+  it('fires unauthorized notification on 401', async () => {
     const notify = vi.spyOn(session, 'notifyUnauthorized')
     mock.onGet('/secure').reply(401, { message: 'unauthorized' })
 

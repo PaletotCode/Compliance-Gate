@@ -1,9 +1,17 @@
 import logging
+import hmac
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from compliance_gate.authentication.config import auth_settings
+from compliance_gate.authentication.http.cookies import (
+    ensure_csrf_cookie,
+    is_csrf_exempt_path,
+    is_state_changing_method,
+)
 from compliance_gate.authentication.http import routes as auth_routes
 from compliance_gate.authentication.services.users_service import UsersService
 from compliance_gate.config.constants import API_PREFIX
@@ -40,6 +48,27 @@ def create_app() -> FastAPI:
 
     # Global Exception Handlers
     setup_exception_handlers(app)
+
+    @app.middleware("http")
+    async def enforce_csrf(request: Request, call_next):
+        if not auth_settings.csrf_enabled:
+            return await call_next(request)
+
+        if not is_state_changing_method(request.method):
+            response = await call_next(request)
+            ensure_csrf_cookie(request, response)
+            return response
+
+        if is_csrf_exempt_path(request.url.path):
+            return await call_next(request)
+
+        csrf_cookie = request.cookies.get(auth_settings.csrf_cookie_name)
+        csrf_header = request.headers.get(auth_settings.csrf_header_name)
+        if not csrf_cookie or not csrf_header:
+            return JSONResponse(status_code=403, content={"detail": "csrf token missing"})
+        if not hmac.compare_digest(csrf_cookie, csrf_header):
+            return JSONResponse(status_code=403, content={"detail": "csrf token mismatch"})
+        return await call_next(request)
 
     # Include Routers
     app.include_router(health.router)

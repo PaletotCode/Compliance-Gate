@@ -20,6 +20,51 @@ DIRECTOR_USERNAME = "director"
 DIRECTOR_PASSWORD = "Director123"
 ADMIN_NEW_PASSWORD = "Admin9876"
 
+AUTH_COOKIE_NAME = os.environ.get("AUTH_COOKIE_NAME", "cg_access")
+CSRF_COOKIE_NAME = os.environ.get("CSRF_COOKIE_NAME", "cg_csrf")
+CSRF_HEADER_NAME = os.environ.get("CSRF_HEADER_NAME", "X-CSRF-Token")
+
+
+class CookieApiClient:
+    def __init__(self) -> None:
+        self.session = requests.Session()
+
+    def request_json(
+        self,
+        method: str,
+        url: str,
+        body: dict,
+        *,
+        expected_status: int | tuple[int, ...] = 200,
+        attach_csrf: bool = True,
+    ) -> requests.Response:
+        headers: dict[str, str] = {}
+        if attach_csrf and method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+            csrf_token = self.session.cookies.get(CSRF_COOKIE_NAME)
+            if csrf_token:
+                headers[CSRF_HEADER_NAME] = csrf_token
+        response = self.session.request(method, url, json=body, headers=headers, timeout=30)
+        expected = (expected_status,) if isinstance(expected_status, int) else expected_status
+        if response.status_code not in expected:
+            raise RuntimeError(
+                f"Unexpected status {response.status_code} for {url}. Body={response.text}"
+            )
+        return response
+
+    def get_json(
+        self,
+        url: str,
+        *,
+        expected_status: int | tuple[int, ...] = 200,
+    ) -> requests.Response:
+        response = self.session.get(url, timeout=30)
+        expected = (expected_status,) if isinstance(expected_status, int) else expected_status
+        if response.status_code not in expected:
+            raise RuntimeError(
+                f"Unexpected status {response.status_code} for {url}. Body={response.text}"
+            )
+        return response
+
 
 def run_cmd(args: list[str], env: dict[str, str] | None = None) -> None:
     print(f"$ {' '.join(args)}")
@@ -43,55 +88,36 @@ def wait_api() -> None:
     raise RuntimeError("API did not become healthy in time")
 
 
-def request_json(
-    method: str,
-    url: str,
-    body: dict,
+def login(
+    client: CookieApiClient,
+    username: str,
+    password: str,
     *,
-    token: str | None = None,
-    expected_status: int | tuple[int, ...] = 200,
-) -> requests.Response:
-    headers = {}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    response = requests.request(method, url, json=body, headers=headers, timeout=30)
-    expected = (expected_status,) if isinstance(expected_status, int) else expected_status
-    if response.status_code not in expected:
-        raise RuntimeError(
-            f"Unexpected status {response.status_code} for {url}. Body={response.text}"
-        )
-    return response
-
-
-def get_with_token(
-    url: str,
-    *,
-    token: str,
-    expected_status: int | tuple[int, ...] = 200,
-) -> requests.Response:
-    response = requests.get(
-        url,
-        headers={"Authorization": f"Bearer {token}"},
-        timeout=30,
-    )
-    expected = (expected_status,) if isinstance(expected_status, int) else expected_status
-    if response.status_code not in expected:
-        raise RuntimeError(
-            f"Unexpected status {response.status_code} for {url}. Body={response.text}"
-        )
-    return response
-
-
-def login(username: str, password: str, *, totp_code: str | None = None, challenge_id: str | None = None) -> dict:
+    totp_code: str | None = None,
+    challenge_id: str | None = None,
+) -> dict:
     body: dict[str, str] = {"username": username, "password": password}
     if totp_code:
         body["totp_code"] = totp_code
     if challenge_id:
         body["challenge_id"] = challenge_id
-    response = request_json("POST", f"{AUTH_PREFIX}/login", body, expected_status=(200, 401, 429))
+    response = client.request_json(
+        "POST",
+        f"{AUTH_PREFIX}/login",
+        body,
+        expected_status=(200, 401, 429),
+        attach_csrf=False,
+    )
     if response.status_code != 200:
         raise RuntimeError(f"Login failed for {username}: {response.status_code} {response.text}")
     return response.json()
+
+
+def assert_logged_cookie(client: CookieApiClient) -> None:
+    if not client.session.cookies.get(AUTH_COOKIE_NAME):
+        raise RuntimeError("Expected auth cookie after login")
+    if not client.session.cookies.get(CSRF_COOKIE_NAME):
+        raise RuntimeError("Expected csrf cookie after login")
 
 
 def main() -> int:
@@ -109,14 +135,22 @@ def main() -> int:
         run_cmd(["docker", "compose", "up", "-d", "--build", "db", "redis", "api"], env=compose_env)
         wait_api()
 
+        admin = CookieApiClient()
+
         # 1) login admin bootstrap (without MFA)
-        admin_login = login(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD)
-        if "access_token" not in admin_login:
-            raise RuntimeError("Expected bootstrap admin login to return access token")
-        admin_token = admin_login["access_token"]
+        admin_login = login(admin, BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD)
+        if "mfa_required" in admin_login:
+            raise RuntimeError("Expected bootstrap admin login to authenticate directly")
+        if "access_token" in admin_login:
+            raise RuntimeError("/auth/login returned access_token, expected cookie-only contract")
+        assert_logged_cookie(admin)
+
+        me_admin = admin.get_json(f"{AUTH_PREFIX}/me", expected_status=200).json()
+        if me_admin.get("username") != BOOTSTRAP_ADMIN_USERNAME:
+            raise RuntimeError("/auth/me did not resolve admin user from cookie")
 
         # 2) create director user
-        request_json(
+        admin.request_json(
             "POST",
             f"{AUTH_PREFIX}/users",
             {
@@ -124,19 +158,17 @@ def main() -> int:
                 "password": DIRECTOR_PASSWORD,
                 "role": "DIRECTOR",
             },
-            token=admin_token,
             expected_status=201,
         )
 
         # 3) setup+confirm MFA for admin
-        setup_resp = request_json("POST", f"{AUTH_PREFIX}/mfa/setup", {}, token=admin_token, expected_status=200).json()
+        setup_resp = admin.request_json("POST", f"{AUTH_PREFIX}/mfa/setup", {}, expected_status=200).json()
         otpauth_url = setup_resp["otpauth_url"]
         totp = pyotp.parse_uri(otpauth_url)
-        confirm_resp = request_json(
+        confirm_resp = admin.request_json(
             "POST",
             f"{AUTH_PREFIX}/mfa/confirm",
             {"totp_code": totp.now()},
-            token=admin_token,
             expected_status=200,
         ).json()
         recovery_codes = confirm_resp.get("recovery_codes", [])
@@ -144,7 +176,8 @@ def main() -> int:
             raise RuntimeError("Expected recovery codes after MFA confirmation")
 
         # 4) challenge flow login after MFA enabled
-        challenge_login = login(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD)
+        admin = CookieApiClient()
+        challenge_login = login(admin, BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD)
         if not challenge_login.get("mfa_required"):
             raise RuntimeError("Expected MFA challenge response")
         challenge_id = challenge_login.get("challenge_id")
@@ -152,15 +185,18 @@ def main() -> int:
             raise RuntimeError("Missing challenge_id in MFA challenge response")
 
         admin_login_after_mfa = login(
+            admin,
             BOOTSTRAP_ADMIN_USERNAME,
             BOOTSTRAP_ADMIN_PASSWORD,
             totp_code=totp.now(),
             challenge_id=challenge_id,
         )
-        admin_token = admin_login_after_mfa["access_token"]
+        if "mfa_required" in admin_login_after_mfa:
+            raise RuntimeError("Expected MFA login completion")
+        assert_logged_cookie(admin)
 
         # 5) reset password with TOTP
-        request_json(
+        admin.request_json(
             "POST",
             f"{AUTH_PREFIX}/password/reset",
             {
@@ -172,16 +208,21 @@ def main() -> int:
         )
 
         # login with new password (still MFA enabled)
-        challenge_login = login(BOOTSTRAP_ADMIN_USERNAME, ADMIN_NEW_PASSWORD)
+        admin = CookieApiClient()
+        challenge_login = login(admin, BOOTSTRAP_ADMIN_USERNAME, ADMIN_NEW_PASSWORD)
         challenge_id = challenge_login.get("challenge_id")
-        admin_token = login(
+        if not challenge_id:
+            raise RuntimeError("Expected challenge_id after password reset")
+        login(
+            admin,
             BOOTSTRAP_ADMIN_USERNAME,
             ADMIN_NEW_PASSWORD,
             totp_code=totp.now(),
             challenge_id=challenge_id,
-        )["access_token"]
+        )
+        assert_logged_cookie(admin)
 
-        # 6) admin access csv-tabs + datasets ingest
+        # 6) CSRF validation + admin access csv-tabs + datasets ingest
         profile_body = {
             "source": "AD",
             "scope": "PRIVATE",
@@ -192,30 +233,52 @@ def main() -> int:
                 "selected_columns": ["Hostname", "OS"],
             },
         }
-        profile = request_json(
+
+        admin.request_json(
             "POST",
             f"{API_PREFIX}/csv-tabs/profiles",
             profile_body,
-            token=admin_token,
+            attach_csrf=False,
+            expected_status=403,
+        )
+
+        profile = admin.request_json(
+            "POST",
+            f"{API_PREFIX}/csv-tabs/profiles",
+            profile_body,
             expected_status=201,
         ).json()
         profile_id = profile["id"]
 
-        request_json(
+        admin.request_json(
             "POST",
             f"{API_PREFIX}/datasets/machines/ingest",
             {
                 "data_dir": "/workspace",
                 "profile_ids": {"AD": profile_id},
             },
-            token=admin_token,
+            attach_csrf=False,
+            expected_status=403,
+        )
+
+        admin.request_json(
+            "POST",
+            f"{API_PREFIX}/datasets/machines/ingest",
+            {
+                "data_dir": "/workspace",
+                "profile_ids": {"AD": profile_id},
+            },
             expected_status=200,
         )
 
         # 7) director permissions
-        director_token = login(DIRECTOR_USERNAME, DIRECTOR_PASSWORD)["access_token"]
+        director = CookieApiClient()
+        director_login = login(director, DIRECTOR_USERNAME, DIRECTOR_PASSWORD)
+        if "mfa_required" in director_login:
+            raise RuntimeError("director user unexpectedly requires MFA")
+        assert_logged_cookie(director)
 
-        request_json(
+        director.request_json(
             "PUT",
             f"{API_PREFIX}/csv-tabs/profiles/{profile_id}",
             {
@@ -225,21 +288,18 @@ def main() -> int:
                     "selected_columns": ["Hostname"],
                 },
             },
-            token=director_token,
             expected_status=403,
         )
 
-        request_json(
+        director.request_json(
             "POST",
             f"{API_PREFIX}/datasets/machines/ingest",
             {"data_dir": "/workspace", "profile_ids": {}},
-            token=director_token,
             expected_status=403,
         )
 
-        get_with_token(
+        director.get_json(
             f"{API_PREFIX}/machines/table?page=1&size=10",
-            token=director_token,
             expected_status=200,
         )
 

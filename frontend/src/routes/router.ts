@@ -3,8 +3,10 @@ import { authStore } from '@/auth/store'
 import { Route as RootRoute } from './__root'
 import { Route as IndexRoute } from './index'
 import { Route as AuthCallbackRoute } from './auth.callback'
+import { Route as AuthRoute } from './auth'
+import { Route as SuccessRoute } from './success'
 
-const routeTree = RootRoute.addChildren([IndexRoute, AuthCallbackRoute])
+const routeTree = RootRoute.addChildren([IndexRoute, AuthRoute, SuccessRoute, AuthCallbackRoute])
 
 export const router = createRouter({
   routeTree,

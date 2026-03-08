@@ -1,15 +1,29 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 
 
 class AuthSettings(BaseSettings):
     # JWT
     auth_jwt_secret: str = "change-me-in-production"
     auth_jwt_algorithm: str = "HS256"
-    auth_access_token_ttl_minutes: int = 45
+    auth_token_ttl_minutes: int = 45
     auth_jwt_issuer: str = "compliance-gate"
     auth_jwt_audience: str = "compliance-gate-api"
+
+    # Cookie auth
+    auth_cookie_name: str = "cg_access"
+    auth_cookie_secure: bool = False
+    auth_cookie_samesite: Literal["lax", "strict", "none"] = "lax"
+    auth_cookie_path: str = "/"
+
+    # CSRF (double submit cookie)
+    csrf_cookie_name: str = "cg_csrf"
+    csrf_header_name: str = "X-CSRF-Token"
+    csrf_enabled: bool = True
 
     # MFA/TOTP
     auth_mfa_issuer: str = "Compliance Gate"
@@ -38,6 +52,11 @@ class AuthSettings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @field_validator("auth_cookie_samesite", mode="before")
+    @classmethod
+    def _normalize_samesite(cls, value: str) -> str:
+        return value.lower()
 
 
 auth_settings = AuthSettings()

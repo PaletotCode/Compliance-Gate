@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from compliance_gate.authentication.http.dependencies import get_current_user, require_role
@@ -22,6 +22,12 @@ from compliance_gate.authentication.services.auth_service import AuthService, Au
 from compliance_gate.authentication.services.mfa_service import MFAService, MFAServiceError
 from compliance_gate.authentication.services.reset_service import ResetService, ResetServiceError
 from compliance_gate.authentication.services.users_service import UserServiceError, UsersService
+from compliance_gate.authentication.http.cookies import (
+    clear_auth_cookies,
+    generate_csrf_token,
+    set_access_cookie,
+    set_csrf_cookie,
+)
 from compliance_gate.authentication.storage import repo
 from compliance_gate.infra.db.session import get_db
 
@@ -81,13 +87,14 @@ def admin_reset_password(
 def login(
     body: LoginRequest,
     request: Request,
+    response: Response,
     db: Session = Depends(get_db),
 ):
     # Optional first-run bootstrap via env.
     UsersService.ensure_bootstrap_admin(db)
 
     try:
-        response = AuthService.authenticate(
+        auth_response = AuthService.authenticate(
             db,
             username=body.username,
             password=body.password,
@@ -98,7 +105,17 @@ def login(
     except AuthServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
-    return response
+    csrf_token = generate_csrf_token()
+    set_csrf_cookie(response, csrf_token)
+
+    if isinstance(auth_response, LoginChallengeResponse):
+        return auth_response
+
+    set_access_cookie(response, auth_response.access_token)
+    return LoginSuccessResponse(
+        expires_in=auth_response.expires_in,
+        user=UsersService.to_public(auth_response.user),
+    )
 
 
 @router.get("/me", response_model=UserPublic)
@@ -145,6 +162,6 @@ def password_reset(body: PasswordResetRequest, db: Session = Depends(get_db)) ->
 
 
 @router.post("/logout", response_model=GenericMessageResponse)
-def logout(_: User = Depends(get_current_user)) -> GenericMessageResponse:
-    # Stateless JWT logout in v1 (no token revocation list).
+def logout(response: Response, _: User = Depends(get_current_user)) -> GenericMessageResponse:
+    clear_auth_cookies(response)
     return GenericMessageResponse(message="logout acknowledged")

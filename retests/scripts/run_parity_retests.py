@@ -36,8 +36,27 @@ from typing import Any, Optional
 
 import polars as pl
 import requests
-from rich.console import Console
-from rich.table import Table
+try:
+    from rich.console import Console
+    from rich.table import Table
+except Exception:  # pragma: no cover - optional dependency in local retests
+    class Console:
+        def print(self, *args, **kwargs):
+            print(*args)
+
+    class Table:
+        def __init__(self, title: str | None = None, **_kwargs):
+            self.title = title or ""
+
+        def add_column(self, *_args, **_kwargs):
+            return None
+
+        def add_row(self, *_args, **_kwargs):
+            return None
+
+        def __str__(self) -> str:
+            return f"[table] {self.title}"
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Config
@@ -46,8 +65,13 @@ from rich.table import Table
 WORKSPACE = Path(os.environ.get("WORKSPACE", "/workspace"))
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://api:8000")
 API_PREFIX = "/api/v1"
+AUTH_PREFIX = f"{API_PREFIX}/auth"
+BOOTSTRAP_ADMIN_USERNAME = os.environ.get("AUTH_BOOTSTRAP_ADMIN_USERNAME", "admin")
+BOOTSTRAP_ADMIN_PASSWORD = os.environ.get("AUTH_BOOTSTRAP_ADMIN_PASSWORD", "Admin1234")
+AUTH_COOKIE_NAME = os.environ.get("AUTH_COOKIE_NAME", "cg_access")
 
-RETESTS_DIR = Path("/retests")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+RETESTS_DIR = Path(os.environ.get("RETESTS_DIR", str(PROJECT_ROOT / "retests")))
 LOGS_DIR = RETESTS_DIR / "logs"
 OUTPUT_DIR = RETESTS_DIR / "output"
 
@@ -116,9 +140,49 @@ report: dict[str, Any] = {
     "diagnosis_available_ok": {},
 }
 
+_api_session: requests.Session | None = None
+_api_auth_attempted = False
+
 def add_problem(severity: str, source: str, msg: str):
     report["problems"].append({"severity": severity, "source": source, "msg": msg})
     log(severity, source, msg)
+
+
+def _get_authenticated_session() -> requests.Session | None:
+    global _api_session
+    global _api_auth_attempted
+
+    if _api_auth_attempted:
+        return _api_session
+
+    _api_auth_attempted = True
+    try:
+        session = requests.Session()
+        response = session.post(
+            f"{API_BASE_URL}{AUTH_PREFIX}/login",
+            json={"username": BOOTSTRAP_ADMIN_USERNAME, "password": BOOTSTRAP_ADMIN_PASSWORD},
+            timeout=15,
+        )
+        if response.status_code != 200:
+            add_problem(
+                "WARN",
+                "AUTH",
+                f"Could not authenticate parity session: {response.status_code} {response.text}",
+            )
+            return None
+        payload = response.json()
+        if payload.get("mfa_required"):
+            add_problem("WARN", "AUTH", "Bootstrap admin requires MFA; API comparison will run anonymously.")
+            return None
+        if not session.cookies.get(AUTH_COOKIE_NAME):
+            add_problem("WARN", "AUTH", "Login did not set auth cookie; API comparison will run anonymously.")
+            return None
+        _api_session = session
+        log("OK", "AUTH", "Authenticated API session acquired for parity API checks.")
+        return _api_session
+    except Exception as exc:
+        add_problem("WARN", "AUTH", f"Failed to authenticate parity session: {exc}")
+        return None
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Normalization — MIRRORS dashboard_fixed.ts exactly
@@ -779,7 +843,11 @@ def _api_get(path: str, params: dict | None = None) -> tuple[int, Any, float]:
     url = f"{API_BASE_URL}{path}"
     t0 = time.perf_counter()
     try:
-        r = requests.get(url, params=params, timeout=15)
+        session = _get_authenticated_session()
+        if session is not None:
+            r = session.get(url, params=params, timeout=15)
+        else:
+            r = requests.get(url, params=params, timeout=15)
         ms = round((time.perf_counter() - t0) * 1000, 1)
         try: body = r.json()
         except: body = {"raw": r.text[:200]}

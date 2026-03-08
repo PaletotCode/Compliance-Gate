@@ -12,6 +12,15 @@ def test_machines_table_without_token_returns_401() -> None:
     assert response.status_code == 401
 
 
+def test_machines_table_with_bearer_header_still_returns_401() -> None:
+    with TestClient(app) as anon_client:
+        response = anon_client.get(
+            "/api/v1/machines/table?page=1&size=10",
+            headers={"Authorization": "Bearer should-not-work"},
+        )
+    assert response.status_code == 401
+
+
 def test_machines_table_cross_tenant_dataset_returns_404(monkeypatch, client) -> None:
     def fake_get_table_data(*_args, **_kwargs):
         raise MachinesService.DatasetAccessError("dataset_version not found for tenant")

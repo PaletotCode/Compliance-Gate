@@ -24,6 +24,36 @@ BOOTSTRAP_ADMIN_USERNAME = os.environ.get("AUTH_BOOTSTRAP_ADMIN_USERNAME", "admi
 BOOTSTRAP_ADMIN_PASSWORD = os.environ.get("AUTH_BOOTSTRAP_ADMIN_PASSWORD", "Admin1234")
 KEEP_STACK = os.environ.get("KEEP_ENGINE_RETEST_STACK", "false").lower() == "true"
 
+AUTH_COOKIE_NAME = os.environ.get("AUTH_COOKIE_NAME", "cg_access")
+CSRF_COOKIE_NAME = os.environ.get("CSRF_COOKIE_NAME", "cg_csrf")
+CSRF_HEADER_NAME = os.environ.get("CSRF_HEADER_NAME", "X-CSRF-Token")
+
+
+class CookieApiClient:
+    def __init__(self) -> None:
+        self.session = requests.Session()
+
+    def request_json(
+        self,
+        method: str,
+        url: str,
+        *,
+        body: dict | None = None,
+        expected_status: int | tuple[int, ...] = 200,
+        attach_csrf: bool = True,
+    ) -> dict:
+        headers = {"Content-Type": "application/json"}
+        if attach_csrf and method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+            csrf_token = self.session.cookies.get(CSRF_COOKIE_NAME)
+            if csrf_token:
+                headers[CSRF_HEADER_NAME] = csrf_token
+
+        response = self.session.request(method, url, headers=headers, json=body, timeout=60)
+        expected = (expected_status,) if isinstance(expected_status, int) else expected_status
+        if response.status_code not in expected:
+            raise RuntimeError(f"{method} {url} -> {response.status_code}: {response.text}")
+        return response.json()
+
 
 def run_id() -> str:
     return datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
@@ -53,23 +83,18 @@ def wait_api_ready(timeout_seconds: int = 120) -> None:
     raise RuntimeError("API failed to become ready")
 
 
-def request_json(
-    method: str,
-    url: str,
-    *,
-    token: str | None = None,
-    body: dict | None = None,
-    expected_status: int | tuple[int, ...] = 200,
-) -> dict:
-    headers = {"Content-Type": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-
-    response = requests.request(method, url, headers=headers, json=body, timeout=60)
-    expected = (expected_status,) if isinstance(expected_status, int) else expected_status
-    if response.status_code not in expected:
-        raise RuntimeError(f"{method} {url} -> {response.status_code}: {response.text}")
-    return response.json()
+def login(client: CookieApiClient) -> None:
+    payload = {
+        "username": BOOTSTRAP_ADMIN_USERNAME,
+        "password": BOOTSTRAP_ADMIN_PASSWORD,
+    }
+    response = client.request_json("POST", f"{AUTH_BASE}/login", body=payload, attach_csrf=False)
+    if "mfa_required" in response:
+        raise RuntimeError("bootstrap admin login unexpectedly requires MFA")
+    if "access_token" in response:
+        raise RuntimeError("/auth/login returned access_token, expected cookie-only mode")
+    if not client.session.cookies.get(AUTH_COOKIE_NAME):
+        raise RuntimeError("bootstrap admin login did not set auth cookie")
 
 
 def translate_workspace_path(container_path: str) -> Path:
@@ -88,24 +113,18 @@ def main() -> int:
         run_command(["docker", "compose", "up", "-d", "--build", "db", "redis", "api"])
         wait_api_ready()
 
-        # 1) login bootstrap admin
-        login_payload = {
-            "username": BOOTSTRAP_ADMIN_USERNAME,
-            "password": BOOTSTRAP_ADMIN_PASSWORD,
-        }
-        login_response = request_json("POST", f"{AUTH_BASE}/login", body=login_payload)
-        token = login_response.get("access_token")
-        if not token:
-            raise RuntimeError("bootstrap admin login did not return access token")
+        client = CookieApiClient()
 
-        me_response = request_json("GET", f"{AUTH_BASE}/me", token=token)
+        # 1) login bootstrap admin
+        login(client)
+
+        me_response = client.request_json("GET", f"{AUTH_BASE}/me")
         tenant_id = me_response["tenant_id"]
 
         # 2) ingest dataset for engine consumption
-        ingest_response = request_json(
+        ingest_response = client.request_json(
             "POST",
             f"{DATASETS_BASE}/ingest",
-            token=token,
             body={"data_dir": "/workspace", "profile_ids": {}},
             expected_status=200,
         )
@@ -117,7 +136,7 @@ def main() -> int:
         materialize_url = (
             f"{ENGINE_BASE}/materialize/machines?dataset_version_id={dataset_version_id}&tenant_id={tenant_id}"
         )
-        materialize_response = request_json("POST", materialize_url, token=token)
+        materialize_response = client.request_json("POST", materialize_url)
         materialize_data = materialize_response["data"]
 
         if materialize_data["row_count"] <= 0:
@@ -135,10 +154,9 @@ def main() -> int:
 
         # 4) run required report template
         report_url = f"{ENGINE_BASE}/reports/run?dataset_version_id={dataset_version_id}&tenant_id={tenant_id}"
-        report_response = request_json(
+        report_response = client.request_json(
             "POST",
             report_url,
-            token=token,
             body={"template_name": "machines_status_summary"},
         )
         report_data = report_response["data"]

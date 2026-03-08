@@ -1,12 +1,14 @@
 import { api } from '@/api/client'
 import { endpoints } from '@/api/endpoints'
 import type {
+  GenericMessageResponse,
   LoginRequest,
   LoginResponse,
   MfaConfirmRequest,
+  MfaConfirmResponse,
   MfaSetupResponse,
   PasswordResetRequest,
-  User,
+  UserPublic,
 } from './types'
 
 export async function login(payload: LoginRequest): Promise<LoginResponse> {
@@ -14,8 +16,8 @@ export async function login(payload: LoginRequest): Promise<LoginResponse> {
   return data
 }
 
-export async function fetchMe(): Promise<User> {
-  const { data } = await api.get<User>(endpoints.auth.me)
+export async function fetchMe(): Promise<UserPublic> {
+  const { data } = await api.get<UserPublic>(endpoints.auth.me)
   return data
 }
 
@@ -24,19 +26,21 @@ export async function beginMfaSetup(): Promise<MfaSetupResponse> {
   return data
 }
 
-export async function confirmMfa(payload: MfaConfirmRequest): Promise<void> {
-  await api.post(endpoints.auth.mfaConfirm, payload)
+export async function confirmMfa(payload: MfaConfirmRequest): Promise<MfaConfirmResponse> {
+  const { data } = await api.post<MfaConfirmResponse>(endpoints.auth.mfaConfirm, payload)
+  return data
 }
 
-export async function resetPassword(payload: PasswordResetRequest): Promise<void> {
-  await api.post(endpoints.auth.passwordReset, payload)
+export async function resetPassword(payload: PasswordResetRequest): Promise<GenericMessageResponse> {
+  const { data } = await api.post<GenericMessageResponse>(endpoints.auth.passwordReset, payload)
+  return data
 }
 
 export async function logout(): Promise<void> {
   try {
     await api.post(endpoints.auth.logout)
-  } catch (error) {
+  } catch {
     // Logout should be best-effort; swallow errors to avoid blocking local cleanup
-    console.warn('Logout request failed', error)
+    console.warn('Logout request failed')
   }
 }

@@ -20,6 +20,37 @@ BOOTSTRAP_ADMIN_PASSWORD = os.environ.get("AUTH_BOOTSTRAP_ADMIN_PASSWORD", "Admi
 TENANT_B_USER = "tenant_b_director"
 TENANT_B_PASSWORD = "Director123"
 
+AUTH_COOKIE_NAME = os.environ.get("AUTH_COOKIE_NAME", "cg_access")
+CSRF_COOKIE_NAME = os.environ.get("CSRF_COOKIE_NAME", "cg_csrf")
+CSRF_HEADER_NAME = os.environ.get("CSRF_HEADER_NAME", "X-CSRF-Token")
+
+
+class CookieApiClient:
+    def __init__(self) -> None:
+        self.session = requests.Session()
+
+    def request_json(
+        self,
+        method: str,
+        url: str,
+        *,
+        body: dict | None = None,
+        expected_status: int | tuple[int, ...] = 200,
+        attach_csrf: bool = True,
+    ) -> requests.Response:
+        headers = {"Content-Type": "application/json"}
+        if attach_csrf and method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+            csrf_token = self.session.cookies.get(CSRF_COOKIE_NAME)
+            if csrf_token:
+                headers[CSRF_HEADER_NAME] = csrf_token
+        response = self.session.request(method, url, json=body, headers=headers, timeout=30)
+        expected = (expected_status,) if isinstance(expected_status, int) else expected_status
+        if response.status_code not in expected:
+            raise RuntimeError(
+                f"Unexpected status {response.status_code} for {method} {url}. Body={response.text}"
+            )
+        return response
+
 
 def run_cmd(
     args: list[str], *, env: dict[str, str] | None = None, fail: bool = True
@@ -47,37 +78,20 @@ def wait_api(timeout_seconds: int = 120) -> None:
     raise RuntimeError("API did not become healthy in time")
 
 
-def request_json(
-    method: str,
-    url: str,
-    *,
-    body: dict | None = None,
-    token: str | None = None,
-    expected_status: int | tuple[int, ...] = 200,
-) -> requests.Response:
-    headers = {"Content-Type": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    response = requests.request(method, url, json=body, headers=headers, timeout=30)
-    expected = (expected_status,) if isinstance(expected_status, int) else expected_status
-    if response.status_code not in expected:
-        raise RuntimeError(
-            f"Unexpected status {response.status_code} for {method} {url}. Body={response.text}"
-        )
-    return response
-
-
-def login(username: str, password: str) -> str:
-    response = request_json(
+def login(client: CookieApiClient, username: str, password: str) -> None:
+    response = client.request_json(
         "POST",
         f"{AUTH_BASE}/login",
         body={"username": username, "password": password},
+        attach_csrf=False,
         expected_status=200,
     ).json()
-    token = response.get("access_token")
-    if not token:
-        raise RuntimeError(f"login failed for {username}: missing access_token")
-    return token
+    if "mfa_required" in response:
+        raise RuntimeError(f"{username} unexpectedly requires MFA in RBAC retest")
+    if "access_token" in response:
+        raise RuntimeError("/auth/login returned access_token, expected cookie-only mode")
+    if not client.session.cookies.get(AUTH_COOKIE_NAME):
+        raise RuntimeError(f"login failed for {username}: missing auth cookie")
 
 
 def seed_tenant_b_user_in_db(user_id: str, tenant_b_id: str) -> None:
@@ -127,16 +141,17 @@ def main() -> int:
         response = requests.get(f"{MACHINES_BASE}/table?page=1&size=10", timeout=30)
         if response.status_code != 401:
             raise RuntimeError(
-                f"expected 401 without token, got {response.status_code}: {response.text}"
+                f"expected 401 without cookie, got {response.status_code}: {response.text}"
             )
 
         # 2) tenant A admin setup + ingest
-        admin_token = login(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD)
-        ingest = request_json(
+        admin = CookieApiClient()
+        login(admin, BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD)
+
+        ingest = admin.request_json(
             "POST",
             f"{DATASETS_BASE}/ingest",
             body={"data_dir": "/workspace", "profile_ids": {}},
-            token=admin_token,
             expected_status=200,
         ).json()
         dataset_version_id = ingest.get("dataset_version_id")
@@ -144,33 +159,29 @@ def main() -> int:
             raise RuntimeError("ingest did not return dataset_version_id")
 
         # 3) create user via API, then move to tenant B directly in DB
-        created_user = request_json(
+        created_user = admin.request_json(
             "POST",
             f"{AUTH_BASE}/users",
             body={"username": TENANT_B_USER, "password": TENANT_B_PASSWORD, "role": "DIRECTOR"},
-            token=admin_token,
             expected_status=201,
         ).json()
         user_id = created_user["id"]
         tenant_b_id = str(uuid.uuid4())
         seed_tenant_b_user_in_db(user_id, tenant_b_id)
 
-        # 4) tenant B token attempting tenant A dataset_version -> 404 (or empty list)
-        tenant_b_token = login(TENANT_B_USER, TENANT_B_PASSWORD)
-        cross = requests.get(
+        # 4) tenant B session attempting tenant A dataset_version -> 404 (or empty list)
+        tenant_b = CookieApiClient()
+        login(tenant_b, TENANT_B_USER, TENANT_B_PASSWORD)
+        cross = tenant_b.request_json(
+            "GET",
             f"{MACHINES_BASE}/table?page=1&size=10&dataset_version_id={dataset_version_id}",
-            headers={"Authorization": f"Bearer {tenant_b_token}"},
-            timeout=30,
+            expected_status=(200, 404),
         )
         if cross.status_code == 200:
             payload = cross.json().get("data", {})
             items = payload.get("items", []) if isinstance(payload, dict) else []
             if items:
                 raise RuntimeError("cross-tenant request returned non-empty items")
-        elif cross.status_code != 404:
-            raise RuntimeError(
-                f"expected 404 or empty list for cross-tenant access, got {cross.status_code}: {cross.text}"
-            )
 
         # 5) auth retests must stay green
         auth_retests = run_cmd(

@@ -2,31 +2,35 @@ import { create } from 'zustand'
 import * as authApi from './api'
 import { session } from './session'
 import type {
+  GenericMessageResponse,
   LoginRequest,
+  LoginResponse,
   MfaConfirmRequest,
+  MfaConfirmResponse,
   MfaSetupResponse,
   PasswordResetRequest,
-  SessionMode,
-  User,
+  UserPublic,
 } from './types'
 
-export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'error'
+export type AuthStatus = 'idle' | 'login' | 'mfaChallenge' | 'authenticated' | 'error'
 
 export type AuthState = {
-  user: User | null
+  user: UserPublic | null
   status: AuthStatus
   error: string | null
-  sessionMode: SessionMode
+  challengeId: string | null
+  isLoading: boolean
 }
 
 export type AuthActions = {
-  login: (payload: LoginRequest) => Promise<User>
+  login: (payload: LoginRequest) => Promise<LoginResponse>
   logout: () => Promise<void>
-  fetchMe: () => Promise<User>
-  ensureSession: () => Promise<User | null>
+  fetchMe: () => Promise<UserPublic>
+  ensureSession: () => Promise<UserPublic | null>
   beginMfaSetup: () => Promise<MfaSetupResponse>
-  confirmMfa: (payload: MfaConfirmRequest) => Promise<void>
-  resetPassword: (payload: PasswordResetRequest) => Promise<void>
+  confirmMfa: (payload: MfaConfirmRequest) => Promise<MfaConfirmResponse>
+  resetPassword: (payload: PasswordResetRequest) => Promise<GenericMessageResponse>
+  clearError: () => void
 }
 
 export type AuthStore = AuthState & AuthActions
@@ -36,74 +40,162 @@ const initialState: AuthState = {
   user: null,
   status: 'idle',
   error: null,
-  sessionMode: session.isCookieMode() ? 'cookie' : 'bearer',
+  challengeId: null,
+  isLoading: false,
 }
 
 export const authStore = create<AuthStore>()((set, get) => {
   session.subscribeUnauthorized(() => {
-    set({ user: null, status: 'idle', error: null })
+    set({ user: null, status: 'idle', error: null, challengeId: null, isLoading: false })
   })
+
+  let activeRequestId = 0
+  const beginRequest = (nextStatus?: AuthStatus) => {
+    activeRequestId += 1
+    const requestId = activeRequestId
+    set((state) => ({
+      ...state,
+      isLoading: true,
+      error: null,
+      ...(nextStatus ? { status: nextStatus } : {}),
+    }))
+    return requestId
+  }
+  const isCurrentRequest = (requestId: number) => requestId === activeRequestId
+  const finishCurrentRequest = (requestId: number, update: Partial<AuthState>) => {
+    if (!isCurrentRequest(requestId)) return false
+    set((state) => ({ ...state, ...update, isLoading: false }))
+    return true
+  }
+  const failCurrentRequest = (requestId: number, error: unknown) => {
+    if (!isCurrentRequest(requestId)) return
+    set((state) => ({
+      ...state,
+      status: 'error',
+      error: extractErrorMessage(error),
+      isLoading: false,
+    }))
+  }
 
   return {
     ...initialState,
     login: async (payload) => {
-      set({ status: 'loading', error: null })
-      const response = await authApi.login(payload)
+      const requestId = beginRequest('login')
+      try {
+        const response = await authApi.login(payload)
+        if ('mfa_required' in response) {
+          finishCurrentRequest(requestId, {
+            user: null,
+            status: 'mfaChallenge',
+            challengeId: response.challenge_id,
+            error: null,
+          })
+          return response
+        }
 
-      if (response.accessToken) {
-        session.setToken(response.accessToken)
+        finishCurrentRequest(requestId, {
+          user: response.user,
+          status: 'authenticated',
+          challengeId: null,
+          error: null,
+        })
+        return response
+      } catch (error) {
+        failCurrentRequest(requestId, error)
+        throw error
       }
-
-      const user = response.user ?? (await authApi.fetchMe())
-      set({ user, status: 'authenticated', error: null })
-      return user
     },
 
     logout: async () => {
-      await authApi.logout()
-      session.clearToken()
-      set({ user: null, status: 'idle', error: null })
+      const requestId = beginRequest()
+      try {
+        await authApi.logout()
+      } finally {
+        finishCurrentRequest(requestId, {
+          user: null,
+          status: 'idle',
+          error: null,
+          challengeId: null,
+        })
+      }
     },
 
     fetchMe: async () => {
-      set({ status: 'loading', error: null })
-      const user = await authApi.fetchMe()
-      set({ user, status: 'authenticated', error: null })
-      return user
+      const requestId = beginRequest()
+      try {
+        const user = await authApi.fetchMe()
+        finishCurrentRequest(requestId, {
+          user,
+          status: 'authenticated',
+          error: null,
+        })
+        return user
+      } catch (error) {
+        failCurrentRequest(requestId, error)
+        throw error
+      }
     },
 
     ensureSession: async () => {
-      if (!session.isAuthenticated()) {
-        set({ user: null, status: 'idle' })
-        return null
-      }
       if (get().user) return get().user
       try {
         return await get().fetchMe()
       } catch (error) {
-        session.clearToken()
-        set({ user: null, status: 'error', error: (error as Error).message })
+        set((state) => ({
+          ...state,
+          user: null,
+          status: 'idle',
+          error: null,
+          challengeId: null,
+          isLoading: false,
+        }))
         return null
       }
     },
 
     beginMfaSetup: async () => {
-      set({ status: 'loading', error: null })
-      const data = await authApi.beginMfaSetup()
-      set({ status: 'authenticated' })
-      return data
+      const requestId = beginRequest('authenticated')
+      try {
+        const data = await authApi.beginMfaSetup()
+        finishCurrentRequest(requestId, { status: 'authenticated', error: null })
+        return data
+      } catch (error) {
+        failCurrentRequest(requestId, error)
+        throw error
+      }
     },
 
     confirmMfa: async (payload) => {
-      set({ status: 'loading', error: null })
-      await authApi.confirmMfa(payload)
-      set({ status: 'authenticated' })
+      const requestId = beginRequest('authenticated')
+      try {
+        const data = await authApi.confirmMfa(payload)
+        finishCurrentRequest(requestId, { status: 'authenticated', error: null })
+        return data
+      } catch (error) {
+        failCurrentRequest(requestId, error)
+        throw error
+      }
     },
 
     resetPassword: async (payload) => {
-      set({ status: 'loading', error: null })
-      await authApi.resetPassword(payload)
-      set({ status: 'idle' })
+      const requestId = beginRequest()
+      try {
+        const data = await authApi.resetPassword(payload)
+        finishCurrentRequest(requestId, { status: 'idle', error: null })
+        return data
+      } catch (error) {
+        failCurrentRequest(requestId, error)
+        throw error
+      }
     },
+
+    clearError: () => set((state) => ({ ...state, error: null })),
   }
 })
+
+function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  return 'Unexpected error'
+}

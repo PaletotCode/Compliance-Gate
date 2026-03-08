@@ -2,27 +2,26 @@ from __future__ import annotations
 
 from typing import Callable
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from compliance_gate.authentication.config import auth_settings
 from compliance_gate.authentication.models import Role, User
 from compliance_gate.authentication.security.jwt import decode_access_token
 from compliance_gate.authentication.storage import repo
 from compliance_gate.infra.db.session import get_db
 
-bearer_scheme = HTTPBearer(auto_error=False)
-
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    request: Request,
     db: Session = Depends(get_db),
 ) -> User:
-    if credentials is None or credentials.scheme.lower() != "bearer":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing bearer token")
+    token = request.cookies.get(auth_settings.auth_cookie_name)
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing authentication cookie")
 
     try:
-        payload = decode_access_token(credentials.credentials)
+        payload = decode_access_token(token)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token") from exc
 

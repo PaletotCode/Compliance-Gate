@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { authStore } from '@/auth/store'
-import { session } from '@/auth/session'
 import * as authApi from '@/auth/api'
-import type { User } from '@/auth/types'
+import type { UserPublic } from '@/auth/types'
 
 vi.mock('@/auth/api', () => ({
   login: vi.fn(),
@@ -15,7 +14,15 @@ vi.mock('@/auth/api', () => ({
 
 const mockedApi = vi.mocked(authApi)
 
-const user: User = { id: '1', email: 'user@example.com', roles: ['USER'] }
+const user: UserPublic = {
+  id: '1',
+  tenant_id: 'tenant-1',
+  username: 'admin',
+  role: 'TI_ADMIN',
+  is_active: true,
+  mfa_enabled: false,
+  require_password_change: false,
+}
 
 beforeEach(() => {
   authStore.setState((state) => ({
@@ -23,36 +30,50 @@ beforeEach(() => {
     user: null,
     status: 'idle',
     error: null,
+    challengeId: null,
+    isLoading: false,
   }))
   vi.restoreAllMocks()
 })
 
 describe('authStore.login', () => {
-  it('persists token and user', async () => {
-    mockedApi.login.mockResolvedValue({ accessToken: 'token-123', user })
-    const setTokenSpy = vi.spyOn(session, 'setToken')
+  it('stores authenticated user on success', async () => {
+    mockedApi.login.mockResolvedValue({
+      expires_in: 3600,
+      user,
+    })
 
-    const result = await authStore.getState().login({ email: 'user@example.com', password: 'secret' })
+    const result = await authStore.getState().login({ username: 'admin', password: 'secret' })
 
-    expect(result).toEqual(user)
+    expect(result).toEqual({ expires_in: 3600, user })
     expect(authStore.getState().user).toEqual(user)
     expect(authStore.getState().status).toBe('authenticated')
-    expect(setTokenSpy).toHaveBeenCalledWith('token-123')
+  })
+
+  it('switches to mfaChallenge state when backend requires TOTP', async () => {
+    mockedApi.login.mockResolvedValue({ mfa_required: true, challenge_id: 'challenge-1' })
+
+    const result = await authStore.getState().login({ username: 'admin', password: 'secret' })
+
+    expect(result).toEqual({ mfa_required: true, challenge_id: 'challenge-1' })
+    expect(authStore.getState().status).toBe('mfaChallenge')
+    expect(authStore.getState().challengeId).toBe('challenge-1')
+    expect(authStore.getState().user).toBeNull()
   })
 })
 
 describe('authStore.ensureSession', () => {
-  it('returns null when not authenticated', async () => {
-    vi.spyOn(session, 'isAuthenticated').mockReturnValue(false)
+  it('returns null when /me fails', async () => {
+    mockedApi.fetchMe.mockRejectedValue(new Error('unauthorized'))
 
     const result = await authStore.getState().ensureSession()
 
     expect(result).toBeNull()
     expect(authStore.getState().user).toBeNull()
+    expect(authStore.getState().status).toBe('idle')
   })
 
-  it('fetches user when authenticated but user missing', async () => {
-    vi.spyOn(session, 'isAuthenticated').mockReturnValue(true)
+  it('fetches user when user is missing', async () => {
     mockedApi.fetchMe.mockResolvedValue(user)
 
     const result = await authStore.getState().ensureSession()
@@ -66,11 +87,9 @@ describe('authStore.ensureSession', () => {
 describe('authStore.logout', () => {
   it('clears local session state', async () => {
     authStore.setState((state) => ({ ...state, user, status: 'authenticated' }))
-    const clearSpy = vi.spyOn(session, 'clearToken')
 
     await authStore.getState().logout()
 
-    expect(clearSpy).toHaveBeenCalled()
     expect(authStore.getState().user).toBeNull()
     expect(authStore.getState().status).toBe('idle')
   })

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 
+from compliance_gate.authentication.config import auth_settings
 from compliance_gate.authentication.http.dependencies import get_current_user
 from compliance_gate.main import app
 
@@ -22,6 +23,13 @@ def client() -> TestClient:
     app.dependency_overrides[get_current_user] = lambda: fake_user
     try:
         with TestClient(app) as c:
+            csrf_token = "test-csrf-token"
+            c.cookies.set(
+                auth_settings.csrf_cookie_name,
+                csrf_token,
+                path=auth_settings.auth_cookie_path,
+            )
+            c.headers.update({auth_settings.csrf_header_name: csrf_token})
             yield c
     finally:
         app.dependency_overrides.pop(get_current_user, None)

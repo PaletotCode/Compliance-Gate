@@ -27,8 +27,27 @@ from typing import Any
 
 import polars as pl
 import requests
-from rich.console import Console
-from rich.table import Table
+try:
+    from rich.console import Console
+    from rich.table import Table
+except Exception:  # pragma: no cover - optional dependency in local retests
+    class Console:
+        def print(self, *args, **kwargs):
+            print(*args)
+
+    class Table:
+        def __init__(self, title: str | None = None, **_kwargs):
+            self.title = title or ""
+
+        def add_column(self, *_args, **_kwargs):
+            return None
+
+        def add_row(self, *_args, **_kwargs):
+            return None
+
+        def __str__(self) -> str:
+            return f"[table] {self.title}"
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -37,12 +56,19 @@ from rich.table import Table
 WORKSPACE = Path(os.environ.get("WORKSPACE", "/workspace"))
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://api:8000")
 API_PREFIX = "/api/v1"
+AUTH_PREFIX = f"{API_PREFIX}/auth"
 RUN_ENDPOINT_TESTS = os.environ.get("RUN_ENDPOINT_TESTS", "true").lower() == "true"
+BOOTSTRAP_ADMIN_USERNAME = os.environ.get("AUTH_BOOTSTRAP_ADMIN_USERNAME", "admin")
+BOOTSTRAP_ADMIN_PASSWORD = os.environ.get("AUTH_BOOTSTRAP_ADMIN_PASSWORD", "Admin1234")
+AUTH_COOKIE_NAME = os.environ.get("AUTH_COOKIE_NAME", "cg_access")
+CSRF_COOKIE_NAME = os.environ.get("CSRF_COOKIE_NAME", "cg_csrf")
+CSRF_HEADER_NAME = os.environ.get("CSRF_HEADER_NAME", "X-CSRF-Token")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-RETESTS_DIR = Path("/retests")
+RETESTS_DIR = Path(os.environ.get("RETESTS_DIR", str(PROJECT_ROOT / "retests")))
 LOGS_DIR = RETESTS_DIR / "logs"
 OUTPUT_DIR = RETESTS_DIR / "output"
-SCRIPTS_DIR = Path("/retests/scripts")
+SCRIPTS_DIR = RETESTS_DIR / "scripts"
 EXPECTED_HEADERS_FILE = SCRIPTS_DIR / "expected_headers.json"
 
 CSV_FILES = {
@@ -123,10 +149,70 @@ results: dict[str, Any] = {
     "recommendations": [],
 }
 
+_api_session: requests.Session | None = None
+_api_auth_attempted = False
+
 
 def add_problem(severity: str, source: str, msg: str):
     results["problems"].append({"severity": severity, "source": source, "msg": msg})
     log(severity, source, msg)
+
+
+def _get_authenticated_session() -> requests.Session | None:
+    global _api_session
+    global _api_auth_attempted
+
+    if _api_auth_attempted:
+        return _api_session
+
+    _api_auth_attempted = True
+    try:
+        session = requests.Session()
+        response = session.post(
+            f"{API_BASE_URL}{AUTH_PREFIX}/login",
+            json={"username": BOOTSTRAP_ADMIN_USERNAME, "password": BOOTSTRAP_ADMIN_PASSWORD},
+            timeout=15,
+        )
+        if response.status_code != 200:
+            add_problem(
+                "WARN",
+                "AUTH",
+                f"Could not authenticate retest session: {response.status_code} {response.text}",
+            )
+            return None
+        payload = response.json()
+        if payload.get("mfa_required"):
+            add_problem("WARN", "AUTH", "Bootstrap admin requires MFA; retests will use anonymous requests.")
+            return None
+        if not session.cookies.get(AUTH_COOKIE_NAME):
+            add_problem("WARN", "AUTH", "Auth login did not set auth cookie; retests will use anonymous requests.")
+            return None
+        _api_session = session
+        log("OK", "AUTH", "Authenticated API session acquired for endpoint retests.")
+        return _api_session
+    except Exception as exc:
+        add_problem("WARN", "AUTH", f"Failed to authenticate retest session: {exc}")
+        return None
+
+
+def _api_request(
+    method: str,
+    url: str,
+    *,
+    json_body: dict | None = None,
+    timeout: int = 15,
+) -> requests.Response:
+    session = _get_authenticated_session()
+    headers: dict[str, str] = {}
+
+    if method.upper() in {"POST", "PUT", "PATCH", "DELETE"} and session is not None:
+        csrf_token = session.cookies.get(CSRF_COOKIE_NAME)
+        if csrf_token:
+            headers[CSRF_HEADER_NAME] = csrf_token
+
+    if session is not None:
+        return session.request(method, url, json=json_body, headers=headers, timeout=timeout)
+    return requests.request(method, url, json=json_body, headers=headers, timeout=timeout)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -463,7 +549,7 @@ def section_e():
         url = f"{API_BASE_URL}{path}"
         t0 = time.perf_counter()
         try:
-            response = requests.get(url, timeout=15)
+            response = _api_request("GET", url, timeout=15)
             elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
             status = response.status_code
             try:
@@ -508,7 +594,7 @@ def section_g():
     log("STEP", "G:PREVIEW", f"POST {preview_url}")
     t0 = time.perf_counter()
     try:
-        r = requests.post(preview_url, json={"data_dir": workspace_str}, timeout=60)
+        r = _api_request("POST", preview_url, json_body={"data_dir": workspace_str}, timeout=60)
         elapsed = round((time.perf_counter() - t0) * 1000, 1)
         body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
         out_path = OUTPUT_DIR / f"api_preview_{RUN_ID}.json"
@@ -528,7 +614,12 @@ def section_g():
     t0 = time.perf_counter()
     dataset_version_id = None
     try:
-        r = requests.post(ingest_url, json={"source": "path", "data_dir": workspace_str}, timeout=120)
+        r = _api_request(
+            "POST",
+            ingest_url,
+            json_body={"source": "path", "data_dir": workspace_str},
+            timeout=120,
+        )
         elapsed = round((time.perf_counter() - t0) * 1000, 1)
         body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
         out_path = OUTPUT_DIR / f"api_ingest_{RUN_ID}.json"
@@ -550,7 +641,7 @@ def section_g():
         log("STEP", "G:SUMMARY-VERSIONED", f"GET {summary_url}")
         t0 = time.perf_counter()
         try:
-            r = requests.get(summary_url, timeout=30)
+            r = _api_request("GET", summary_url, timeout=30)
             elapsed = round((time.perf_counter() - t0) * 1000, 1)
             body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
             out_path = OUTPUT_DIR / f"api_summary_versioned_{RUN_ID}.json"

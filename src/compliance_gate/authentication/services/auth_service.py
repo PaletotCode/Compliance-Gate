@@ -10,11 +10,9 @@ from compliance_gate.authentication.models import Role, User
 from compliance_gate.authentication.rate_limit.limiter import auth_limiter
 from compliance_gate.authentication.schemas import (
     LoginChallengeResponse,
-    LoginSuccessResponse,
 )
 from compliance_gate.authentication.security.jwt import create_access_token
 from compliance_gate.authentication.security.passwords import verify_password
-from compliance_gate.authentication.services.users_service import UsersService
 from compliance_gate.authentication.storage import repo
 from compliance_gate.authentication.services import mfa_service
 
@@ -27,6 +25,13 @@ class AuthServiceError(Exception):
     status_code: int
 
 
+@dataclass(slots=True)
+class LoginSuccessContext:
+    access_token: str
+    expires_in: int
+    user: User
+
+
 class AuthService:
     @staticmethod
     def authenticate(
@@ -37,7 +42,7 @@ class AuthService:
         totp_code: str | None,
         challenge_id: str | None,
         ip_address: str | None,
-    ) -> LoginChallengeResponse | LoginSuccessResponse:
+    ) -> LoginChallengeResponse | LoginSuccessContext:
         normalized_username = username.lower().strip()
         if auth_limiter.is_locked(normalized_username, ip_address):
             raise AuthServiceError("temporarily locked due to failed attempts", 429)
@@ -130,11 +135,7 @@ class AuthService:
         )
         db.commit()
 
-        return LoginSuccessResponse(
-            access_token=token,
-            expires_in=expires_in,
-            user=UsersService.to_public(user),
-        )
+        return LoginSuccessContext(access_token=token, expires_in=expires_in, user=user)
 
     @staticmethod
     def assert_user_has_role(user: User, allowed_roles: tuple[Role, ...]) -> None:

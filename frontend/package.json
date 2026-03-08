@@ -11,7 +11,8 @@
     "test": "vitest run --configLoader runner",
     "test:watch": "vitest --configLoader runner",
     "coverage": "vitest run --coverage --configLoader runner",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "auth:check": "node scripts/auth_flow_check.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",

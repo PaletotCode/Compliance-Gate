@@ -18,7 +18,7 @@ class TokenPayload:
 
 
 def create_access_token(user: User) -> tuple[str, int]:
-    expires_delta = timedelta(minutes=auth_settings.auth_access_token_ttl_minutes)
+    expires_delta = timedelta(minutes=auth_settings.auth_token_ttl_minutes)
     now = datetime.now(UTC)
     expire_at = now + expires_delta
     payload = {
