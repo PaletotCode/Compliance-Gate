@@ -4,6 +4,7 @@ import logging
 import re
 from pathlib import Path
 from typing import Any
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 import polars as pl
@@ -132,22 +133,83 @@ def get_materialized_table(
     offset = (pagination.page - 1) * pagination.size
     paginated_df = filtered_df.slice(offset, pagination.size)
 
-    items = [
-        MachineItemSchema(
-            id=row.get("machine_id") or row.get("hostname") or "",
-            hostname=row.get("hostname") or "",
-            pa_code=row.get("pa_code") or "",
-            primary_status=row.get("primary_status") or "",
-            primary_status_label=row.get("primary_status_label") or "",
-            flags=row.get("flags") or [],
-            has_ad=bool(row.get("has_ad")),
-            has_uem=bool(row.get("has_uem")),
-            has_edr=bool(row.get("has_edr")),
-            has_asset=bool(row.get("has_asset")),
-            selected_data={},
-        )
-        for row in paginated_df.to_dicts()
-    ]
+    base_keys = {
+        "machine_id",
+        "hostname",
+        "pa_code",
+        "primary_status",
+        "primary_status_label",
+        "flags",
+        "has_ad",
+        "has_uem",
+        "has_edr",
+        "has_asset",
+        "model",
+        "ip",
+        "tags",
+        "main_user",
+        "ad_os",
+        "us_ad",
+        "us_uem",
+        "us_edr",
+        "uem_extra_user_logado",
+        "edr_os",
+        "status_check_win11",
+        "uem_serial",
+        "edr_serial",
+        "chassis",
+        "selected_data_json",
+        "selected_data",
+    }
+
+    items: list[MachineItemSchema] = []
+    for row in paginated_df.to_dicts():
+        selected_data: dict[str, Any] = {}
+        raw_selected = row.get("selected_data_json")
+        if isinstance(raw_selected, str) and raw_selected:
+            try:
+                parsed_selected = json.loads(raw_selected)
+                if isinstance(parsed_selected, dict):
+                    selected_data = parsed_selected
+            except json.JSONDecodeError:
+                selected_data = {}
+
+        payload: dict[str, Any] = {
+            "id": row.get("machine_id") or row.get("hostname") or "",
+            "hostname": row.get("hostname") or "",
+            "pa_code": row.get("pa_code") or "",
+            "primary_status": row.get("primary_status") or "",
+            "primary_status_label": row.get("primary_status_label") or "",
+            "flags": row.get("flags") or [],
+            "has_ad": bool(row.get("has_ad")),
+            "has_uem": bool(row.get("has_uem")),
+            "has_edr": bool(row.get("has_edr")),
+            "has_asset": bool(row.get("has_asset")),
+            "model": row.get("model"),
+            "ip": row.get("ip"),
+            "tags": row.get("tags"),
+            "main_user": row.get("main_user"),
+            "ad_os": row.get("ad_os"),
+            "us_ad": row.get("us_ad"),
+            "us_uem": row.get("us_uem"),
+            "us_edr": row.get("us_edr"),
+            "uem_extra_user_logado": row.get("uem_extra_user_logado"),
+            "edr_os": row.get("edr_os"),
+            "status_check_win11": row.get("status_check_win11"),
+            "uem_serial": row.get("uem_serial"),
+            "edr_serial": row.get("edr_serial"),
+            "chassis": row.get("chassis"),
+            "selected_data": selected_data,
+        }
+
+        # Keep every extra parquet column available for the frontend column manager.
+        for key, value in row.items():
+            if key not in base_keys:
+                payload[key] = value
+        for key, value in selected_data.items():
+            payload.setdefault(key, value)
+
+        items.append(MachineItemSchema.model_validate(payload))
 
     meta = PaginationMeta(
         total=total,

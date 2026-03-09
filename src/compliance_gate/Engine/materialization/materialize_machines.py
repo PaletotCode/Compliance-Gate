@@ -11,6 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from compliance_gate.domains.machines.classification.models import MachineRecord
+from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig
 from compliance_gate.domains.machines.classification.orchestrator import evaluate_machine
 from compliance_gate.domains.machines.ingest.pipeline import run_ingest_pipeline
 from compliance_gate.Engine.catalog import datasets as dataset_catalog
@@ -37,25 +38,68 @@ def _acquire_materialize_lock(db: Session, tenant_id: str, dataset_version_id: s
 
 
 def _to_machines_final_df(records: list[dict]) -> pl.DataFrame:
+    return _to_machines_final_df_with_selected(records, configs={})
+
+
+def _extract_selected_data(
+    raw_sources: dict | None,
+    configs: dict[str, CsvTabConfig],
+) -> dict[str, object]:
+    selected: dict[str, object] = {}
+    if not isinstance(raw_sources, dict):
+        return selected
+
+    for source, source_raw in raw_sources.items():
+        if not isinstance(source_raw, dict):
+            continue
+        profile = configs.get(source)
+        if not profile:
+            continue
+
+        for column in profile.selected_columns:
+            if column in source_raw:
+                selected[f"{source}.{column}"] = source_raw[column]
+
+    return selected
+
+
+def _to_machines_final_df_with_selected(
+    records: list[dict],
+    configs: dict[str, CsvTabConfig],
+) -> pl.DataFrame:
     rows: list[dict] = []
     for raw in records:
         machine = MachineRecord(**raw)
         status = evaluate_machine(machine)
-        rows.append(
-            {
-                "machine_id": machine.hostname,
-                "hostname": machine.hostname,
-                "pa_code": machine.pa_code,
-                "primary_status": status.primary_status,
-                "primary_status_label": status.primary_status_label,
-                "flags": status.flags,
-                "has_ad": machine.has_ad,
-                "has_uem": machine.has_uem,
-                "has_edr": machine.has_edr,
-                "has_asset": machine.has_asset,
-                "last_seen_date_ms": machine.last_seen_date_ms,
-            }
-        )
+        selected_data = _extract_selected_data(raw.get("raw_sources"), configs)
+        row = {
+            "machine_id": machine.hostname,
+            "hostname": machine.hostname,
+            "pa_code": machine.pa_code,
+            "primary_status": status.primary_status,
+            "primary_status_label": status.primary_status_label,
+            "flags": status.flags,
+            "has_ad": machine.has_ad,
+            "has_uem": machine.has_uem,
+            "has_edr": machine.has_edr,
+            "has_asset": machine.has_asset,
+            "last_seen_date_ms": machine.last_seen_date_ms,
+            "main_user": machine.main_user,
+            "ad_os": machine.ad_os,
+            "us_ad": machine.us_ad,
+            "us_uem": machine.us_uem,
+            "us_edr": machine.us_edr,
+            "uem_extra_user_logado": machine.uem_extra_user_logado,
+            "edr_os": machine.edr_os,
+            "status_check_win11": machine.status_check_win11,
+            "uem_serial": machine.uem_serial,
+            "edr_serial": machine.edr_serial,
+            "chassis": machine.chassis,
+            "selected_data_json": json.dumps(selected_data, ensure_ascii=False),
+        }
+        # Keep selected columns materialized as direct parquet fields for fast scans.
+        row.update(selected_data)
+        rows.append(row)
 
     if not rows:
         return pl.DataFrame(
@@ -71,12 +115,40 @@ def _to_machines_final_df(records: list[dict]) -> pl.DataFrame:
                 "has_edr": pl.Boolean,
                 "has_asset": pl.Boolean,
                 "last_seen_date_ms": pl.Int64,
+                "main_user": pl.String,
+                "ad_os": pl.String,
+                "us_ad": pl.String,
+                "us_uem": pl.String,
+                "us_edr": pl.String,
+                "uem_extra_user_logado": pl.String,
+                "edr_os": pl.String,
+                "status_check_win11": pl.String,
+                "uem_serial": pl.String,
+                "edr_serial": pl.String,
+                "chassis": pl.String,
+                "selected_data_json": pl.String,
             }
         )
 
     df = pl.DataFrame(rows)
-    # Keep deterministic schema ordering for parquet contracts.
-    return df.select(list(MACHINES_FINAL_COLUMNS))
+    preferred_order = [
+        *list(MACHINES_FINAL_COLUMNS),
+        "main_user",
+        "ad_os",
+        "us_ad",
+        "us_uem",
+        "us_edr",
+        "uem_extra_user_logado",
+        "edr_os",
+        "status_check_win11",
+        "uem_serial",
+        "edr_serial",
+        "chassis",
+        "selected_data_json",
+    ]
+    ordered_columns = [column for column in preferred_order if column in df.columns]
+    dynamic_columns = [column for column in df.columns if column not in ordered_columns]
+    return df.select([*ordered_columns, *dynamic_columns])
 
 
 def materialize_machines_spine(
@@ -149,7 +221,7 @@ def materialize_machines_spine(
             configs=configs,
         )
 
-        df = _to_machines_final_df(ingest_result.records)
+        df = _to_machines_final_df_with_selected(ingest_result.records, configs=configs)
         if df.height <= 0:
             raise ValueError("materialization produced zero rows")
 

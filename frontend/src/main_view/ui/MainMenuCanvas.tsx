@@ -109,6 +109,46 @@ export function MainMenuCanvas() {
     }))
     .sort((left, right) => right.count - left.count)
 
+  const materializedTopbarActions = (
+    <>
+      <div className="relative" onClick={(event) => event.stopPropagation()}>
+        <ActionButton
+          variant={machinesGrid.selected_statuses.length > 0 ? 'primary' : 'secondary'}
+          size="sm"
+          onClick={() => {
+            setOpenFilterMenu(openFilterMenu === statusFilterMenuKey ? null : statusFilterMenuKey)
+          }}
+        >
+          <ListChecks size={14} /> VER STATUS
+        </ActionButton>
+
+        {openFilterMenu === statusFilterMenuKey && (
+          <StatusMultiSelectPopover
+            options={statusOptions}
+            selectedKeys={machinesGrid.selected_statuses}
+            onClose={() => setOpenFilterMenu(null)}
+            onApply={(selectedKeys) => {
+              void runSafeAction(() => setStatusFilters(selectedKeys))
+            }}
+          />
+        )}
+      </div>
+
+      <ActionButton variant={isColPanelOpen ? 'primary' : 'secondary'} size="sm" onClick={() => setColPanelOpen(!isColPanelOpen)}>
+        <Columns size={14} /> GERENCIAR COLUNAS
+      </ActionButton>
+
+      <ActionButton
+        variant="primary"
+        size="sm"
+        disabled={machinesGrid.is_exporting}
+        onClick={() => void runSafeAction(exportMachines)}
+      >
+        <Download size={14} /> {machinesGrid.is_exporting ? 'EXPORTANDO...' : 'EXPORTAR'}
+      </ActionButton>
+    </>
+  )
+
   const renderHome = () => (
     <div className="flex-1 p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-500 max-w-7xl mx-auto w-full flex flex-col justify-center">
       {view === 'home-empty' ? (
@@ -285,10 +325,15 @@ export function MainMenuCanvas() {
             onStartEditing={startEditingTab}
             onEditTabNameChange={setEditTabName}
             onSaveTabName={saveTabName}
+            rightSlot={view === 'materialized' ? materializedTopbarActions : null}
           />
         </div>
 
-        <div className="flex items-center justify-end gap-4 shrink-0 w-[520px] pr-6">
+        <div
+          className={`flex items-center justify-end gap-4 shrink-0 pr-6 ${
+            view === 'home-filled' ? 'w-[520px]' : 'w-[240px]'
+          }`}
+        >
           <div className="flex items-center gap-3 mr-2 animate-in fade-in duration-300">
             {view === 'home-filled' && (
               <div className="hidden lg:flex items-center gap-3 px-3 h-9 rounded-lg bg-white/5 border border-white/10 shadow-inner mr-2 shrink-0">
@@ -350,51 +395,6 @@ export function MainMenuCanvas() {
               </ActionButton>
             )}
 
-            {view === 'materialized' && (
-              <>
-                <div className="relative" onClick={(event) => event.stopPropagation()}>
-                  <ActionButton
-                    variant={machinesGrid.selected_statuses.length > 0 ? 'primary' : 'secondary'}
-                    size="sm"
-                    onClick={() => {
-                      setOpenFilterMenu(openFilterMenu === statusFilterMenuKey ? null : statusFilterMenuKey)
-                    }}
-                  >
-                    <ListChecks size={14} /> VER STATUS
-                  </ActionButton>
-
-                  {openFilterMenu === statusFilterMenuKey && (
-                    <StatusMultiSelectPopover
-                      options={statusOptions}
-                      selectedKeys={machinesGrid.selected_statuses}
-                      onClose={() => setOpenFilterMenu(null)}
-                      onApply={(selectedKeys) => {
-                        void runSafeAction(() => setStatusFilters(selectedKeys))
-                      }}
-                    />
-                  )}
-                </div>
-
-                <ActionButton
-                  variant={isColPanelOpen ? 'primary' : 'secondary'}
-                  size="sm"
-                  onClick={() => setColPanelOpen(!isColPanelOpen)}
-                >
-                  <Columns size={14} /> GERENCIAR COLUNAS
-                </ActionButton>
-
-                <div className="h-4 w-px bg-white/10 mx-1 hidden sm:block" />
-
-                <ActionButton
-                  variant="primary"
-                  size="sm"
-                  disabled={machinesGrid.is_exporting}
-                  onClick={() => void runSafeAction(exportMachines)}
-                >
-                  <Download size={14} /> {machinesGrid.is_exporting ? 'EXPORTANDO...' : 'EXPORTAR'}
-                </ActionButton>
-              </>
-            )}
           </div>
 
           {view === 'home-filled' && (pipeline.ingest_message || pipeline.materialize_message) && (

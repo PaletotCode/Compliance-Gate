@@ -56,7 +56,20 @@ function toFilterMenuKey(key: string): string {
 }
 
 function readValue(row: MachineTableRow, key: string): unknown {
-  return (row as Record<string, unknown>)[key]
+  const asRecord = row as Record<string, unknown>
+  if (key in asRecord) {
+    return asRecord[key]
+  }
+
+  const selectedData = asRecord.selected_data
+  if (selectedData && typeof selectedData === 'object') {
+    const selectedRecord = selectedData as Record<string, unknown>
+    if (key in selectedRecord) {
+      return selectedRecord[key]
+    }
+  }
+
+  return undefined
 }
 
 function formatCellValue(value: unknown): string {

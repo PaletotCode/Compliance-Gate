@@ -1,4 +1,5 @@
 import { ArrowLeft, FileSpreadsheet } from 'lucide-react'
+import type { ReactNode } from 'react'
 import type { MainViewMode, SourceConfig, SourceId, SourceItem } from '@/main_view/state/types'
 
 type MainTabsBarProps = {
@@ -13,6 +14,7 @@ type MainTabsBarProps = {
   onStartEditing: (source: SourceItem) => void
   onEditTabNameChange: (value: string) => void
   onSaveTabName: (sourceId: SourceId) => void
+  rightSlot?: ReactNode
 }
 
 export function MainTabsBar({
@@ -27,6 +29,7 @@ export function MainTabsBar({
   onStartEditing,
   onEditTabNameChange,
   onSaveTabName,
+  rightSlot,
 }: MainTabsBarProps) {
   if (view === 'home-empty' || view === 'home-filled') {
     return null
@@ -108,6 +111,13 @@ export function MainTabsBar({
             </button>
           ))}
       </div>
+
+      {rightSlot ? (
+        <>
+          <div className="w-px h-5 bg-white/10 mx-1 shrink-0" />
+          <div className="flex items-center gap-2 shrink-0 pr-1">{rightSlot}</div>
+        </>
+      ) : null}
     </div>
   )
 }

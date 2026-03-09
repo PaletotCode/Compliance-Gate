@@ -347,7 +347,19 @@ function validateProfileIdsForPipeline(state: MainViewState): void {
 
 function pickMaterializedColumns(rows: MachinesGridState['rows']): string[] {
   if (rows.length === 0) return []
-  const keys = Object.keys(rows[0]).filter((key) => key !== 'id')
+  const keysSet = new Set<string>()
+  rows.forEach((row) => {
+    Object.keys(row).forEach((key) => {
+      if (key !== 'id' && key !== 'selected_data') {
+        keysSet.add(key)
+      }
+    })
+    const selectedData = (row as { selected_data?: Record<string, unknown> }).selected_data
+    if (selectedData && typeof selectedData === 'object') {
+      Object.keys(selectedData).forEach((key) => keysSet.add(key))
+    }
+  })
+  const keys = Array.from(keysSet)
   const preferred = DEFAULT_MACHINE_VISIBLE_COLUMNS.filter((key) => keys.includes(key))
   if (preferred.length > 0) return preferred
   return keys.slice(0, 10)
@@ -916,14 +928,23 @@ export const mainViewStore = create<MainViewStore>()((set, get) => ({
       })
 
       set((state) => ({
-        machinesGrid: {
-          ...state.machinesGrid,
-          rows: [...state.machinesGrid.rows, ...response.items],
-          page: nextPage,
-          total: response.meta.total,
-          has_next: response.meta.has_next,
-          is_loading_more: false,
-        },
+        ...(() => {
+          const mergedRows = [...state.machinesGrid.rows, ...response.items]
+          const availableColumns = pickMaterializedColumns(mergedRows)
+          const nextActiveColumns = state.activeMatCols.filter((col) => availableColumns.includes(col))
+          return {
+            materializedColumns: availableColumns,
+            activeMatCols: nextActiveColumns.length > 0 ? nextActiveColumns : availableColumns,
+            machinesGrid: {
+              ...state.machinesGrid,
+              rows: mergedRows,
+              page: nextPage,
+              total: response.meta.total,
+              has_next: response.meta.has_next,
+              is_loading_more: false,
+            },
+          }
+        })(),
       }))
     } catch (error) {
       set((state) => ({
