@@ -16,9 +16,10 @@ from sqlalchemy.orm import Session
 
 from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
-from compliance_gate.config.settings import settings
+from compliance_gate.authentication.storage import repo as auth_repo
 from compliance_gate.infra.db.session import get_db
 from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig, CsvTabProfileSchema
+from compliance_gate.infra.storage.data_dir_resolver import resolve_data_dir
 from compliance_gate.infra.storage import profiles_store
 from compliance_gate.domains.machines.ingest import preview
 
@@ -105,6 +106,11 @@ class UpdateProfileRequest(BaseModel):
     payload: CsvTabConfig
     change_note: Optional[str] = None
 
+
+class RenameProfileRequest(BaseModel):
+    name: str
+
+
 @router.put("/profiles/{profile_id}")
 def update_profile(
     profile_id: str,
@@ -127,6 +133,42 @@ def update_profile(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return {"status": "ok", "message": "Appended new version"}
+
+
+@router.patch("/profiles/{profile_id}/rename", response_model=CsvTabProfileSchema)
+def rename_profile(
+    profile_id: str,
+    req: RenameProfileRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
+    if not req.name or not req.name.strip():
+        raise HTTPException(status_code=400, detail="name cannot be empty")
+
+    profile = profiles_store.get_profile_by_id(db, profile_id)
+    if not profile or profile.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    try:
+        renamed = profiles_store.rename_profile(db, profile_id, new_name=req.name)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    auth_repo.append_auth_audit(
+        db,
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        action="PROFILE_RENAME",
+        meta={
+            "profile_hash": auth_repo.hash_identifier(profile_id),
+            "new_name": req.name[:64],
+        },
+    )
+    db.commit()
+
+    result = CsvTabProfileSchema.model_validate(renamed)
+    result.payload = profiles_store.get_active_payload(db, profile_id)
+    return result
 
 
 @router.post("/profiles/{profile_id}/promote-default")
@@ -161,15 +203,35 @@ def share_profile(
     return {"status": "ok", "message": "Stub: share ok"}
 
 
+@router.delete("/profiles/{profile_id}")
+def delete_profile(
+    profile_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
+    profile = profiles_store.get_profile_by_id(db, profile_id)
+    if not profile or profile.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    try:
+        profiles_store.delete_profile(db, profile_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    auth_repo.append_auth_audit(
+        db,
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        action="PROFILE_DELETE",
+        meta={"profile_hash": auth_repo.hash_identifier(profile_id)},
+    )
+    db.commit()
+    return {"status": "ok", "message": "Profile deleted"}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Endpoints: Previews
 # ─────────────────────────────────────────────────────────────────────────────
-
-def _resolve_dir(path_str: Optional[str]) -> Path:
-    d = Path(path_str) if path_str else Path(settings.cg_data_dir)
-    if not d.exists():
-        raise HTTPException(status_code=400, detail=f"Directory {d} does not exist.")
-    return d
 
 def _resolve_file(source: str, parent: Path) -> Path:
     """Finds the file inside the dir for raw/parsed endpoint (single source)."""
@@ -201,14 +263,21 @@ def _resolve_file(source: str, parent: Path) -> Path:
 class PreviewRawRequest(BaseModel):
     source: str
     data_dir: Optional[str] = None
+    upload_session_id: Optional[str] = None
     header_row_override: Optional[int] = None
 
 @router.post("/preview/raw")
 def preview_raw(
     req: PreviewRawRequest,
-    _: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):
-    d = _resolve_dir(req.data_dir)
+    d = resolve_data_dir(
+        db=db,
+        tenant_id=current_user.tenant_id,
+        data_dir=req.data_dir,
+        upload_session_id=req.upload_session_id,
+    )
     f = _resolve_file(req.source, d)
     
     return preview.preview_raw(
@@ -222,6 +291,7 @@ class PreviewParsedRequest(BaseModel):
     source: str
     profile_id: str
     data_dir: Optional[str] = None
+    upload_session_id: Optional[str] = None
 
 @router.post("/preview/parsed")
 def preview_parsed(
@@ -229,7 +299,12 @@ def preview_parsed(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR)),
 ):
-    d = _resolve_dir(req.data_dir)
+    d = resolve_data_dir(
+        db=db,
+        tenant_id=current_user.tenant_id,
+        data_dir=req.data_dir,
+        upload_session_id=req.upload_session_id,
+    )
     f = _resolve_file(req.source, d)
 
     profile = profiles_store.get_profile_by_id(db, req.profile_id)

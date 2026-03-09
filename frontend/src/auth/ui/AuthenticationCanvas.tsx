@@ -219,6 +219,7 @@ type MfaPurpose = 'loginChallenge' | 'setupConfirm' | null
 export function AuthenticationCanvas() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [step, setStep] = useState<CanvasStep>('login')
+  const [isQrExpanded, setIsQrExpanded] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [notice, setNotice] = useState<string | null>(null)
   const [mfaPurpose, setMfaPurpose] = useState<MfaPurpose>(null)
@@ -269,6 +270,19 @@ export function AuthenticationCanvas() {
     [],
   )
 
+  useEffect(() => {
+    if (!isQrExpanded) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsQrExpanded(false)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isQrExpanded])
+
   const setupSecret = useMemo(() => extractSecretFromOtpauth(mfaSetup?.otpauth_url ?? ''), [mfaSetup?.otpauth_url])
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -281,7 +295,7 @@ export function AuthenticationCanvas() {
     setStep('success')
     setNotice(null)
     successTimeout.current = window.setTimeout(() => {
-      navigate({ to: '/success' })
+      navigate({ to: '/app' })
     }, 1200)
   }
 
@@ -617,7 +631,8 @@ export function AuthenticationCanvas() {
                     <img
                       src={`data:image/png;base64,${mfaSetup.qr_code_base64_png}`}
                       alt="QR Code MFA"
-                      className="relative z-10 w-32 h-32 rounded-md"
+                      className="relative z-10 w-32 h-32 rounded-md cursor-zoom-in transition-transform hover:scale-105"
+                      onClick={() => setIsQrExpanded(true)}
                     />
                   ) : (
                     <QrCode size={100} className="text-[#00AE9D] relative z-10" />
@@ -763,6 +778,27 @@ export function AuthenticationCanvas() {
           </div>
         </main>
       </div>
+
+      {isQrExpanded && mfaSetup && (
+        <div
+          className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
+          onClick={() => setIsQrExpanded(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setIsQrExpanded(false)}
+            className="absolute top-5 right-5 md:top-8 md:right-8 bg-black/60 hover:bg-black/80 border border-white/20 text-white text-xs font-black uppercase tracking-[1.5px] px-3 py-2 rounded-lg"
+          >
+            Fechar
+          </button>
+          <img
+            src={`data:image/png;base64,${mfaSetup.qr_code_base64_png}`}
+            alt="QR Code MFA em tela cheia"
+            className="w-[min(92vw,980px)] h-auto max-h-[92vh] rounded-xl border-4 border-white/90 bg-white p-3 shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      )}
 
       <style>
         {`

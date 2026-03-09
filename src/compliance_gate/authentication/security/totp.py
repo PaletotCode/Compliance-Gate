@@ -16,7 +16,8 @@ def generate_secret() -> str:
 
 
 def build_otpauth_url(secret: str, username: str, tenant_id: str) -> str:
-    account_name = f"{username}@{tenant_id}"
+    # Keep the account label short for better interoperability with authenticator scanners.
+    account_name = username
     return pyotp.totp.TOTP(secret).provisioning_uri(
         name=account_name,
         issuer_name=auth_settings.auth_mfa_issuer,
@@ -30,7 +31,13 @@ def verify_totp(secret: str, code: str) -> bool:
 
 
 def qr_code_base64_png(otpauth_url: str) -> str:
-    qr = qrcode.QRCode(version=1, box_size=8, border=2)
+    # Use a larger quiet zone and stronger error correction to improve scan reliability on phone apps.
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=12,
+        border=6,
+    )
     qr.add_data(otpauth_url)
     qr.make(fit=True)
     image = qr.make_image(fill_color="black", back_color="white")

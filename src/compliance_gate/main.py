@@ -19,7 +19,15 @@ from compliance_gate.config.logging import setup_logging
 from compliance_gate.config.settings import settings
 from compliance_gate.Engine.interfaces.api import router as engine_router
 from compliance_gate.http.errors import setup_exception_handlers
-from compliance_gate.http.routes import csv_tabs, datasets, health, impressoras, machines, telefonia
+from compliance_gate.http.routes import (
+    csv_tabs,
+    datasets,
+    health,
+    impressoras,
+    machines,
+    telefonia,
+    workspace_uploads,
+)
 from compliance_gate.infra.db.session import SessionLocal
 
 log = logging.getLogger(__name__)
@@ -40,7 +48,8 @@ def create_app() -> FastAPI:
     # Restrictive CORS
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
+        allow_origins=settings.cors_allow_origins,
+        allow_origin_regex=settings.cors_allow_origin_regex,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
@@ -77,6 +86,7 @@ def create_app() -> FastAPI:
     app.include_router(impressoras.router, prefix=API_PREFIX)
     app.include_router(datasets.router, prefix=API_PREFIX)
     app.include_router(csv_tabs.router, prefix=API_PREFIX)
+    app.include_router(workspace_uploads.router, prefix=API_PREFIX)
     app.include_router(auth_routes.router, prefix=API_PREFIX)
     app.include_router(engine_router, prefix=API_PREFIX)
 

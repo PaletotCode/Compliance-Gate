@@ -4,9 +4,16 @@ import { Route as RootRoute } from './__root'
 import { Route as IndexRoute } from './index'
 import { Route as AuthCallbackRoute } from './auth.callback'
 import { Route as AuthRoute } from './auth'
+import { MainViewRoute } from '@/main_view/routes'
 import { Route as SuccessRoute } from './success'
 
-const routeTree = RootRoute.addChildren([IndexRoute, AuthRoute, SuccessRoute, AuthCallbackRoute])
+const routeTree = RootRoute.addChildren([
+  IndexRoute,
+  AuthRoute,
+  SuccessRoute,
+  AuthCallbackRoute,
+  MainViewRoute,
+])
 
 export const router = createRouter({
   routeTree,

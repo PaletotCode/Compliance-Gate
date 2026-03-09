@@ -43,10 +43,13 @@ class PreviewResult:
     """Result of a dry-run preview: no data written to DB."""
     layouts: list[SourceLayout]
     sample_rows: list[dict[str, Any]]          # up to 50 records from master map
+    source_samples: dict[str, list[dict[str, Any]]]
     parse_metrics: list[dict]
+    source_metrics: list[dict]
     join_metrics: Optional[dict]
     total_elapsed_ms: float
     warnings: list[str]
+    total_records: int
 
     @property
     def ok(self) -> bool:
@@ -73,17 +76,23 @@ class PreviewResult:
                 for l in self.layouts
             ],
             "sample_rows": self.sample_rows,
+            "source_samples": self.source_samples,
             "parse_metrics": self.parse_metrics,
+            "source_metrics": self.source_metrics,
             "join_metrics": self.join_metrics,
             "total_elapsed_ms": self.total_elapsed_ms,
             "warnings": self.warnings,
+            "summary": {
+                "row_count": self.total_records,
+                "warning_count": len(self.warnings),
+            },
         }
 
 
 def run_preview(
     data_dir: Path,
     *,
-    profile_id: Optional[str] = None,
+    configs: Optional[dict[str, CsvTabConfig]] = None,
     max_samples: int = 50,
 ) -> PreviewResult:
     """
@@ -95,10 +104,12 @@ def run_preview(
     result: IngestResult = run_ingest_pipeline(
         data_dir,
         dataset_version_id="preview",
-        profile_ids={},  # Full Ingest uses profile_ids dict now. Kept empty for old tests.
+        configs=configs or {},
     )
 
     layouts: list[SourceLayout] = []
+    source_samples: dict[str, list[dict[str, Any]]] = {}
+    source_metrics: list[dict[str, Any]] = []
     for fi in result.files:
         r = fi.read_result
         layouts.append(SourceLayout(
@@ -115,6 +126,28 @@ def run_preview(
             missing_optional=fi.missing_optional,
             warnings=r.warnings,
         ))
+
+        per_source_samples: list[dict[str, Any]] = []
+        if r.ok and r.df is not None:
+            for rec in r.df.head(min(10, max_samples)).to_dicts():
+                safe: dict[str, Any] = {}
+                for k, v in rec.items():
+                    if isinstance(v, str) and len(v) > 200:
+                        safe[k] = v[:200] + "..."
+                    else:
+                        safe[k] = v
+                per_source_samples.append(safe)
+        source_samples[fi.source] = per_source_samples
+        source_metrics.append(
+            {
+                "source": fi.source,
+                "row_count": r.rows_read,
+                "missing_required": fi.missing_required,
+                "missing_optional": fi.missing_optional,
+                "warnings_count": len(r.warnings),
+                "checksum_sha256": r.checksum_sha256 or None,
+            }
+        )
 
     sample_rows: list[dict[str, Any]] = []
     for rec in result.records[:max_samples]:
@@ -133,10 +166,13 @@ def run_preview(
     return PreviewResult(
         layouts=layouts,
         sample_rows=sample_rows,
+        source_samples=source_samples,
         parse_metrics=[pm.to_dict() for pm in result.metrics.parse],
+        source_metrics=source_metrics,
         join_metrics=result.metrics.join.to_dict() if result.metrics.join else None,
         total_elapsed_ms=total_elapsed,
         warnings=result.warnings,
+        total_records=len(result.records),
     )
 
 

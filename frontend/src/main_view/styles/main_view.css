@@ -1,0 +1,42 @@
+.cg-main-view {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+.cg-main-view .custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.cg-main-view .custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cg-main-view .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.cg-main-view .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.cg-main-view .hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.cg-main-view .hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

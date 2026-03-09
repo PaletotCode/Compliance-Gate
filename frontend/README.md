@@ -4,6 +4,7 @@ Frontend comercial com fluxo de autenticação conectado ao backend real (`/api/
 
 ## Stack
 - React 18 + TypeScript + Vite
+- Electron (shell desktop)
 - TanStack Router + TanStack Query
 - Axios + Zustand
 - TailwindCSS + lucide-react
@@ -20,19 +21,51 @@ Frontend comercial com fluxo de autenticação conectado ao backend real (`/api/
 
 ## Rotas
 - `/auth`: canvas de autenticação (template integrado)
-- `/success`: confirmação de sessão autenticada
-- `/`: redireciona automaticamente para `/auth` ou `/success`
+- `/success`: rota de transição (redireciona para `/app`)
+- `/`: redireciona automaticamente para `/auth` ou `/app`
+- `/app`: Main View TI (fluxo perfis -> ingest -> materialize -> tabela virtualizada)
 
 ## Como validar (gate)
 1. Servidor de desenvolvimento:
    - `npm run dev`
-2. Build de produção:
+2. Desktop (Electron) em modo dev:
+   - `npm run electron:dev`
+3. Build de produção:
    - `npm run build`
-3. Testes unitários:
+4. Testes unitários:
    - `npm test`
-4. Runner de fluxo auth por passos (sem UI):
+5. Runner de fluxo auth por passos (sem UI):
    - da raiz do repo: `node frontend/scripts/auth_flow_check.ts`
    - dentro de `frontend/`: `node scripts/auth_flow_check.ts`
+6. Runner de profiles/preview do Main View:
+   - da raiz do repo: `node frontend/scripts/main_view_profile_check.ts`
+7. Runner de fluxo completo Main View (headless):
+   - da raiz do repo: `node frontend/scripts/main_view_full_flow_check.ts`
+8. E2E Playwright (se instalado):
+   - dentro de `frontend/`: `npm run e2e:main-view`
+
+## Verificação única de release (recomendado)
+Da raiz do repositório:
+
+```bash
+bash scripts/verify_all.sh
+```
+
+Ou via Make:
+
+```bash
+make verify-all
+```
+
+Para abrir o frontend como app desktop:
+
+```bash
+make frontend-electron
+```
+
+Esse comando executa backend + frontend em sequência, salva logs em `retests/output/` e gera o relatório final:
+
+- `retests/output/FRONTEND_INTEGRATION_FINAL_REPORT.md`
 
 ## Runner `auth_flow_check.ts`
 Script: `frontend/scripts/auth_flow_check.ts`

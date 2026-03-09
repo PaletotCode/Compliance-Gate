@@ -5,6 +5,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from io import BytesIO
 
 import pyotp
 import requests
@@ -13,6 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
 AUTH_PREFIX = f"{API_BASE}/api/v1/auth"
 API_PREFIX = f"{API_BASE}/api/v1"
+UPLOADS_PREFIX = f"{API_PREFIX}/workspace/uploads"
 
 BOOTSTRAP_ADMIN_USERNAME = os.environ.get("AUTH_BOOTSTRAP_ADMIN_USERNAME", "admin")
 BOOTSTRAP_ADMIN_PASSWORD = os.environ.get("AUTH_BOOTSTRAP_ADMIN_PASSWORD", "Admin1234")
@@ -44,6 +46,32 @@ class CookieApiClient:
             if csrf_token:
                 headers[CSRF_HEADER_NAME] = csrf_token
         response = self.session.request(method, url, json=body, headers=headers, timeout=30)
+        expected = (expected_status,) if isinstance(expected_status, int) else expected_status
+        if response.status_code not in expected:
+            raise RuntimeError(
+                f"Unexpected status {response.status_code} for {url}. Body={response.text}"
+            )
+        return response
+
+    def request_multipart(
+        self,
+        method: str,
+        url: str,
+        files: dict[str, tuple[str, bytes, str]],
+        *,
+        expected_status: int | tuple[int, ...] = 200,
+        attach_csrf: bool = True,
+    ) -> requests.Response:
+        headers: dict[str, str] = {}
+        if attach_csrf and method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+            csrf_token = self.session.cookies.get(CSRF_COOKIE_NAME)
+            if csrf_token:
+                headers[CSRF_HEADER_NAME] = csrf_token
+        payload = {
+            key: (filename, BytesIO(content), content_type)
+            for key, (filename, content, content_type) in files.items()
+        }
+        response = self.session.request(method, url, files=payload, headers=headers, timeout=30)
         expected = (expected_status,) if isinstance(expected_status, int) else expected_status
         if response.status_code not in expected:
             raise RuntimeError(
@@ -250,6 +278,30 @@ def main() -> int:
         ).json()
         profile_id = profile["id"]
 
+        renamed = admin.request_json(
+            "PATCH",
+            f"{API_PREFIX}/csv-tabs/profiles/{profile_id}/rename",
+            {"name": "auth-retest-profile-renamed"},
+            expected_status=200,
+        ).json()
+        if renamed.get("name") != "auth-retest-profile-renamed":
+            raise RuntimeError("profile rename did not persist")
+
+        admin.request_multipart(
+            "POST",
+            UPLOADS_PREFIX,
+            files={"AD": ("AD.txt", b"a,b\n1,2\n", "text/plain")},
+            attach_csrf=False,
+            expected_status=403,
+        )
+
+        admin.request_multipart(
+            "POST",
+            UPLOADS_PREFIX,
+            files={"AD": ("AD.txt", b"a,b\n1,2\n", "text/plain")},
+            expected_status=400,
+        )
+
         admin.request_json(
             "POST",
             f"{API_PREFIX}/datasets/machines/ingest",
@@ -301,6 +353,17 @@ def main() -> int:
         director.get_json(
             f"{API_PREFIX}/machines/table?page=1&size=10",
             expected_status=200,
+        )
+
+        admin.request_json(
+            "DELETE",
+            f"{API_PREFIX}/csv-tabs/profiles/{profile_id}",
+            {},
+            expected_status=200,
+        )
+        admin.get_json(
+            f"{API_PREFIX}/csv-tabs/profiles/{profile_id}",
+            expected_status=404,
         )
 
         print("AUTH retests passed")

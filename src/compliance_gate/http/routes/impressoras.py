@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Path
 from typing import List
+from compliance_gate.authentication.http.dependencies import require_role
+from compliance_gate.authentication.models import Role
 from compliance_gate.http.dependencies import PaginationDep
 from compliance_gate.shared.schemas.responses import ApiResponse, PaginatedResponse, PaginatedResult, PaginationMeta
 from compliance_gate.shared.schemas.pagination import PaginationParams
@@ -9,7 +11,11 @@ from compliance_gate.domains.impressoras.schemas import (
     ImpressorasSummarySchema
 )
 
-router = APIRouter(prefix="/impressoras", tags=["impressoras"])
+router = APIRouter(
+    prefix="/impressoras",
+    tags=["impressoras"],
+    dependencies=[Depends(require_role(Role.TI_ADMIN, Role.DIRECTOR))],
+)
 
 @router.get("/filters", response_model=ApiResponse[List[str]])
 def get_filters():

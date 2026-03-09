@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 from datetime import UTC, datetime
+from io import BytesIO
 from pathlib import Path
 
 import requests
@@ -19,6 +20,7 @@ API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
 AUTH_BASE = f"{API_BASE}/api/v1/auth"
 DATASETS_BASE = f"{API_BASE}/api/v1/datasets/machines"
 ENGINE_BASE = f"{API_BASE}/api/v1/engine"
+UPLOADS_BASE = f"{API_BASE}/api/v1/workspace/uploads"
 
 BOOTSTRAP_ADMIN_USERNAME = os.environ.get("AUTH_BOOTSTRAP_ADMIN_USERNAME", "admin")
 BOOTSTRAP_ADMIN_PASSWORD = os.environ.get("AUTH_BOOTSTRAP_ADMIN_PASSWORD", "Admin1234")
@@ -49,6 +51,31 @@ class CookieApiClient:
                 headers[CSRF_HEADER_NAME] = csrf_token
 
         response = self.session.request(method, url, headers=headers, json=body, timeout=60)
+        expected = (expected_status,) if isinstance(expected_status, int) else expected_status
+        if response.status_code not in expected:
+            raise RuntimeError(f"{method} {url} -> {response.status_code}: {response.text}")
+        return response.json()
+
+    def request_multipart(
+        self,
+        method: str,
+        url: str,
+        *,
+        files: dict[str, tuple[str, bytes, str]],
+        expected_status: int | tuple[int, ...] = 200,
+        attach_csrf: bool = True,
+    ) -> dict:
+        headers: dict[str, str] = {}
+        if attach_csrf and method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+            csrf_token = self.session.cookies.get(CSRF_COOKIE_NAME)
+            if csrf_token:
+                headers[CSRF_HEADER_NAME] = csrf_token
+
+        payload = {
+            key: (filename, BytesIO(content), content_type)
+            for key, (filename, content, content_type) in files.items()
+        }
+        response = self.session.request(method, url, headers=headers, files=payload, timeout=60)
         expected = (expected_status,) if isinstance(expected_status, int) else expected_status
         if response.status_code not in expected:
             raise RuntimeError(f"{method} {url} -> {response.status_code}: {response.text}")
@@ -121,18 +148,42 @@ def main() -> int:
         me_response = client.request_json("GET", f"{AUTH_BASE}/me")
         tenant_id = me_response["tenant_id"]
 
-        # 2) ingest dataset for engine consumption
+        # 2) create upload session from workspace CSV files
+        local_workspace = PROJECT_ROOT / "workspace"
+        source_files = {
+            "AD": ("AD.csv", (local_workspace / "AD.csv").read_bytes(), "text/csv"),
+            "UEM": ("UEM.csv", (local_workspace / "UEM.csv").read_bytes(), "text/csv"),
+            "EDR": ("EDR.csv", (local_workspace / "EDR.csv").read_bytes(), "text/csv"),
+            "ASSET": ("ASSET.CSV", (local_workspace / "ASSET.CSV").read_bytes(), "text/csv"),
+        }
+        upload_response = client.request_multipart("POST", UPLOADS_BASE, files=source_files)
+        upload_data = upload_response["data"]
+        upload_session_id = upload_data["upload_session_id"]
+        if not upload_session_id:
+            raise RuntimeError("upload endpoint did not return upload_session_id")
+
+        preview_response = client.request_json(
+            "POST",
+            f"{DATASETS_BASE}/preview",
+            body={"upload_session_id": upload_session_id, "profile_ids": {}},
+            expected_status=200,
+        )
+        required_preview_keys = {"layouts", "source_samples", "source_metrics", "summary"}
+        if not required_preview_keys.issubset(preview_response.keys()):
+            raise RuntimeError("datasets preview contract missing required keys")
+
+        # 3) ingest dataset for engine consumption
         ingest_response = client.request_json(
             "POST",
             f"{DATASETS_BASE}/ingest",
-            body={"data_dir": "/workspace", "profile_ids": {}},
+            body={"upload_session_id": upload_session_id, "profile_ids": {}},
             expected_status=200,
         )
         dataset_version_id = ingest_response.get("dataset_version_id")
         if not dataset_version_id:
             raise RuntimeError("datasets ingest did not return dataset_version_id")
 
-        # 3) materialize machines parquet
+        # 4) materialize machines parquet
         materialize_url = (
             f"{ENGINE_BASE}/materialize/machines?dataset_version_id={dataset_version_id}&tenant_id={tenant_id}"
         )
@@ -152,7 +203,19 @@ def main() -> int:
             encoding="utf-8",
         )
 
-        # 4) run required report template
+        # 5) bridge contract: materialized parquet -> engine table endpoint
+        table_response = client.request_json(
+            "GET",
+            f"{ENGINE_BASE}/tables/machines?dataset_version_id={dataset_version_id}&tenant_id={tenant_id}&page=1&size=50",
+        )
+        table_data = table_response["data"]
+        if table_data["meta"]["total"] != int(materialize_data["row_count"]):
+            raise RuntimeError(
+                "engine table total mismatch with materialized row_count "
+                f"{table_data['meta']['total']} != {materialize_data['row_count']}"
+            )
+
+        # 6) run required report template
         report_url = f"{ENGINE_BASE}/reports/run?dataset_version_id={dataset_version_id}&tenant_id={tenant_id}"
         report_response = client.request_json(
             "POST",
@@ -164,7 +227,7 @@ def main() -> int:
         if not rows:
             raise RuntimeError("report returned no rows")
 
-        # 5) consistency validation
+        # 7) consistency validation
         status_total = sum(int(row["count"]) for row in rows if row.get("type") == "status")
         if status_total != int(materialize_data["row_count"]):
             raise RuntimeError(
@@ -182,6 +245,25 @@ def main() -> int:
             writer = csv.DictWriter(csv_file, fieldnames=list(rows[0].keys()))
             writer.writeheader()
             writer.writerows(rows)
+
+        # 8) delete lifecycle: dataset + upload session
+        client.request_json("DELETE", f"{DATASETS_BASE}/{dataset_version_id}", expected_status=200)
+        deleted_lookup = client.request_json(
+            "GET",
+            f"{DATASETS_BASE}/{dataset_version_id}",
+            expected_status=404,
+        )
+        if "not found" not in deleted_lookup.get("detail", "").lower():
+            raise RuntimeError("dataset delete contract failed")
+
+        client.request_json("DELETE", f"{UPLOADS_BASE}/sessions/{upload_session_id}", expected_status=200)
+        deleted_session_lookup = client.request_json(
+            "GET",
+            f"{UPLOADS_BASE}/sessions/{upload_session_id}",
+            expected_status=404,
+        )
+        if "not found" not in deleted_session_lookup.get("detail", "").lower():
+            raise RuntimeError("upload session delete contract failed")
 
         print("Engine retests passed")
         print(f"materialize_output={materialize_output}")

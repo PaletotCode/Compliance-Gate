@@ -7,7 +7,7 @@ export const Route = createRoute({
   beforeLoad: async ({ context }) => {
     const user = await context.auth.getState().ensureSession()
     if (user) {
-      throw redirect({ to: '/success' })
+      throw redirect({ to: '/app' })
     }
     throw redirect({ to: '/auth' })
   },

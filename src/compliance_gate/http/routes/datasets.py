@@ -12,9 +12,8 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path as FPath, Query
 from pydantic import BaseModel, Field
@@ -22,10 +21,13 @@ from sqlalchemy.orm import Session
 
 from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
-from compliance_gate.config.settings import settings
+from compliance_gate.Engine.config.engine_settings import engine_settings
+from compliance_gate.Engine.models import EngineArtifact
+from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig
 from compliance_gate.domains.machines.ingest.pipeline import run_ingest_pipeline
 from compliance_gate.domains.machines.ingest.preview import run_preview
 from compliance_gate.infra.db.session import get_db
+from compliance_gate.infra.storage.data_dir_resolver import resolve_data_dir
 from compliance_gate.infra.storage import datasets_store as store
 from compliance_gate.infra.storage import profiles_store
 
@@ -40,12 +42,14 @@ log = logging.getLogger(__name__)
 
 class PreviewRequest(BaseModel):
     data_dir: Optional[str] = None
+    upload_session_id: Optional[str] = None
     profile_ids: dict[str, str] = Field(default_factory=dict)
 
 
 class IngestRequest(BaseModel):
     source: str = "path"  # "path" only for Chat 1
     data_dir: Optional[str] = None
+    upload_session_id: Optional[str] = None
     # Deprecated. Tenant comes from authenticated user token.
     tenant_id: Optional[str] = None
     profile_ids: dict[str, str] = Field(default_factory=dict)
@@ -70,26 +74,39 @@ class DatasetVersionSchema(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _resolve_data_dir(requested: Optional[str]) -> Path:
-    """Resolve the data directory from request or env/default."""
-    env_dir = os.environ.get("CG_DATA_DIR", "")
-    candidates = [
-        requested,
-        env_dir if env_dir else None,
-        settings.cg_data_dir,
-    ]
-    for c in candidates:
-        if c:
-            p = Path(c)
-            if p.exists():
-                return p
-    raise HTTPException(
-        status_code=422,
-        detail=(
-            "data_dir não encontrado. Informe o campo 'data_dir' no body "
-            "ou configure a variável de ambiente CG_DATA_DIR."
-        ),
-    )
+def _load_profile_configs(
+    db: Session,
+    *,
+    tenant_id: str,
+    profile_ids: dict[str, str],
+) -> dict[str, CsvTabConfig]:
+    configs: dict[str, CsvTabConfig] = {}
+    for src_name, p_id in profile_ids.items():
+        profile = profiles_store.get_profile_by_id(db, p_id)
+        if not profile or profile.tenant_id != tenant_id:
+            log.warning(
+                "datasets.profile invalid id source=%s profile_id=%s tenant_id=%s",
+                src_name,
+                p_id,
+                tenant_id,
+            )
+            raise HTTPException(
+                status_code=400, detail=f"profile_id inválido para source={src_name}"
+            )
+        payload = profiles_store.get_active_payload(db, p_id)
+        if payload is None:
+            log.warning(
+                "datasets.profile missing payload source=%s profile_id=%s tenant_id=%s",
+                src_name,
+                p_id,
+                tenant_id,
+            )
+            raise HTTPException(
+                status_code=400,
+                detail=f"profile_id sem payload ativo para source={src_name}",
+            )
+        configs[src_name] = payload
+    return configs
 
 
 def _version_to_schema(v) -> dict:
@@ -144,6 +161,25 @@ def _version_to_schema(v) -> dict:
     }
 
 
+def _validate_artifact_path(path: Path, tenant_id: str) -> Path:
+    base = Path(engine_settings.artifacts_base_dir).resolve()
+    tenant_base = (base / tenant_id).resolve()
+    resolved = path.resolve()
+    if not resolved.is_relative_to(tenant_base):
+        raise HTTPException(status_code=400, detail="artifact path outside tenant scope")
+    return resolved
+
+
+def _cleanup_empty_dirs(path: Path, stop_at: Path) -> None:
+    current = path.parent
+    while current != stop_at and current != current.parent:
+        try:
+            current.rmdir()
+        except OSError:
+            break
+        current = current.parent
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # POST /preview
 # ─────────────────────────────────────────────────────────────────────────────
@@ -152,14 +188,25 @@ def _version_to_schema(v) -> dict:
 @router.post("/preview")
 def preview_machines(
     body: PreviewRequest,
-    _: User = Depends(require_role(Role.TI_ADMIN)),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
 ):
     """
     Dry-run ingest: detects layouts, validates headers, builds master map.
     Nothing is written to the database.
     """
-    data_dir = _resolve_data_dir(body.data_dir)
-    result = run_preview(data_dir, profile_ids=body.profile_ids)
+    data_dir = resolve_data_dir(
+        db=db,
+        tenant_id=current_user.tenant_id,
+        data_dir=body.data_dir,
+        upload_session_id=body.upload_session_id,
+    )
+    configs = _load_profile_configs(
+        db,
+        tenant_id=current_user.tenant_id,
+        profile_ids=body.profile_ids,
+    )
+    result = run_preview(data_dir, configs=configs)
     return result.to_response()
 
 
@@ -178,35 +225,17 @@ def ingest_machines(
     Full ingest: run pipeline, persist dataset_version + files + metrics.
     Returns dataset_version_id for use in subsequent queries.
     """
-    data_dir = _resolve_data_dir(body.data_dir)
-
-    # Load configs
-    configs: dict[str, Any] = {}
-    for src_name, p_id in body.profile_ids.items():
-        profile = profiles_store.get_profile_by_id(db, p_id)
-        if not profile or profile.tenant_id != current_user.tenant_id:
-            log.warning(
-                "datasets.ingest invalid profile id source=%s profile_id=%s tenant_id=%s",
-                src_name,
-                p_id,
-                current_user.tenant_id,
-            )
-            raise HTTPException(
-                status_code=400, detail=f"profile_id inválido para source={src_name}"
-            )
-        payload = profiles_store.get_active_payload(db, p_id)
-        if payload is None:
-            log.warning(
-                "datasets.ingest missing active payload source=%s profile_id=%s tenant_id=%s",
-                src_name,
-                p_id,
-                current_user.tenant_id,
-            )
-            raise HTTPException(
-                status_code=400,
-                detail=f"profile_id sem payload ativo para source={src_name}",
-            )
-        configs[src_name] = payload
+    data_dir = resolve_data_dir(
+        db=db,
+        tenant_id=current_user.tenant_id,
+        data_dir=body.data_dir,
+        upload_session_id=body.upload_session_id,
+    )
+    configs = _load_profile_configs(
+        db,
+        tenant_id=current_user.tenant_id,
+        profile_ids=body.profile_ids,
+    )
 
     # Create pending version
     version = store.create_dataset_version(
@@ -332,3 +361,42 @@ def get_version(
     if not v or v.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=404, detail=f"dataset_version {version_id} not found")
     return _version_to_schema(v)
+
+
+@router.delete("/{version_id}")
+def delete_version(
+    version_id: str = FPath(..., description="dataset_version UUID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
+    version = store.get_version_by_id(db, version_id)
+    if not version or version.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail=f"dataset_version {version_id} not found")
+
+    store.acquire_dataset_version_lock(db, version_id)
+    tenant_artifacts_root = (Path(engine_settings.artifacts_base_dir).resolve() / current_user.tenant_id).resolve()
+    artifacts = (
+        db.query(EngineArtifact)
+        .filter(
+            EngineArtifact.tenant_id == current_user.tenant_id,
+            EngineArtifact.dataset_version_id == version.id,
+        )
+        .all()
+    )
+
+    deleted_artifacts = 0
+    for artifact in artifacts:
+        artifact_path = _validate_artifact_path(Path(artifact.path), current_user.tenant_id)
+        if artifact_path.exists() and artifact_path.is_file():
+            artifact_path.unlink()
+            deleted_artifacts += 1
+            _cleanup_empty_dirs(artifact_path, tenant_artifacts_root)
+
+    store.delete_dataset_version(
+        db,
+        version=version,
+        actor=current_user.id,
+        details={"deleted_artifacts": deleted_artifacts},
+    )
+    db.commit()
+    return {"status": "ok", "message": "dataset_version deleted", "deleted_artifacts": deleted_artifacts}

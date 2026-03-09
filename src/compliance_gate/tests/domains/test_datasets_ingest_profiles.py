@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -64,13 +63,14 @@ def test_datasets_ingest_accepts_profile_ids(monkeypatch, client) -> None:
         datasets_route.store, "finalize_dataset_version", lambda *_args, **_kwargs: None
     )
     monkeypatch.setattr(datasets_route, "run_ingest_pipeline", fake_run_ingest_pipeline)
+    monkeypatch.setattr(datasets_route, "resolve_data_dir", lambda **_kwargs: Path("/workspace"))
     app.dependency_overrides[datasets_route.get_db] = fake_get_db
 
     try:
         response = client.post(
             "/api/v1/datasets/machines/ingest",
             json={
-                "data_dir": "/tmp",
+                "upload_session_id": "session-1",
                 "profile_ids": {
                     "AD": "p-ad",
                     "UEM": "p-uem",
@@ -100,13 +100,14 @@ def test_datasets_ingest_rejects_profile_without_active_payload(monkeypatch, cli
     monkeypatch.setattr(
         datasets_route.profiles_store, "get_active_payload", lambda *_args, **_kwargs: None
     )
+    monkeypatch.setattr(datasets_route, "resolve_data_dir", lambda **_kwargs: Path("/workspace"))
     app.dependency_overrides[datasets_route.get_db] = fake_get_db
 
     try:
         response = client.post(
             "/api/v1/datasets/machines/ingest",
             json={
-                "data_dir": "/tmp",
+                "upload_session_id": "session-1",
                 "profile_ids": {
                     "AD": "p-ad",
                 },
@@ -127,13 +128,14 @@ def test_datasets_ingest_rejects_invalid_profile_id(monkeypatch, client) -> None
     monkeypatch.setattr(
         datasets_route.profiles_store, "get_profile_by_id", lambda *_args, **_kwargs: None
     )
+    monkeypatch.setattr(datasets_route, "resolve_data_dir", lambda **_kwargs: Path("/workspace"))
     app.dependency_overrides[datasets_route.get_db] = fake_get_db
 
     try:
         response = client.post(
             "/api/v1/datasets/machines/ingest",
             json={
-                "data_dir": "/tmp",
+                "upload_session_id": "session-1",
                 "profile_ids": {
                     "AD": "inexistente",
                 },

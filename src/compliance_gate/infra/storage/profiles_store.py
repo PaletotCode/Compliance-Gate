@@ -166,6 +166,28 @@ def promote_to_default(db: Session, profile_id: str) -> CsvTabProfile:
     return profile
 
 
+def rename_profile(
+    db: Session,
+    profile_id: str,
+    *,
+    new_name: str,
+) -> CsvTabProfile:
+    profile = db.query(CsvTabProfile).filter(CsvTabProfile.id == profile_id).first()
+    if not profile:
+        raise ValueError(f"Profile {profile_id} not found")
+    profile.name = new_name.strip()
+    db.flush()
+    return profile
+
+
+def delete_profile(db: Session, profile_id: str) -> None:
+    profile = db.query(CsvTabProfile).filter(CsvTabProfile.id == profile_id).first()
+    if not profile:
+        raise ValueError(f"Profile {profile_id} not found")
+    db.delete(profile)
+    db.flush()
+
+
 def get_default_profile_payload(
     db: Session,
     tenant_id: Optional[str],

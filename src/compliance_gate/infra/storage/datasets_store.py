@@ -11,6 +11,7 @@ import json
 import logging
 from typing import Optional
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from compliance_gate.authentication.models import Tenant
@@ -20,6 +21,7 @@ from compliance_gate.infra.db.models import (
     DatasetMetric,
     DatasetVersion,
 )
+from compliance_gate.shared.utils.hashing import generate_hash
 
 log = logging.getLogger(__name__)
 
@@ -99,6 +101,35 @@ def finalize_dataset_version(
     _audit(db, version.tenant_id, version.id, actor, "update", "dataset_version", version.id,
            {"status": status})
     return version
+
+
+def acquire_dataset_version_lock(db: Session, version_id: str) -> None:
+    """Best-effort lock for concurrent destructive dataset operations."""
+    if db.bind is None or db.bind.dialect.name != "postgresql":
+        return
+    key_int = int(generate_hash(f"dataset-version-lock:{version_id}")[:15], 16)
+    db.execute(text("SELECT pg_advisory_xact_lock(:k)"), {"k": key_int})
+
+
+def delete_dataset_version(
+    db: Session,
+    *,
+    version: DatasetVersion,
+    actor: str = "system",
+    details: Optional[dict] = None,
+) -> None:
+    _audit(
+        db,
+        tenant_id=version.tenant_id,
+        dataset_version_id=version.id,
+        actor=actor,
+        action="delete",
+        entity_type="dataset_version",
+        entity_id=version.id,
+        details=details or {},
+    )
+    db.delete(version)
+    db.flush()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

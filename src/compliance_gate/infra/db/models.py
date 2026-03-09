@@ -20,6 +20,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import relationship
@@ -187,3 +188,65 @@ class AuditLog(TimestampMixin, Base):
 
     tenant = relationship("Tenant", back_populates="audit_logs")
     dataset_version = relationship("DatasetVersion", back_populates="audit_logs")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WorkspaceUploadSession — controlled file imports for Machines domain
+# ─────────────────────────────────────────────────────────────────────────────
+
+class WorkspaceUploadSession(TimestampMixin, Base):
+    __tablename__ = "workspace_upload_sessions"
+
+    id = Column(String(36), primary_key=True, default=_uuid)
+    tenant_id = Column(
+        String(36),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_by = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    status = Column(String(16), nullable=False, default="active")
+    root_path = Column(Text, nullable=False)
+    total_files = Column(Integer, nullable=False, default=0)
+    total_bytes = Column(Integer, nullable=False, default=0)
+    source_manifest = Column(Text, nullable=True)
+
+    tenant = relationship("Tenant")
+    files = relationship(
+        "WorkspaceUploadFile",
+        back_populates="session",
+        cascade="all, delete-orphan",
+    )
+
+
+class WorkspaceUploadFile(TimestampMixin, Base):
+    __tablename__ = "workspace_upload_files"
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "source",
+            name="uq_workspace_upload_files_session_source",
+        ),
+    )
+
+    id = Column(String(36), primary_key=True, default=_uuid)
+    session_id = Column(
+        String(36),
+        ForeignKey("workspace_upload_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    source = Column(String(16), nullable=False)
+    original_filename = Column(String(256), nullable=False)
+    stored_filename = Column(String(256), nullable=False)
+    checksum_sha256 = Column(String(64), nullable=True)
+    file_size_bytes = Column(Integer, nullable=True)
+    detected_encoding = Column(String(32), nullable=True)
+    validation_warnings = Column(Text, nullable=True)
+
+    session = relationship("WorkspaceUploadSession", back_populates="files")

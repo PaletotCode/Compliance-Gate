@@ -1,6 +1,6 @@
 # Compliance Gate - Automation Makefile
 
-.PHONY: help install dev backend-dev backend-up backend-down frontend-dev fullstack stop clean verify test auth-check
+.PHONY: help install dev backend-dev backend-up backend-down frontend-dev frontend-electron fullstack stop clean verify verify-all test auth-check
 
 # Default help command
 help:
@@ -10,9 +10,11 @@ help:
 	@echo "  make backend-up      - Start backend stack via docker compose (db/redis/api)"
 	@echo "  make backend-down    - Stop backend stack via docker compose"
 	@echo "  make frontend-dev    - Run frontend Vite dev server"
+	@echo "  make frontend-electron - Run frontend inside Electron (desktop app)"
 	@echo "  make fullstack       - Start backend stack and then frontend dev server"
 	@echo "  make test            - Run backend + frontend tests"
 	@echo "  make auth-check      - Run frontend auth flow checker"
+	@echo "  make verify-all      - Run full backend+frontend integration gate"
 	@echo "  make stop            - Stop backend + frontend dev processes"
 	@echo "  make clean           - Remove temporary files and caches"
 	@echo "  make verify          - Run the Python verification script"
@@ -45,6 +47,10 @@ frontend-dev:
 	@echo "Starting Frontend (Port 5173)..."
 	cd frontend && npm run dev -- --host 0.0.0.0 --port 5173
 
+frontend-electron:
+	@echo "Starting Frontend inside Electron..."
+	cd frontend && npm run electron:dev
+
 fullstack:
 	@$(MAKE) backend-up
 	@echo "Backend up. Starting frontend dev server..."
@@ -56,6 +62,7 @@ stop:
 	@echo "Stopping backend/frontend processes..."
 	@pkill -f "uvicorn compliance_gate.main:app" || true
 	@pkill -f "vite --configLoader runner" || true
+	@pkill -f "electron .*frontend" || true
 	@docker compose down -v --remove-orphans || true
 	@echo "Processes stopped."
 
@@ -64,6 +71,10 @@ stop:
 verify:
 	@echo "Running environment verification..."
 	python3 scripts/verify_env.py
+
+verify-all:
+	@echo "Running full integration verification..."
+	bash scripts/verify_all.sh
 
 test:
 	@echo "Running backend tests..."
