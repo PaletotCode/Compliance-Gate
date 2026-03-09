@@ -184,8 +184,8 @@ export function MainMenuCanvas() {
 
     return (
       <div className="flex flex-col h-[calc(100vh-64px)] w-full relative animate-in fade-in duration-300">
-        <div className="flex flex-1 overflow-hidden relative">
-          <div className="flex-1 flex flex-col bg-black/20 backdrop-blur-sm relative z-10 p-6">
+        <div className="flex flex-1 overflow-hidden relative min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col bg-black/20 backdrop-blur-sm relative z-10 p-6">
             <SourceDataTable
               activeTab={activeTab}
               headers={activeColumns}
