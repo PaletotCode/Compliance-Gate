@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Columns, Download, ListChecks, Play, Plus, Trash2 } from 'lucide-react'
 import { getMainViewErrorMessage } from '@/main_view/api/csvTabsApi'
 import { SourceCard } from '@/main_view/components/cards/SourceCard'
@@ -14,6 +14,8 @@ import { REQUIRED_DELETE_TEXT } from '@/main_view/mocks/mockData'
 import { mainViewStore } from '@/main_view/state/mainViewStore'
 
 export function MainMenuCanvas() {
+  const [isViewerConfigCollapsed, setViewerConfigCollapsed] = useState(false)
+
   const {
     view,
     activeTab,
@@ -225,8 +227,9 @@ export function MainMenuCanvas() {
     return (
       <div className="flex flex-col h-[calc(100vh-64px)] w-full relative animate-in fade-in duration-300">
         <div className="flex flex-1 overflow-hidden relative min-w-0">
-          <div className="flex-1 min-w-0 flex flex-col bg-black/20 backdrop-blur-sm relative z-10 p-6">
+          <div className="flex-1 min-w-0 flex flex-col bg-black/20 backdrop-blur-sm relative z-10 p-6 animate-in fade-in duration-300">
             <SourceDataTable
+              key={`source-table-${activeTab}`}
               activeTab={activeTab}
               headers={activeColumns}
               rows={activeData}
@@ -242,6 +245,8 @@ export function MainMenuCanvas() {
             source={activeSource}
             config={activeConfig}
             columns={activeColumns}
+            isCollapsed={isViewerConfigCollapsed}
+            onToggleCollapse={() => setViewerConfigCollapsed((current) => !current)}
             onHeaderRowChange={(value) => void runSafeAction(() => setHeaderRow(activeTab, value))}
             onSicColumnChange={(value) => setSicColumn(activeTab, value)}
             onToggleColumn={(column) => toggleSelectedColumn(activeTab, column)}
@@ -255,7 +260,7 @@ export function MainMenuCanvas() {
 
   const renderMaterialized = () => (
     <div className="flex h-[calc(100vh-64px)] w-full animate-in fade-in duration-500 overflow-hidden relative">
-      <div className="flex-1 flex flex-col p-4 md:p-6 bg-black/20 backdrop-blur-sm overflow-hidden z-10 relative">
+      <div className="flex-1 flex flex-col p-6 bg-black/20 backdrop-blur-sm overflow-hidden z-10 relative animate-in fade-in duration-300">
         <MachinesVirtualGrid
           rows={machinesGrid.rows}
           visibleColumns={activeMatCols}

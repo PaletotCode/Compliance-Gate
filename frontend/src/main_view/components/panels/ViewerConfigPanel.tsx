@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Key, ListChecks, Settings } from 'lucide-react'
+import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Key, ListChecks, Settings } from 'lucide-react'
 import { ActionButton } from '@/main_view/components/layout/ActionButton'
 import type { SourceConfig, SourceItem } from '@/main_view/state/types'
 
@@ -6,6 +6,8 @@ type ViewerConfigPanelProps = {
   source: SourceItem
   config: SourceConfig
   columns: string[]
+  isCollapsed: boolean
+  onToggleCollapse: () => void
   onHeaderRowChange: (value: number) => void
   onSicColumnChange: (value: string) => void
   onToggleColumn: (column: string) => void
@@ -17,18 +19,48 @@ export function ViewerConfigPanel({
   source,
   config,
   columns,
+  isCollapsed,
+  onToggleCollapse,
   onHeaderRowChange,
   onSicColumnChange,
   onToggleColumn,
   isSavingProfile,
   onSaveProfile,
 }: ViewerConfigPanelProps) {
+  if (isCollapsed) {
+    return (
+      <div className="w-[56px] shrink-0 border-l border-white/10 bg-black/60 backdrop-blur-2xl flex flex-col items-center py-4 gap-4 shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20 transition-[width] duration-300">
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="w-8 h-8 rounded-lg border border-white/20 bg-black/50 hover:bg-white/10 text-white/75 flex items-center justify-center"
+          title="Expandir configurações"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <span className="text-[10px] tracking-[0.2em] font-black text-white/40 [writing-mode:vertical-rl] rotate-180">
+          CONFIG
+        </span>
+      </div>
+    )
+  }
+
   return (
-    <div className="w-[340px] shrink-0 border-l border-white/10 bg-black/60 backdrop-blur-2xl flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20">
+    <div className="w-[340px] shrink-0 border-l border-white/10 bg-black/60 backdrop-blur-2xl flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20 transition-[width] duration-300">
       <div className="p-6 flex-1 overflow-auto space-y-8 custom-scrollbar">
-        <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-          <Settings className="text-[#00AE9D]" size={18} />
-          <h2 className="text-xs font-black text-white uppercase tracking-[0.15em]">Configuração</h2>
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <Settings className="text-[#00AE9D]" size={18} />
+            <h2 className="text-xs font-black text-white uppercase tracking-[0.15em]">Configuração</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="w-8 h-8 rounded-lg border border-white/20 bg-black/50 hover:bg-white/10 text-white/75 flex items-center justify-center"
+            title="Encolher configurações"
+          >
+            <ChevronRight size={16} />
+          </button>
         </div>
 
         <div className="flex flex-col gap-1 p-4 bg-white/5 rounded-xl border border-white/5 shadow-inner">

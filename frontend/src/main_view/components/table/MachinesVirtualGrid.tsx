@@ -225,43 +225,45 @@ export function MachinesVirtualGrid({
       </div>
 
       <div
-        className="grid bg-[#111] border-b border-white/10 text-white/60 text-[10px] uppercase tracking-[0.15em] font-black sticky top-0 z-20"
-        style={{ gridTemplateColumns }}
-        title={`${filteredRows.length} de ${totalRows} registros`}
-      >
-        {table.getFlatHeaders().map((header) => (
-          <div key={header.id} className="px-4 py-3 border-r border-white/5 truncate relative overflow-visible">
-            {flexRender(header.column.columnDef.header, header.getContext())}
-          </div>
-        ))}
-      </div>
-
-      <div
         ref={parentRef}
         data-testid="machines-grid-scroll"
         className="flex-1 overflow-auto custom-scrollbar relative"
       >
-        <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
-          {virtualRows.map((virtualRow) => {
-            const row = rowModel[virtualRow.index]
-            return (
-              <div
-                key={row.id}
-                className="absolute left-0 right-0 grid text-sm text-white/85 border-b border-white/5 hover:bg-white/5 transition-colors"
-                style={{
-                  gridTemplateColumns,
-                  transform: `translateY(${virtualRow.start}px)`,
-                  height: `${virtualRow.size}px`,
-                }}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <div key={cell.id} className="px-4 py-3 border-r border-white/5 truncate">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </div>
-                ))}
+        <div className="relative min-w-full">
+          <div
+            className="grid bg-[#111] border-b border-white/10 text-white/60 text-[10px] uppercase tracking-[0.15em] font-black sticky top-0 z-30"
+            style={{ gridTemplateColumns }}
+            title={`${filteredRows.length} de ${totalRows} registros`}
+          >
+            {table.getFlatHeaders().map((header) => (
+              <div key={header.id} className="px-4 py-3 border-r border-white/5 truncate relative overflow-visible">
+                {flexRender(header.column.columnDef.header, header.getContext())}
               </div>
-            )
-          })}
+            ))}
+          </div>
+
+          <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+            {virtualRows.map((virtualRow) => {
+              const row = rowModel[virtualRow.index]
+              return (
+                <div
+                  key={row.id}
+                  className="absolute left-0 right-0 grid text-sm text-white/85 border-b border-white/5 hover:bg-white/5 transition-colors"
+                  style={{
+                    gridTemplateColumns,
+                    transform: `translateY(${virtualRow.start}px)`,
+                    height: `${virtualRow.size}px`,
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <div key={cell.id} className="px-4 py-3 border-r border-white/5 truncate">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {isLoadingMore && (
