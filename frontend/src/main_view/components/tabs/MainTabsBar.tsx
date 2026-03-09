@@ -35,6 +35,22 @@ export function MainTabsBar({
     return null
   }
 
+  if (view === 'materialized') {
+    return (
+      <div className="flex items-center w-full p-1.5 bg-white/5 border border-white/10 rounded-xl shadow-inner transition-all animate-in fade-in zoom-in-95 gap-3">
+        <button
+          onClick={onBackHome}
+          className="flex items-center justify-center gap-2 px-4 h-9 rounded-lg bg-white/10 text-white hover:bg-white/20 hover:text-white border border-white/5 shadow-sm transition-all shrink-0 group whitespace-nowrap"
+        >
+          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-[11px] font-bold tracking-wide">Início</span>
+        </button>
+
+        <div className="ml-auto flex items-center gap-2 shrink-0">{rightSlot}</div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex items-center w-full p-1 bg-white/5 border border-white/10 rounded-xl shadow-inner transition-all animate-in fade-in zoom-in-95">
       <button

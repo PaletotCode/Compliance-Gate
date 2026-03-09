@@ -29,7 +29,7 @@ export function ViewerConfigPanel({
 }: ViewerConfigPanelProps) {
   if (isCollapsed) {
     return (
-      <div className="w-[56px] shrink-0 border-l border-white/10 bg-black/60 backdrop-blur-2xl flex flex-col items-center py-4 gap-4 shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20 transition-[width] duration-300">
+      <div className="w-[56px] shrink-0 border-l border-white/10 bg-black/60 backdrop-blur-2xl flex flex-col items-center py-4 gap-4 shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20 animate-in fade-in duration-200">
         <button
           type="button"
           onClick={onToggleCollapse}
@@ -46,7 +46,7 @@ export function ViewerConfigPanel({
   }
 
   return (
-    <div className="w-[340px] shrink-0 border-l border-white/10 bg-black/60 backdrop-blur-2xl flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20 transition-[width] duration-300">
+    <div className="w-[340px] shrink-0 border-l border-white/10 bg-black/60 backdrop-blur-2xl flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20 animate-in slide-in-from-right-2 duration-200">
       <div className="p-6 flex-1 overflow-auto space-y-8 custom-scrollbar">
         <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">

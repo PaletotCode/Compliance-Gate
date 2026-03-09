@@ -232,7 +232,7 @@ export function MachinesVirtualGrid({
         <div className="relative min-w-full">
           <div
             className="grid bg-[#111] border-b border-white/10 text-white/60 text-[10px] uppercase tracking-[0.15em] font-black sticky top-0 z-30"
-            style={{ gridTemplateColumns }}
+            style={{ gridTemplateColumns, width: 'max-content', minWidth: '100%' }}
             title={`${filteredRows.length} de ${totalRows} registros`}
           >
             {table.getFlatHeaders().map((header) => (
@@ -248,11 +248,13 @@ export function MachinesVirtualGrid({
               return (
                 <div
                   key={row.id}
-                  className="absolute left-0 right-0 grid text-sm text-white/85 border-b border-white/5 hover:bg-white/5 transition-colors"
+                  className="absolute left-0 grid text-sm text-white/85 border-b border-white/5 hover:bg-white/5 transition-colors"
                   style={{
                     gridTemplateColumns,
                     transform: `translateY(${virtualRow.start}px)`,
                     height: `${virtualRow.size}px`,
+                    width: 'max-content',
+                    minWidth: '100%',
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (

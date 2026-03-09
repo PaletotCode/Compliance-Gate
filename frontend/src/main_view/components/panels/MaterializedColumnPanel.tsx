@@ -9,7 +9,39 @@ type MaterializedColumnPanelProps = {
 }
 
 function toLabel(key: string): string {
+  if (key.includes('.')) {
+    return key.split('.', 2)[1] || key
+  }
   return key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
+}
+
+const SOURCE_GROUPS = ['AD', 'UEM', 'EDR', 'ASSET'] as const
+
+function splitColumnsByGroup(columns: string[]): Array<{ title: string; keys: string[] }> {
+  const grouped: Record<string, string[]> = {
+    Base: [],
+    AD: [],
+    UEM: [],
+    EDR: [],
+    ASSET: [],
+  }
+
+  columns.forEach((column) => {
+    const [prefix] = column.split('.', 1)
+    if (SOURCE_GROUPS.includes(prefix as (typeof SOURCE_GROUPS)[number])) {
+      grouped[prefix].push(column)
+    } else {
+      grouped.Base.push(column)
+    }
+  })
+
+  return [
+    { title: 'Base', keys: grouped.Base },
+    { title: 'AD', keys: grouped.AD },
+    { title: 'UEM', keys: grouped.UEM },
+    { title: 'EDR', keys: grouped.EDR },
+    { title: 'ASSET', keys: grouped.ASSET },
+  ].filter((group) => group.keys.length > 0)
 }
 
 export function MaterializedColumnPanel({
@@ -42,30 +74,37 @@ export function MaterializedColumnPanel({
       </div>
 
       <div className="p-6 flex-1 overflow-auto space-y-2 custom-scrollbar">
-        {availableColumns.map((column) => {
-          const isChecked = activeMatCols.includes(column)
-          return (
-            <button
-              key={column}
-              type="button"
-              onClick={() => onToggleColumn(column)}
-              className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
-            >
-              <div
-                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shadow-inner shrink-0 ${
-                  isChecked
-                    ? 'bg-[#00AE9D] border-[#00AE9D]'
-                    : 'bg-black/50 border-white/20 group-hover:border-white/40'
-                }`}
-              >
-                {isChecked && <CheckCircle2 size={10} className="text-white" />}
-              </div>
-              <span className={`text-xs font-medium truncate ${isChecked ? 'text-white/90' : 'text-white/30'}`}>
-                {toLabel(column)}
-              </span>
-            </button>
-          )
-        })}
+        {splitColumnsByGroup(availableColumns).map((group) => (
+          <div key={group.title} className="space-y-1.5 pb-3 border-b border-white/5 last:border-b-0 last:pb-0">
+            <div className="text-[10px] font-black tracking-[0.15em] uppercase text-white/45 px-2">
+              {group.title}
+            </div>
+            {group.keys.map((column) => {
+              const isChecked = activeMatCols.includes(column)
+              return (
+                <button
+                  key={column}
+                  type="button"
+                  onClick={() => onToggleColumn(column)}
+                  className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
+                >
+                  <div
+                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shadow-inner shrink-0 ${
+                      isChecked
+                        ? 'bg-[#00AE9D] border-[#00AE9D]'
+                        : 'bg-black/50 border-white/20 group-hover:border-white/40'
+                    }`}
+                  >
+                    {isChecked && <CheckCircle2 size={10} className="text-white" />}
+                  </div>
+                  <span className={`text-xs font-medium truncate ${isChecked ? 'text-white/90' : 'text-white/30'}`}>
+                    {toLabel(column)}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        ))}
       </div>
     </div>
   )

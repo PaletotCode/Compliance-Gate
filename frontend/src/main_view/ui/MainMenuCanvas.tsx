@@ -4,8 +4,8 @@ import { getMainViewErrorMessage } from '@/main_view/api/csvTabsApi'
 import { SourceCard } from '@/main_view/components/cards/SourceCard'
 import { ActionButton } from '@/main_view/components/layout/ActionButton'
 import { DeleteSourcesModal } from '@/main_view/components/modals/DeleteSourcesModal'
+import { ExcelFilterPopover } from '@/main_view/components/panels/ExcelFilterPopover'
 import { MaterializedColumnPanel } from '@/main_view/components/panels/MaterializedColumnPanel'
-import { StatusMultiSelectPopover } from '@/main_view/components/panels/StatusMultiSelectPopover'
 import { ViewerConfigPanel } from '@/main_view/components/panels/ViewerConfigPanel'
 import { MachinesVirtualGrid } from '@/main_view/components/table/MachinesVirtualGrid'
 import { SourceDataTable } from '@/main_view/components/table/SourceDataTable'
@@ -98,18 +98,19 @@ export function MainMenuCanvas() {
   const activeColumns = activeRuntime?.raw_preview?.headers ?? []
   const activeConfig = configs[activeTab]
   const statusFilterMenuKey = 'MATERIALIZED_STATUS_PANEL'
-  const statusEntries = Object.entries(machinesGrid.summary?.by_status ?? {})
-  const labelsByKey = machinesGrid.filter_definitions.reduce<Record<string, string>>((acc, definition) => {
+  const allStatusDefs = machinesGrid.filter_definitions.filter((definition) => !definition.is_flag)
+  const statusLabelByKey = allStatusDefs.reduce<Record<string, string>>((acc, definition) => {
     acc[definition.key] = definition.label
     return acc
   }, {})
-  const statusOptions = statusEntries
-    .map(([key, count]) => ({
-      key,
-      label: labelsByKey[key] ?? key,
-      count,
-    }))
-    .sort((left, right) => right.count - left.count)
+  const statusKeyByLabel = allStatusDefs.reduce<Record<string, string>>((acc, definition) => {
+    acc[definition.label] = definition.key
+    return acc
+  }, {})
+  const statusOptions = allStatusDefs.map((definition) => definition.label)
+  const selectedStatusLabels = machinesGrid.selected_statuses
+    .map((statusKey) => statusLabelByKey[statusKey] ?? statusKey)
+    .filter((label) => statusOptions.includes(label))
 
   const materializedTopbarActions = (
     <>
@@ -125,11 +126,14 @@ export function MainMenuCanvas() {
         </ActionButton>
 
         {openFilterMenu === statusFilterMenuKey && (
-          <StatusMultiSelectPopover
+          <ExcelFilterPopover
             options={statusOptions}
-            selectedKeys={machinesGrid.selected_statuses}
+            selectedOptions={selectedStatusLabels}
             onClose={() => setOpenFilterMenu(null)}
-            onApply={(selectedKeys) => {
+            onApply={(selectedLabels) => {
+              const selectedKeys = selectedLabels
+                .map((label) => statusKeyByLabel[label])
+                .filter((key): key is string => Boolean(key))
               void runSafeAction(() => setStatusFilters(selectedKeys))
             }}
           />
@@ -336,7 +340,7 @@ export function MainMenuCanvas() {
 
         <div
           className={`flex items-center justify-end gap-4 shrink-0 pr-6 ${
-            view === 'home-filled' ? 'w-[520px]' : 'w-[240px]'
+            view === 'home-filled' ? 'w-auto' : 'w-[240px]'
           }`}
         >
           <div className="flex items-center gap-3 mr-2 animate-in fade-in duration-300">
@@ -409,19 +413,19 @@ export function MainMenuCanvas() {
             </div>
           )}
 
-          <div className="h-6 w-px bg-white/10 hidden sm:block" />
-
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right hidden md:block">
-              <div className="text-[11px] font-black text-white tracking-wide">TI.Administrador</div>
-              <div className="text-[9px] font-mono text-white/40 uppercase tracking-widest mt-0.5">
-                Sessão Ativa
+          {view !== 'home-filled' && (
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="text-right hidden md:block">
+                <div className="text-[11px] font-black text-white tracking-wide">TI.Administrador</div>
+                <div className="text-[9px] font-mono text-white/40 uppercase tracking-widest mt-0.5">
+                  Sessão Ativa
+                </div>
+              </div>
+              <div className="w-9 h-9 shrink-0 rounded-full bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-md shadow-inner">
+                <span className="text-[10px] font-black text-[#00AE9D]">TI</span>
               </div>
             </div>
-            <div className="w-9 h-9 shrink-0 rounded-full bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-md shadow-inner">
-              <span className="text-[10px] font-black text-[#00AE9D]">TI</span>
-            </div>
-          </div>
+          )}
         </div>
       </header>
 

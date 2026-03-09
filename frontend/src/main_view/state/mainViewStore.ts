@@ -361,8 +361,8 @@ function pickMaterializedColumns(rows: MachinesGridState['rows']): string[] {
   })
   const keys = Array.from(keysSet)
   const preferred = DEFAULT_MACHINE_VISIBLE_COLUMNS.filter((key) => keys.includes(key))
-  if (preferred.length > 0) return preferred
-  return keys.slice(0, 10)
+  const remaining = keys.filter((key) => !preferred.includes(key))
+  return [...preferred, ...remaining]
 }
 
 function createInitialState(): MainViewState {
