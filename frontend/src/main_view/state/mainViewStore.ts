@@ -122,6 +122,10 @@ const SOURCE_CREATED_AT_BY_ID: Record<SourceId, string> = {
   ASSET: '08 Mar 2026, 11:40',
 }
 
+function normalizeHeaderKey(raw: string): string {
+  return raw.trim().replace(/^\uFEFF/, '').toUpperCase()
+}
+
 function isSourceId(value: string): value is SourceId {
   return SOURCE_ORDER.includes(value as SourceId)
 }
@@ -503,18 +507,28 @@ export const mainViewStore = create<MainViewStore>()((set, get) => ({
 
     set((state) =>
       patchSourceState(state, sourceId, (current) => {
-        const headers = response.detected_headers ?? []
-        const selectedColumns =
-          current.payload.selected_columns.length > 0
-            ? current.payload.selected_columns.filter((column) => headers.includes(column))
-            : [...headers]
+        const headers =
+          response.original_headers && response.original_headers.length > 0
+            ? response.original_headers
+            : response.detected_headers ?? []
+        const headerByNormalized = new Map(headers.map((header) => [normalizeHeaderKey(header), header]))
+        const selectedColumnsRaw =
+          current.payload.selected_columns.length > 0 ? current.payload.selected_columns : [...headers]
+        const selectedColumns = Array.from(
+          new Set(
+            selectedColumnsRaw
+              .map((column) => headerByNormalized.get(normalizeHeaderKey(column)))
+              .filter((column): column is string => Boolean(column)),
+          ),
+        )
+        const mappedSicColumn = headerByNormalized.get(normalizeHeaderKey(current.payload.sic_column)) ?? ''
 
         const next: SourceRuntimeState = {
           ...current,
           payload: {
             ...current.payload,
             selected_columns: selectedColumns,
-            sic_column: headers.includes(current.payload.sic_column) ? current.payload.sic_column : '',
+            sic_column: mappedSicColumn,
           },
           raw_preview: {
             headers,
