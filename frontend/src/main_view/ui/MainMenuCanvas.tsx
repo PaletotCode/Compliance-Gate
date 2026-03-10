@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Columns, Download, ListChecks, Play, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Columns, Download, ListChecks, PanelRight, Play, Plus, Trash2 } from 'lucide-react'
+import { authStore } from '@/auth/store'
+import { EngineStudioDock } from '@/engine_studio/components'
+import { useEngineStudioBootstrap } from '@/engine_studio/hooks'
+import { engineStudioStore } from '@/engine_studio/state'
 import { getMainViewErrorMessage } from '@/main_view/api/csvTabsApi'
 import { SourceCard } from '@/main_view/components/cards/SourceCard'
 import { ActionButton } from '@/main_view/components/layout/ActionButton'
 import { DeleteSourcesModal } from '@/main_view/components/modals/DeleteSourcesModal'
-import { ExcelFilterPopover } from '@/main_view/components/panels/ExcelFilterPopover'
 import { MaterializedColumnPanel } from '@/main_view/components/panels/MaterializedColumnPanel'
 import { ViewerConfigPanel } from '@/main_view/components/panels/ViewerConfigPanel'
 import { MachinesVirtualGrid } from '@/main_view/components/table/MachinesVirtualGrid'
@@ -12,9 +15,18 @@ import { SourceDataTable } from '@/main_view/components/table/SourceDataTable'
 import { MainTabsBar } from '@/main_view/components/tabs/MainTabsBar'
 import { REQUIRED_DELETE_TEXT } from '@/main_view/mocks/mockData'
 import { mainViewStore } from '@/main_view/state/mainViewStore'
+import type { MachineTableRow } from '@/main_view/state/types'
+import { pushNotification } from '@/shared/notifications/notificationStore'
 
 export function MainMenuCanvas() {
   const [isViewerConfigCollapsed, setViewerConfigCollapsed] = useState(false)
+  const currentUser = authStore((state) => state.user)
+  const isTiAdmin = currentUser?.role === 'TI_ADMIN'
+  const studioTable = engineStudioStore((state) => state.table)
+  const studioIsOpen = engineStudioStore((state) => state.is_open)
+  const toggleStudioOpen = engineStudioStore((state) => state.toggleOpen)
+  const fetchNextStudioTablePage = engineStudioStore((state) => state.fetchNextTablePage)
+  const studioIsBootstrapping = engineStudioStore((state) => state.is_bootstrapping)
 
   const {
     view,
@@ -54,13 +66,18 @@ export function MainMenuCanvas() {
     applyExcelFilter,
     setColPanelOpen,
     toggleMatCol,
+    syncMaterializedColumnsFromRows,
     handleRunIngest,
     reloadMachinesGrid,
     fetchNextMachinesPage,
     refreshMachinesSummaryAndFilters,
-    setStatusFilters,
     exportMachines,
   } = mainViewStore()
+
+  useEngineStudioBootstrap({
+    enabled: view === 'materialized' && isTiAdmin,
+    datasetVersionId: pipeline.dataset_version_id,
+  })
 
   const readyCount = sources.filter((source) => configs[source.id]?.status === 'pronto').length
 
@@ -71,13 +88,18 @@ export function MainMenuCanvas() {
     try {
       await action()
     } catch (error) {
-      window.alert(getMainViewErrorMessage(error))
+      pushNotification({
+        tone: 'error',
+        title: 'Falha na operação',
+        message: getMainViewErrorMessage(error),
+      })
     }
   }
 
   useEffect(() => {
     if (view !== 'materialized') return
     if (!pipeline.dataset_version_id) return
+    if (isTiAdmin) return
     if (machinesGrid.rows.length > 0 || machinesGrid.is_loading_initial) return
 
     void runSafeAction(async () => {
@@ -86,59 +108,67 @@ export function MainMenuCanvas() {
   }, [
     view,
     pipeline.dataset_version_id,
+    isTiAdmin,
     machinesGrid.rows.length,
     machinesGrid.is_loading_initial,
     refreshMachinesSummaryAndFilters,
     reloadMachinesGrid,
   ])
 
+  const studioRows = useMemo<MachineTableRow[]>(() => {
+    return studioTable.items.map((rawRow, index) => {
+      const flagsRaw = rawRow.flags
+      const normalizedFlags = Array.isArray(flagsRaw)
+        ? flagsRaw.map((item) => String(item))
+        : []
+
+      const normalizedRow: MachineTableRow = {
+        id: String(rawRow.id ?? rawRow.machine_id ?? rawRow.hostname ?? `row-${index + 1}`),
+        hostname: String(rawRow.hostname ?? rawRow.machine_id ?? `ROW-${index + 1}`),
+        pa_code: String(rawRow.pa_code ?? ''),
+        primary_status: String(rawRow.primary_status ?? ''),
+        primary_status_label: String(rawRow.primary_status_label ?? rawRow.primary_status ?? ''),
+        flags: normalizedFlags,
+        has_ad: Boolean(rawRow.has_ad),
+        has_uem: Boolean(rawRow.has_uem),
+        has_edr: Boolean(rawRow.has_edr),
+        has_asset: Boolean(rawRow.has_asset),
+      }
+
+      return {
+        ...(rawRow as Record<string, unknown>),
+        ...normalizedRow,
+      } as MachineTableRow
+    })
+  }, [studioTable.items])
+
+  const materializedRows = isTiAdmin ? studioRows : machinesGrid.rows
+  const materializedTotalRows = isTiAdmin ? studioTable.total_rows : machinesGrid.total
+  const materializedHasNextPage = isTiAdmin ? studioTable.has_next : machinesGrid.has_next
+  const materializedIsLoadingInitial = isTiAdmin
+    ? studioTable.is_loading_initial || studioIsBootstrapping
+    : machinesGrid.is_loading_initial
+  const materializedIsLoadingMore = isTiAdmin ? studioTable.is_loading_more : machinesGrid.is_loading_more
+
+  useEffect(() => {
+    if (view !== 'materialized') return
+    syncMaterializedColumnsFromRows(materializedRows)
+  }, [view, materializedRows, syncMaterializedColumnsFromRows])
+
   const activeSource = sources.find((source) => source.id === activeTab)
   const activeRuntime = sourceStates[activeTab]
   const activeData = activeRuntime?.raw_preview?.sample_rows ?? []
   const activeColumns = activeRuntime?.raw_preview?.headers ?? []
   const activeConfig = configs[activeTab]
-  const statusFilterMenuKey = 'MATERIALIZED_STATUS_PANEL'
-  const allStatusDefs = machinesGrid.filter_definitions.filter((definition) => !definition.is_flag)
-  const statusLabelByKey = allStatusDefs.reduce<Record<string, string>>((acc, definition) => {
-    acc[definition.key] = definition.label
-    return acc
-  }, {})
-  const statusKeyByLabel = allStatusDefs.reduce<Record<string, string>>((acc, definition) => {
-    acc[definition.label] = definition.key
-    return acc
-  }, {})
-  const statusOptions = allStatusDefs.map((definition) => definition.label)
-  const selectedStatusLabels = machinesGrid.selected_statuses
-    .map((statusKey) => statusLabelByKey[statusKey] ?? statusKey)
-    .filter((label) => statusOptions.includes(label))
 
   const materializedTopbarActions = (
     <>
-      <div className="relative" onClick={(event) => event.stopPropagation()}>
-        <ActionButton
-          variant={machinesGrid.selected_statuses.length > 0 ? 'primary' : 'secondary'}
-          size="sm"
-          onClick={() => {
-            setOpenFilterMenu(openFilterMenu === statusFilterMenuKey ? null : statusFilterMenuKey)
-          }}
-        >
-          <ListChecks size={14} /> VER STATUS
+      {isTiAdmin ? (
+        <ActionButton variant={studioIsOpen ? 'primary' : 'secondary'} size="sm" onClick={toggleStudioOpen}>
+          <PanelRight size={14} />
+          {studioIsOpen ? 'OCULTAR ENGINE' : 'ABRIR ENGINE'}
         </ActionButton>
-
-        {openFilterMenu === statusFilterMenuKey && (
-          <ExcelFilterPopover
-            options={statusOptions}
-            selectedOptions={selectedStatusLabels}
-            onClose={() => setOpenFilterMenu(null)}
-            onApply={(selectedLabels) => {
-              const selectedKeys = selectedLabels
-                .map((label) => statusKeyByLabel[label])
-                .filter((key): key is string => Boolean(key))
-              void runSafeAction(() => setStatusFilters(selectedKeys))
-            }}
-          />
-        )}
-      </div>
+      ) : null}
 
       <ActionButton variant={isColPanelOpen ? 'primary' : 'secondary'} size="sm" onClick={() => setColPanelOpen(!isColPanelOpen)}>
         <Columns size={14} /> GERENCIAR COLUNAS
@@ -266,21 +296,27 @@ export function MainMenuCanvas() {
     <div className="flex h-[calc(100vh-64px)] w-full animate-in fade-in duration-500 overflow-hidden relative">
       <div className="flex-1 flex flex-col p-6 bg-black/20 backdrop-blur-sm overflow-hidden z-10 relative animate-in fade-in duration-300">
         <MachinesVirtualGrid
-          rows={machinesGrid.rows}
+          rows={materializedRows}
           visibleColumns={activeMatCols}
           filters={excelFilters.MATERIALIZED ?? {}}
           openFilterMenu={openFilterMenu}
-          totalRows={machinesGrid.total}
-          hasNextPage={machinesGrid.has_next}
-          isLoadingInitial={machinesGrid.is_loading_initial}
-          isLoadingMore={machinesGrid.is_loading_more}
+          totalRows={materializedTotalRows}
+          hasNextPage={materializedHasNextPage}
+          isLoadingInitial={materializedIsLoadingInitial}
+          isLoadingMore={materializedIsLoadingMore}
           onOpenFilterMenu={setOpenFilterMenu}
           onApplyFilter={(column, selection) => applyExcelFilter('MATERIALIZED', column, selection)}
           onReachEnd={() => {
+            if (isTiAdmin) {
+              void runSafeAction(fetchNextStudioTablePage)
+              return
+            }
             void runSafeAction(fetchNextMachinesPage)
           }}
         />
       </div>
+
+      {isTiAdmin ? <EngineStudioDock /> : null}
 
       <MaterializedColumnPanel
         isOpen={isColPanelOpen}

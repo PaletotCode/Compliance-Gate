@@ -30,18 +30,13 @@ class ReportRunner:
     def _artifact_for_report(
         db: Session, tenant_id: str, dataset_version_id: str
     ) -> EngineArtifact:
-        artifact = (
-            db.query(EngineArtifact)
-            .filter(
-                EngineArtifact.tenant_id == tenant_id,
-                EngineArtifact.dataset_version_id == dataset_version_id,
-                EngineArtifact.artifact_type == "parquet",
-                EngineArtifact.artifact_name == "machines_final",
-            )
-            .first()
+        artifact = dataset_catalog.get_materialized_artifact(
+            db,
+            tenant_id=tenant_id,
+            dataset_version_id=dataset_version_id,
+            artifact_name="machines_final",
+            artifact_type="parquet",
         )
-        if not artifact:
-            raise ValueError("machines_final artifact not found; materialize first")
 
         if not Path(artifact.path).exists():
             raise ValueError("artifact parquet path not found on disk")

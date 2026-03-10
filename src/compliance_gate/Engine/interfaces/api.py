@@ -1,19 +1,24 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
 from pathlib import Path
 from typing import Any
-import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query
 import polars as pl
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
+from compliance_gate.domains.machines.schemas import MachineItemSchema
+from compliance_gate.Engine.catalog.machines_final import get_machines_final_catalog
+from compliance_gate.Engine.catalog.schemas import MachinesFinalCatalogSnapshot
+from compliance_gate.Engine.errors import DeclarativeEngineError, GuardrailViolation
 from compliance_gate.Engine.materialization.materialize_machines import materialize_machines_spine
+from compliance_gate.Engine.models import EngineArtifact
 from compliance_gate.Engine.reports.definitions import ReportRequest
 from compliance_gate.Engine.reports.runner import ReportRunner
 from compliance_gate.Engine.validation.explain import explain_report
@@ -21,9 +26,7 @@ from compliance_gate.Engine.validation.guardrails import (
     EngineGuardrailException,
     validate_report_request,
 )
-from compliance_gate.domains.machines.schemas import MachineItemSchema
 from compliance_gate.infra.db.session import get_db
-from compliance_gate.Engine.models import EngineArtifact
 from compliance_gate.shared.schemas.pagination import PaginationParams
 from compliance_gate.shared.schemas.responses import (
     ApiResponse,
@@ -61,6 +64,17 @@ class ReportRunResponse(BaseModel):
     data: list[dict[str, Any]]
 
 
+def _declarative_error_status_code(exc: DeclarativeEngineError) -> int:
+    reason = exc.details.get("reason")
+    if reason in {"artifact_not_found", "artifact_missing_on_disk", "ruleset_not_found"}:
+        return 404
+    if reason in {"no_published_version"}:
+        return 409
+    if isinstance(exc, GuardrailViolation):
+        return 422
+    return 400
+
+
 def _apply_materialized_filters(
     df: pl.DataFrame,
     *,
@@ -83,7 +97,7 @@ def _apply_materialized_filters(
 
 
 @router.get("/tables/machines", response_model=PaginatedResponse[MachineItemSchema])
-def get_materialized_table(
+def get_materialized_table(  # noqa: C901
     pagination: PaginationParams = Depends(),
     search: str | None = Query(None, description="Busca textual por hostname"),
     pa_code: str | None = Query(None, description="Filtro por PA"),
@@ -221,6 +235,39 @@ def get_materialized_table(
     return PaginatedResponse(data=PaginatedResult(items=items, meta=meta))
 
 
+@router.get(
+    "/internal/catalog/machines-final",
+    response_model=ApiResponse[MachinesFinalCatalogSnapshot],
+)
+def get_materialized_catalog(
+    dataset_version_id: str = Query(..., description="dataset_version id materializado"),
+    sample_size: int = Query(5, ge=1, le=20),
+    tenant_id: str | None = Query(
+        None, description="Optional. Must match authenticated tenant when provided."
+    ),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
+    try:
+        if tenant_id and tenant_id != current_user.tenant_id:
+            raise HTTPException(status_code=403, detail="cross-tenant access is not allowed")
+
+        snapshot = get_machines_final_catalog(
+            db,
+            tenant_id=current_user.tenant_id,
+            dataset_version_id=dataset_version_id,
+            sample_size=sample_size,
+        )
+        return ApiResponse(data=snapshot)
+    except DeclarativeEngineError as exc:
+        raise HTTPException(status_code=_declarative_error_status_code(exc), detail=exc.to_dict()) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        log.error("engine catalog failed: %s", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="engine catalog failed") from exc
+
+
 @router.post("/materialize/machines", response_model=ApiResponse[MaterializeResponse])
 def materialize_machines(
     dataset_version_id: str = Query(..., description="dataset_version id"),
@@ -248,6 +295,11 @@ def materialize_machines(
         )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except DeclarativeEngineError as exc:
+        raise HTTPException(
+            status_code=_declarative_error_status_code(exc),
+            detail=exc.to_dict(),
+        ) from exc
     except Exception as exc:
         log.error("engine materialize failed: %s", exc)
         raise HTTPException(status_code=500, detail="engine materialize failed") from exc

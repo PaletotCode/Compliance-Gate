@@ -79,6 +79,7 @@ type MainViewActions = {
   applyExcelFilter: (tab: keyof ExcelFiltersState, col: string, selection: string[]) => void
   setColPanelOpen: (value: boolean) => void
   toggleMatCol: (colKey: string) => void
+  syncMaterializedColumnsFromRows: (rows: Array<Record<string, unknown>>) => void
   handleRunIngest: () => Promise<void>
   reloadMachinesGrid: () => Promise<void>
   fetchNextMachinesPage: () => Promise<void>
@@ -768,6 +769,21 @@ export const mainViewStore = create<MainViewStore>()((set, get) => ({
         ? state.activeMatCols.filter((col) => col !== colKey)
         : [...state.activeMatCols, colKey],
     })),
+
+  syncMaterializedColumnsFromRows: (rows) =>
+    set((state) => {
+      const normalizedRows = rows as MachinesGridState['rows']
+      const availableColumns = pickMaterializedColumns(normalizedRows)
+      const nextActiveColumns =
+        state.activeMatCols.length > 0
+          ? state.activeMatCols.filter((column) => availableColumns.includes(column))
+          : availableColumns
+
+      return {
+        materializedColumns: availableColumns,
+        activeMatCols: nextActiveColumns.length > 0 ? nextActiveColumns : availableColumns,
+      }
+    }),
 
   handleRunIngest: async () => {
     const state = get()

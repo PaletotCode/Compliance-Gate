@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig
 from compliance_gate.Engine.config.engine_settings import engine_settings
 from compliance_gate.infra.db.models import DatasetVersion
+from compliance_gate.infra.db.models_engine import EngineArtifact
 from compliance_gate.infra.storage import profiles_store
 
 
@@ -26,6 +27,29 @@ def get_parquet_path(
     artifact_name: str,
 ) -> Path:
     return build_artifact_dir(tenant_id, domain, dataset_version_id) / f"{artifact_name}.parquet"
+
+
+def get_materialized_artifact(
+    db: Session,
+    *,
+    tenant_id: str,
+    dataset_version_id: str,
+    artifact_name: str = "machines_final",
+    artifact_type: str = "parquet",
+) -> EngineArtifact:
+    artifact = (
+        db.query(EngineArtifact)
+        .filter(
+            EngineArtifact.tenant_id == tenant_id,
+            EngineArtifact.dataset_version_id == dataset_version_id,
+            EngineArtifact.artifact_type == artifact_type,
+            EngineArtifact.artifact_name == artifact_name,
+        )
+        .first()
+    )
+    if not artifact:
+        raise ValueError(f"{artifact_name} artifact not found; materialize first")
+    return artifact
 
 
 def get_dataset_version(

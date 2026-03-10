@@ -63,3 +63,13 @@ coverage.xml
 logs/
 *.log
 datasets/
+
+# Frontend test artifacts
+frontend/test-results/
+
+# Local materialization artifacts (parquet, etc.)
+workspace/artifacts/
+
+# Retest suite outputs/logs (generated per-run)
+retests/output/
+retests/logs/

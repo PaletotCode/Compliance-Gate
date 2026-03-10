@@ -52,7 +52,7 @@ export function MainTabsBar({
   }
 
   return (
-    <div className="flex items-center w-full p-1 bg-white/5 border border-white/10 rounded-xl shadow-inner transition-all animate-in fade-in zoom-in-95">
+    <div className="inline-flex items-center w-fit max-w-full p-1 bg-white/5 border border-white/10 rounded-xl shadow-inner transition-all animate-in fade-in zoom-in-95">
       <button
         onClick={onBackHome}
         className="flex items-center justify-center gap-2 px-4 h-9 rounded-lg bg-white/10 text-white hover:bg-white/20 hover:text-white border border-white/5 shadow-sm transition-all shrink-0 group mr-1 whitespace-nowrap"
@@ -63,7 +63,7 @@ export function MainTabsBar({
 
       <div className="w-px h-5 bg-white/10 mx-1 shrink-0" />
 
-      <div className="flex-1 flex items-center overflow-x-auto hide-scrollbar scroll-smooth">
+      <div className="flex items-center overflow-x-auto hide-scrollbar scroll-smooth">
         {view === 'viewer' &&
           sources.map((source) => (
             <button

@@ -11,11 +11,22 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from compliance_gate.domains.machines.classification.models import MachineRecord
-from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig
 from compliance_gate.domains.machines.classification.orchestrator import evaluate_machine
+from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig
 from compliance_gate.domains.machines.ingest.pipeline import run_ingest_pipeline
 from compliance_gate.Engine.catalog import datasets as dataset_catalog
+from compliance_gate.Engine.config.engine_settings import engine_settings
 from compliance_gate.Engine.materialization.parquet_writer import ParquetWriter
+from compliance_gate.Engine.rulesets import (
+    ClassificationOutput,
+    ClassificationRuntimeMode,
+    classify_records,
+    compile_published_ruleset,
+    ensure_baseline_ruleset_for_tenant,
+    get_classification_mode,
+    get_classification_migration_state,
+    record_divergences,
+)
 from compliance_gate.Engine.spines.machines_final import (
     MACHINES_FINAL_COLUMNS,
     MACHINES_FINAL_SPINE,
@@ -38,7 +49,7 @@ def _acquire_materialize_lock(db: Session, tenant_id: str, dataset_version_id: s
 
 
 def _to_machines_final_df(records: list[dict]) -> pl.DataFrame:
-    return _to_machines_final_df_with_selected(records, configs={})
+    return _to_machines_final_df_with_selected(records, configs={}, classification_outputs=None)
 
 
 def _extract_selected_data(
@@ -66,19 +77,29 @@ def _extract_selected_data(
 def _to_machines_final_df_with_selected(
     records: list[dict],
     configs: dict[str, CsvTabConfig],
+    classification_outputs: list[ClassificationOutput] | None,
 ) -> pl.DataFrame:
     rows: list[dict] = []
-    for raw in records:
+    for index, raw in enumerate(records):
         machine = MachineRecord(**raw)
-        status = evaluate_machine(machine)
+        if classification_outputs is None:
+            status = evaluate_machine(machine)
+            primary_status = status.primary_status
+            primary_status_label = status.primary_status_label
+            flags = status.flags
+        else:
+            status = classification_outputs[index]
+            primary_status = status.primary_status
+            primary_status_label = status.primary_status_label
+            flags = status.flags
         selected_data = _extract_selected_data(raw.get("raw_sources"), configs)
         row = {
             "machine_id": machine.hostname,
             "hostname": machine.hostname,
             "pa_code": machine.pa_code,
-            "primary_status": status.primary_status,
-            "primary_status_label": status.primary_status_label,
-            "flags": status.flags,
+            "primary_status": primary_status,
+            "primary_status_label": primary_status_label,
+            "flags": flags,
             "has_ad": machine.has_ad,
             "has_uem": machine.has_uem,
             "has_edr": machine.has_edr,
@@ -164,6 +185,12 @@ def materialize_machines_spine(
         dataset_version_id=dataset_version_id,
         source_type=MACHINES_FINAL_SPINE.domain,
     )
+    baseline_result = ensure_baseline_ruleset_for_tenant(
+        db,
+        tenant_id=tenant_id,
+        actor="system",
+    )
+    migration_state = get_classification_migration_state(db, tenant_id=tenant_id)
 
     run = EngineRun(
         tenant_id=tenant_id,
@@ -177,6 +204,10 @@ def materialize_machines_spine(
 
     try:
         _acquire_materialize_lock(db, tenant_id, version.id)
+        classification_mode, configured_ruleset_name = get_classification_mode(
+            db,
+            tenant_id=tenant_id,
+        )
 
         target_path = dataset_catalog.get_parquet_path(
             tenant_id,
@@ -196,7 +227,12 @@ def materialize_machines_spine(
             .first()
         )
 
-        if artifact and target_path.exists() and artifact.checksum:
+        if (
+            classification_mode == ClassificationRuntimeMode.LEGACY
+            and artifact
+            and target_path.exists()
+            and artifact.checksum
+        ):
             current_checksum = ParquetWriter.calculate_checksum(target_path)
             if current_checksum == artifact.checksum:
                 run.status = "success"
@@ -221,7 +257,39 @@ def materialize_machines_spine(
             configs=configs,
         )
 
-        df = _to_machines_final_df_with_selected(ingest_result.records, configs=configs)
+        compiled_ruleset = None
+        if classification_mode in {
+            ClassificationRuntimeMode.SHADOW,
+            ClassificationRuntimeMode.DECLARATIVE,
+        }:
+            resolved_ruleset_name = (
+                configured_ruleset_name
+                or baseline_result.get("ruleset_name")
+                or engine_settings.classification_default_ruleset_name
+            )
+            compiled_ruleset = compile_published_ruleset(
+                db=db,
+                tenant_id=tenant_id,
+                ruleset_name=resolved_ruleset_name,
+            )
+
+        cutover_phase = (
+            migration_state.phase
+            if classification_mode == ClassificationRuntimeMode.DECLARATIVE
+            and not migration_state.is_default
+            else None
+        )
+        classification_batch = classify_records(
+            ingest_result.records,
+            mode=classification_mode,
+            compiled_ruleset=compiled_ruleset,
+            cutover_phase=cutover_phase,
+        )
+        df = _to_machines_final_df_with_selected(
+            ingest_result.records,
+            configs=configs,
+            classification_outputs=classification_batch.outputs,
+        )
         if df.height <= 0:
             raise ValueError("materialization produced zero rows")
 
@@ -250,6 +318,51 @@ def materialize_machines_spine(
             artifact.row_count = row_count
             artifact.schema_json = schema_json
 
+        if classification_mode == ClassificationRuntimeMode.SHADOW and classification_batch.divergences:
+            record_divergences(
+                db,
+                tenant_id=tenant_id,
+                dataset_version_id=version.id,
+                run_id=run.id,
+                ruleset_name=classification_batch.metrics.ruleset_name
+                or engine_settings.classification_default_ruleset_name,
+                divergences=[
+                    {
+                        "machine_id": divergence.machine_id,
+                        "hostname": divergence.hostname,
+                        "legacy_primary_status": divergence.legacy_primary_status,
+                        "legacy_primary_status_label": divergence.legacy_primary_status_label,
+                        "legacy_flags": divergence.legacy_flags,
+                        "declarative_primary_status": divergence.declarative_primary_status,
+                        "declarative_primary_status_label": divergence.declarative_primary_status_label,
+                        "declarative_flags": divergence.declarative_flags,
+                        "diff": {
+                            **divergence.diff,
+                            "declarative_rule_keys": divergence.rule_keys,
+                            "severity": divergence.severity,
+                            "divergence_kind": divergence.divergence_kind,
+                        },
+                    }
+                    for divergence in classification_batch.divergences
+                ],
+            )
+
+        classification_metrics = {
+            "mode": classification_batch.metrics.mode.value,
+            "ruleset_name": classification_batch.metrics.ruleset_name,
+            "cutover_phase": classification_batch.metrics.cutover_phase.value
+            if classification_batch.metrics.cutover_phase
+            else None,
+            "migration_phase": migration_state.phase.value if not migration_state.is_default else None,
+            "baseline_ruleset_name": baseline_result.get("ruleset_name"),
+            "baseline_published_version": baseline_result.get("published_version"),
+            "rows_scanned": classification_batch.metrics.rows_scanned,
+            "rows_classified": classification_batch.metrics.rows_classified,
+            "elapsed_ms": classification_batch.metrics.elapsed_ms,
+            "rule_hits": classification_batch.metrics.rule_hits,
+            "divergences": classification_batch.metrics.divergences,
+        }
+
         run.status = "success"
         run.ended_at = datetime.now(UTC)
         run.metrics_json = json.dumps(
@@ -258,6 +371,8 @@ def materialize_machines_spine(
                 "materialization_elapsed_ms": round(metrics.elapsed_ms, 2),
                 "row_count": row_count,
                 "warning_count": len(ingest_result.warnings),
+                **classification_metrics,
+                "classification": classification_metrics,
             },
             ensure_ascii=False,
         )

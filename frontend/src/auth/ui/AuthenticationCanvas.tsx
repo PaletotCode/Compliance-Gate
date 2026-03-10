@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  ChevronRight,
   Copy,
   Lock,
   Mail,
@@ -22,14 +21,17 @@ import { useShallow } from 'zustand/react/shallow'
 import loginBackground from '@/assets/login-bg.jpg'
 import { authStore } from '@/auth/store'
 import type { MfaSetupResponse } from '@/auth/types'
+import { appConfig } from '@/lib/config'
+import { pushNotification } from '@/shared/notifications/notificationStore'
 
 type PrimaryButtonProps = {
   children: React.ReactNode
-  onClick: () => void
+  onClick?: () => void
   loading?: boolean
   disabled?: boolean
   className?: string
   delay?: string
+  type?: 'button' | 'submit'
 }
 
 function PrimaryButton({
@@ -39,32 +41,19 @@ function PrimaryButton({
   disabled,
   className = '',
   delay = '0',
+  type = 'button',
 }: PrimaryButtonProps) {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 })
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / rect.width - 0.5
-    const y = (e.clientY - rect.top) / rect.height - 0.5
-    setTilt({ x: x * 8, y: y * -8 })
-  }
-
   return (
     <div
       className="animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
       style={{ animationDelay: `${delay}ms` }}
     >
       <button
+        type={type}
         onClick={onClick}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setTilt({ x: 0, y: 0 })}
         disabled={loading || disabled}
-        style={{
-          transform: `perspective(500px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
-          transition: 'transform 0.1s ease-out, background-color 0.2s',
-        }}
-        className={`w-full h-12 flex items-center justify-center gap-3 rounded-lg font-bold text-white shadow-md active:scale-[0.98] transition-all
-          ${loading || disabled ? 'bg-slate-400 cursor-not-allowed' : 'bg-[#00AE9D] hover:shadow-[#00AE9D]/30 hover:brightness-105'}
+        className={`w-full h-12 flex items-center justify-center gap-3 rounded-lg font-bold text-white shadow-md transition-colors
+          ${loading || disabled ? 'bg-slate-500/80 cursor-not-allowed' : 'bg-[#00AE9D] hover:shadow-[#00AE9D]/30 hover:brightness-105'}
           ${className}`}
       >
         {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : children}
@@ -80,6 +69,7 @@ type AuthInputProps = {
   placeholder: string
   value: string
   onChange: (value: string) => void
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
   delay?: string
 }
 
@@ -90,6 +80,7 @@ function AuthInput({
   placeholder,
   value,
   onChange,
+  onKeyDown,
   delay = '0',
 }: AuthInputProps) {
   return (
@@ -108,6 +99,7 @@ function AuthInput({
           type={type}
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
           className="w-full h-12 pl-11 pr-4 bg-white/30 dark:bg-black/40 border border-white/20 dark:border-white/10 rounded-lg outline-none transition-all
           focus:bg-white dark:focus:bg-slate-800 focus:border-[#00AE9D] text-slate-800 dark:text-white
@@ -221,7 +213,8 @@ export function AuthenticationCanvas() {
   const [step, setStep] = useState<CanvasStep>('login')
   const [isQrExpanded, setIsQrExpanded] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const [notice, setNotice] = useState<string | null>(null)
+  const [backendOnline, setBackendOnline] = useState(false)
+  const [backendProbePending, setBackendProbePending] = useState(true)
   const [mfaPurpose, setMfaPurpose] = useState<MfaPurpose>(null)
   const [mfaCode, setMfaCode] = useState('')
   const [mfaSetup, setMfaSetup] = useState<MfaSetupResponse | null>(null)
@@ -238,6 +231,7 @@ export function AuthenticationCanvas() {
   const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const successTimeout = useRef<number | null>(null)
+  const backendProbeInterval = useRef<number | null>(null)
 
   const {
     login,
@@ -266,6 +260,9 @@ export function AuthenticationCanvas() {
       if (successTimeout.current) {
         window.clearTimeout(successTimeout.current)
       }
+      if (backendProbeInterval.current) {
+        window.clearInterval(backendProbeInterval.current)
+      }
     },
     [],
   )
@@ -285,6 +282,68 @@ export function AuthenticationCanvas() {
 
   const setupSecret = useMemo(() => extractSecretFromOtpauth(mfaSetup?.otpauth_url ?? ''), [mfaSetup?.otpauth_url])
 
+  const notify = useCallback(
+    (
+      message: string,
+      tone: 'info' | 'success' | 'warning' | 'error' = 'info',
+      title?: string,
+      durationMs?: number,
+    ) => {
+      pushNotification({
+        message,
+        tone,
+        title,
+        durationMs,
+      })
+    },
+    [],
+  )
+
+  const probeBackendOnline = useCallback(async (showPending: boolean) => {
+    if (showPending) {
+      setBackendProbePending(true)
+    }
+
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(() => controller.abort(), 2500)
+    const baseUrl = appConfig.apiBaseUrl.replace(/\/+$/, '')
+
+    try {
+      const response = await fetch(`${baseUrl}/health`, {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'omit',
+        signal: controller.signal,
+      })
+      setBackendOnline(response.ok)
+    } catch {
+      setBackendOnline(false)
+    } finally {
+      window.clearTimeout(timeoutId)
+      if (showPending) {
+        setBackendProbePending(false)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    void probeBackendOnline(true)
+    backendProbeInterval.current = window.setInterval(() => {
+      void probeBackendOnline(false)
+    }, 10000)
+    return () => {
+      if (backendProbeInterval.current) {
+        window.clearInterval(backendProbeInterval.current)
+        backendProbeInterval.current = null
+      }
+    }
+  }, [probeBackendOnline])
+
+  useEffect(() => {
+    if (!error) return
+    notify(mapAuthErrorMessage(error), 'error', 'Falha de autenticação')
+  }, [error, notify])
+
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
@@ -293,7 +352,6 @@ export function AuthenticationCanvas() {
 
   const transitionToSuccess = () => {
     setStep('success')
-    setNotice(null)
     successTimeout.current = window.setTimeout(() => {
       navigate({ to: '/app' })
     }, 1200)
@@ -301,10 +359,14 @@ export function AuthenticationCanvas() {
 
   const handleLogin = async () => {
     clearError()
-    setNotice(null)
+
+    if (!backendOnline) {
+      notify('Backend indisponível. Verifique o serviço e tente novamente.', 'warning', 'Offline')
+      return
+    }
 
     if (!loginForm.username || !loginForm.password) {
-      setNotice('Preencha usuário e senha para continuar.')
+      notify('Preencha usuário e senha para continuar.', 'warning', 'Campos obrigatórios')
       return
     }
 
@@ -332,27 +394,29 @@ export function AuthenticationCanvas() {
       setMfaCode('')
       setMfaPurpose('setupConfirm')
       setStep('setup')
-    } catch {
-      setNotice(null)
-    }
+    } catch {}
   }
 
   const handleForgotPassword = async () => {
     clearError()
-    setNotice(null)
+
+    if (!backendOnline) {
+      notify('Backend indisponível. Verifique o serviço e tente novamente.', 'warning', 'Offline')
+      return
+    }
 
     if (!forgotForm.username || !forgotForm.newPassword) {
-      setNotice('Informe usuário e nova senha.')
+      notify('Informe usuário e nova senha.', 'warning', 'Campos obrigatórios')
       return
     }
 
     if (resetFactor === 'totp' && !forgotForm.totpCode) {
-      setNotice('Informe o código TOTP para redefinir a senha.')
+      notify('Informe o código TOTP para redefinir a senha.', 'warning', 'Fator obrigatório')
       return
     }
 
     if (resetFactor === 'recovery' && !forgotForm.recoveryCode) {
-      setNotice('Informe um recovery code para redefinir a senha.')
+      notify('Informe um recovery code para redefinir a senha.', 'warning', 'Fator obrigatório')
       return
     }
 
@@ -371,32 +435,33 @@ export function AuthenticationCanvas() {
             })
 
       setLoginForm((current) => ({ ...current, username: forgotForm.username }))
-      setNotice(response.message)
+      notify(response.message || 'Senha redefinida com sucesso.', 'success', 'Senha atualizada')
       setStep('login')
-    } catch {
-      setNotice(null)
-    }
+    } catch {}
   }
 
   const handleSetupComplete = () => {
     clearError()
-    setNotice(null)
     setStep('mfa')
   }
 
   const handleMfaComplete = async () => {
     clearError()
-    setNotice(null)
+
+    if (!backendOnline) {
+      notify('Backend indisponível. Verifique o serviço e tente novamente.', 'warning', 'Offline')
+      return
+    }
 
     if (mfaCode.length !== 6) {
-      setNotice('Digite os 6 dígitos do autenticador.')
+      notify('Digite os 6 dígitos do autenticador.', 'warning', 'Código incompleto')
       return
     }
 
     try {
       if (mfaPurpose === 'loginChallenge') {
         if (!challengeId) {
-          setNotice('Desafio expirado. Faça login novamente.')
+          notify('Desafio expirado. Faça login novamente.', 'warning', 'Sessão de MFA expirada')
           setStep('login')
           return
         }
@@ -409,7 +474,7 @@ export function AuthenticationCanvas() {
         })
 
         if ('mfa_required' in response) {
-          setNotice('Código inválido. Tente novamente.')
+          notify('Código inválido. Tente novamente.', 'warning', 'MFA inválido')
           return
         }
 
@@ -425,24 +490,28 @@ export function AuthenticationCanvas() {
 
         const response = await confirmMfa({ totp_code: mfaCode })
         setRecoveryCodes(response.recovery_codes)
-        setNotice('MFA confirmado. Copie os recovery codes antes de continuar.')
+        notify('MFA confirmado. Copie os recovery codes antes de continuar.', 'success', 'Dispositivo vinculado', 5200)
       }
-    } catch {
-      setNotice(null)
-    }
+    } catch {}
   }
 
   const handleCopy = async (value: string, successMessage: string) => {
     if (!value) return
     try {
       await navigator.clipboard.writeText(value)
-      setNotice(successMessage)
+      notify(successMessage, 'success', 'Copiado')
     } catch {
-      setNotice('Não foi possível copiar automaticamente neste navegador.')
+      notify('Não foi possível copiar automaticamente neste navegador.', 'warning', 'Falha ao copiar')
     }
   }
 
-  const displayMessage = error ?? notice
+  const backendStatusLabel = backendProbePending ? 'CHECANDO' : backendOnline ? 'ONLINE' : 'OFFLINE'
+  const backendStatusDotClass = backendProbePending
+    ? 'bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.7)] animate-pulse'
+    : backendOnline
+      ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)] animate-pulse'
+      : 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.6)]'
+  const backendStatusTextClass = backendOnline ? 'text-[#00AE9D]' : backendProbePending ? 'text-amber-300' : 'text-rose-300'
 
   return (
     <div
@@ -495,7 +564,14 @@ export function AuthenticationCanvas() {
 
           <div className="flex-1 flex items-center justify-center py-10 relative z-10">
             {step === 'login' && (
-              <div key="login" className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <form
+                key="login"
+                className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void handleLogin()
+                }}
+              >
                 <div className="flex items-center gap-5">
                   <div className="w-1.5 h-12 bg-[#00AE9D] rounded-full shadow-[0_0_15px_rgba(0,174,157,0.5)]" />
                   <h1 className="text-3xl font-black text-white tracking-tight">Bem-vindo de volta.</h1>
@@ -521,7 +597,7 @@ export function AuthenticationCanvas() {
                   />
                 </div>
 
-                <PrimaryButton loading={isLoading} onClick={handleLogin} delay="600">
+                <PrimaryButton type="submit" loading={isLoading} disabled={!backendOnline || backendProbePending} delay="600">
                   EFETUAR LOGIN <ArrowRight size={18} />
                 </PrimaryButton>
 
@@ -529,19 +605,32 @@ export function AuthenticationCanvas() {
                   className="flex items-center justify-center gap-4 pt-2 text-[9px] font-black text-white/70 dark:text-white/60 uppercase tracking-widest animate-in fade-in duration-1000"
                   style={{ animationDelay: '800ms' }}
                 >
-                  <button onClick={() => setStep('forgot-password')} className="hover:text-[#00AE9D] transition-colors">
+                  <button type="button" onClick={() => setStep('forgot-password')} className="hover:text-[#00AE9D] transition-colors">
                     Esqueci minha senha
                   </button>
                   <span className="w-1 h-1 rounded-full bg-white/30 dark:bg-white/20" />
-                  <button className="hover:text-[#00AE9D] transition-colors">Suporte TI</button>
+                  <button type="button" className="hover:text-[#00AE9D] transition-colors">
+                    Suporte TI
+                  </button>
                 </div>
-              </div>
+              </form>
             )}
 
             {step === 'forgot-password' && (
-              <div key="forgot-password" className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <form
+                key="forgot-password"
+                className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void handleForgotPassword()
+                }}
+              >
                 <div className="flex items-center gap-5">
-                  <button onClick={() => setStep('login')} className="p-2 -ml-2 text-white hover:text-[#00AE9D] transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => setStep('login')}
+                    className="p-2 -ml-2 text-white hover:text-[#00AE9D] transition-colors"
+                  >
                     <ArrowLeft size={24} />
                   </button>
                   <h1 className="text-3xl font-black text-white tracking-tight">Recuperar Acesso</h1>
@@ -571,6 +660,7 @@ export function AuthenticationCanvas() {
 
                   <div className="flex items-center justify-center gap-4 pt-1 text-[9px] font-black text-white/70 uppercase tracking-widest">
                     <button
+                      type="button"
                       onClick={() => setResetFactor('totp')}
                       className={`${resetFactor === 'totp' ? 'text-[#00AE9D]' : 'hover:text-[#00AE9D]'} transition-colors`}
                     >
@@ -578,6 +668,7 @@ export function AuthenticationCanvas() {
                     </button>
                     <span className="w-1 h-1 rounded-full bg-white/30" />
                     <button
+                      type="button"
                       onClick={() => setResetFactor('recovery')}
                       className={`${resetFactor === 'recovery' ? 'text-[#00AE9D]' : 'hover:text-[#00AE9D]'} transition-colors`}
                     >
@@ -606,14 +697,19 @@ export function AuthenticationCanvas() {
                   )}
                 </div>
 
-                <PrimaryButton loading={isLoading} onClick={handleForgotPassword} delay="400">
+                <PrimaryButton
+                  type="submit"
+                  loading={isLoading}
+                  disabled={!backendOnline || backendProbePending}
+                  delay="400"
+                >
                   SOLICITAR NOVA SENHA <ArrowRight size={18} />
                 </PrimaryButton>
 
                 <p className="text-center text-[9px] font-black text-white/50 uppercase tracking-widest">
                   Protegido por Compliance Gate
                 </p>
-              </div>
+              </form>
             )}
 
             {step === 'setup' && (
@@ -666,7 +762,14 @@ export function AuthenticationCanvas() {
             )}
 
             {step === 'mfa' && (
-              <div key="mfa" className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <form
+                key="mfa"
+                className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void handleMfaComplete()
+                }}
+              >
                 <div className="text-center space-y-6">
                   <div className="inline-flex p-6 bg-[#00AE9D]/10 rounded-lg text-[#00AE9D] animate-in zoom-in duration-700 border border-[#00AE9D]/20">
                     <Lock size={40} className="animate-pulse" />
@@ -699,12 +802,13 @@ export function AuthenticationCanvas() {
                 )}
 
                 <div className="space-y-4">
-                  <PrimaryButton loading={isLoading} onClick={handleMfaComplete} delay="500">
+                  <PrimaryButton type="submit" loading={isLoading} disabled={!backendOnline || backendProbePending} delay="500">
                     {recoveryCodes.length > 0 ? 'CONTINUAR' : 'CONFIRMAR ACESSO'} <ShieldCheck size={18} />
                   </PrimaryButton>
 
                   <div className="flex justify-center">
                     <button
+                      type="button"
                       onClick={() => {
                         setStep('login')
                         setMfaCode('')
@@ -717,7 +821,7 @@ export function AuthenticationCanvas() {
                     </button>
                   </div>
                 </div>
-              </div>
+              </form>
             )}
 
             {step === 'success' && (
@@ -740,43 +844,21 @@ export function AuthenticationCanvas() {
           </div>
 
           <div className="relative z-10 animate-in fade-in duration-1000" style={{ animationDelay: '500ms' }}>
-            {displayMessage && (
-              <div className="mb-4 rounded-lg border border-white/30 bg-black/30 px-3 py-2 text-[10px] font-bold tracking-[0.8px] text-white">
-                {displayMessage}
-              </div>
-            )}
             {step === 'setup' && mfaSetup?.instructions && (
               <div className="mb-4 rounded-lg border border-[#00AE9D]/30 bg-[#00AE9D]/10 px-3 py-2 text-[10px] font-bold tracking-[0.8px] text-white/90">
                 {mfaSetup.instructions}
               </div>
             )}
-            <div className="h-px bg-white/20 dark:bg-white/10 w-full mb-8" />
-            <div className="flex justify-between items-center text-[10px] font-black text-white uppercase tracking-[1.5px]">
-              <div className="flex flex-col gap-1.5">
-                <span>Sicoob Buritis</span>
-                <span className="opacity-60 text-[9px] tracking-[0.5px]">RO • BRASIL</span>
-              </div>
-              <div className="flex flex-col items-end gap-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)] animate-pulse" />
-                  <span className="text-[#00AE9D] font-black tracking-widest">ONLINE</span>
-                </div>
+            <div className="flex justify-end items-center text-[10px] font-black uppercase tracking-[1.5px]">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${backendStatusDotClass}`} />
+                <span className={`${backendStatusTextClass} font-black tracking-widest`}>{backendStatusLabel}</span>
               </div>
             </div>
           </div>
         </aside>
 
-        <main className="hidden lg:block flex-1 relative h-full">
-          <div
-            className="absolute bottom-10 right-10 z-20 animate-in fade-in slide-in-from-right-8 duration-1000"
-            style={{ animationDelay: '1000ms' }}
-          >
-            <div className="flex items-center gap-4 text-white/50 hover:text-white transition-all cursor-pointer group bg-black/40 backdrop-blur-xl px-5 py-3 rounded-lg border border-white/10 hover:border-white/20">
-              <span className="text-[10px] font-black tracking-[2px] uppercase">Política de Segurança</span>
-              <ChevronRight size={14} className="group-hover:translate-x-1.5 transition-transform" />
-            </div>
-          </div>
-        </main>
+        <main className="hidden lg:block flex-1 relative h-full" />
       </div>
 
       {isQrExpanded && mfaSetup && (
@@ -835,4 +917,22 @@ function extractSecretFromOtpauth(otpauthUrl: string): string {
   } catch {
     return ''
   }
+}
+
+function mapAuthErrorMessage(message: string): string {
+  const normalized = message.toLowerCase().trim()
+
+  if (normalized.includes('temporarily locked')) {
+    return 'Conta temporariamente bloqueada por tentativas inválidas. Aguarde alguns minutos antes de tentar novamente.'
+  }
+
+  if (normalized.includes('invalid credentials')) {
+    return 'Usuário ou senha inválidos.'
+  }
+
+  if (normalized.includes('network error')) {
+    return 'Falha de rede ao alcançar o backend.'
+  }
+
+  return message.replace(/\s+/g, ' ').trim().slice(0, 220)
 }

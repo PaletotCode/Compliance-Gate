@@ -1,5 +1,5 @@
-import logging
 import hmac
+import logging
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -7,17 +7,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from compliance_gate.authentication.config import auth_settings
+from compliance_gate.authentication.http import routes as auth_routes
 from compliance_gate.authentication.http.cookies import (
     ensure_csrf_cookie,
     is_csrf_exempt_path,
     is_state_changing_method,
 )
-from compliance_gate.authentication.http import routes as auth_routes
 from compliance_gate.authentication.services.users_service import UsersService
 from compliance_gate.config.constants import API_PREFIX
 from compliance_gate.config.logging import setup_logging
 from compliance_gate.config.settings import settings
 from compliance_gate.Engine.interfaces.api import router as engine_router
+from compliance_gate.Engine.interfaces.declarative_api import router as declarative_engine_router
+from compliance_gate.Engine.interfaces.rulesets_api import router as rulesets_engine_router
 from compliance_gate.http.errors import setup_exception_handlers
 from compliance_gate.http.routes import (
     csv_tabs,
@@ -89,6 +91,8 @@ def create_app() -> FastAPI:
     app.include_router(workspace_uploads.router, prefix=API_PREFIX)
     app.include_router(auth_routes.router, prefix=API_PREFIX)
     app.include_router(engine_router, prefix=API_PREFIX)
+    app.include_router(declarative_engine_router, prefix=API_PREFIX)
+    app.include_router(rulesets_engine_router, prefix=API_PREFIX)
 
     @app.on_event("startup")
     def _bootstrap_admin() -> None:
@@ -102,6 +106,7 @@ def create_app() -> FastAPI:
             db.close()
 
     return app
+
 
 app = create_app()
 

@@ -135,3 +135,5 @@ export type MachinesGridState = {
   search_query: string
   is_exporting: boolean
 }
+
+export type MaterializedGridLikeRow = MachineTableRow | Record<string, unknown>
