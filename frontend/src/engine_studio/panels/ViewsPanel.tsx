@@ -51,6 +51,8 @@ type FormState = {
   payload_json: string
 }
 
+const DEFAULT_VIEW_ROW_LIMIT = 5_000
+
 function buildDefaultPayload(catalog: EngineCatalogSnapshot | null): Record<string, unknown> {
   const datasetVersionId = catalog?.dataset_version_id || 'dataset-version-id'
   const columns = (catalog?.columns ?? []).slice(0, 40).map((column) => ({
@@ -73,7 +75,7 @@ function buildDefaultPayload(catalog: EngineCatalogSnapshot | null): Record<stri
       column_name: 'hostname',
       direction: 'asc',
     },
-    row_limit: 100000,
+    row_limit: DEFAULT_VIEW_ROW_LIMIT,
   }
 }
 

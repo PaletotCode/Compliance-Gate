@@ -285,9 +285,8 @@ function deriveWorkflowStatus(runtime: SourceRuntimeState): SourceWorkflowStatus
   }
 
   const parsedHasRows = (runtime.parsed_preview?.sample_rows.length ?? 0) > 0
-  const parsedHasWarnings = (runtime.parsed_preview?.warnings.length ?? 0) > 0
 
-  if (runtime.is_default_for_source && parsedHasRows && !parsedHasWarnings) {
+  if (runtime.is_default_for_source && parsedHasRows) {
     return 'ready'
   }
 
@@ -497,6 +496,38 @@ export const mainViewStore = create<MainViewStore>()((set, get) => ({
     )
 
     await get().refreshRawPreview(sourceId)
+
+    const runtimeAfterRaw = get().sourceStates[sourceId]
+    if (!runtimeAfterRaw.profile_id) {
+      return
+    }
+
+    const parsed = await previewParsed({
+      source: sourceId,
+      profile_id: runtimeAfterRaw.profile_id,
+      ...getPreviewContext(),
+    })
+
+    if (parsed.status !== 'ok') {
+      throw new Error(parsed.error || 'Falha ao validar parse do perfil.')
+    }
+
+    set((state) =>
+      patchSourceState(state, sourceId, (current) => {
+        const next: SourceRuntimeState = {
+          ...current,
+          parsed_preview: {
+            sample_rows: parsed.sample_rows,
+            warnings: parsed.warnings,
+          },
+        }
+
+        return {
+          ...next,
+          status: deriveWorkflowStatus(next),
+        }
+      }),
+    )
   },
 
   refreshRawPreview: async (sourceId) => {

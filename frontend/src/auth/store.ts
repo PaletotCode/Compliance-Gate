@@ -140,7 +140,7 @@ export const authStore = create<AuthStore>()((set, get) => {
       if (get().user) return get().user
       try {
         return await get().fetchMe()
-      } catch (error) {
+      } catch {
         set((state) => ({
           ...state,
           user: null,

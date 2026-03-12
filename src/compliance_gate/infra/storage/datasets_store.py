@@ -67,6 +67,7 @@ def create_dataset_version(
     source_type: str = "machines",
     data_dir: Optional[str] = None,
     profile_ids_map: Optional[dict[str, str]] = None,
+    profile_payloads_map: Optional[dict[str, dict]] = None,
     actor: str = "system",
 ) -> DatasetVersion:
     """Create a new DatasetVersion in 'pending' status."""
@@ -78,6 +79,7 @@ def create_dataset_version(
         status="pending",
         data_dir=data_dir,
         used_profile_ids=json.dumps(profile_ids_map or {}),
+        used_profile_payloads=json.dumps(profile_payloads_map or {}, ensure_ascii=False),
     )
     db.add(version)
     db.flush()

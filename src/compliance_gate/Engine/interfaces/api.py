@@ -16,7 +16,8 @@ from compliance_gate.authentication.models import Role, User
 from compliance_gate.domains.machines.schemas import MachineItemSchema
 from compliance_gate.Engine.catalog.machines_final import get_machines_final_catalog
 from compliance_gate.Engine.catalog.schemas import MachinesFinalCatalogSnapshot
-from compliance_gate.Engine.errors import DeclarativeEngineError, GuardrailViolation
+from compliance_gate.Engine.errors import DeclarativeEngineError
+from compliance_gate.Engine.interfaces.error_http import raise_declarative_http
 from compliance_gate.Engine.materialization.materialize_machines import materialize_machines_spine
 from compliance_gate.Engine.models import EngineArtifact
 from compliance_gate.Engine.reports.definitions import ReportRequest
@@ -62,17 +63,6 @@ class ReportRunResponse(BaseModel):
     query: str
     row_count: int
     data: list[dict[str, Any]]
-
-
-def _declarative_error_status_code(exc: DeclarativeEngineError) -> int:
-    reason = exc.details.get("reason")
-    if reason in {"artifact_not_found", "artifact_missing_on_disk", "ruleset_not_found"}:
-        return 404
-    if reason in {"no_published_version"}:
-        return 409
-    if isinstance(exc, GuardrailViolation):
-        return 422
-    return 400
 
 
 def _apply_materialized_filters(
@@ -260,7 +250,12 @@ def get_materialized_catalog(
         )
         return ApiResponse(data=snapshot)
     except DeclarativeEngineError as exc:
-        raise HTTPException(status_code=_declarative_error_status_code(exc), detail=exc.to_dict()) from exc
+        raise_declarative_http(
+            exc,
+            not_found_reasons={"artifact_not_found", "artifact_missing_on_disk", "ruleset_not_found"},
+            explicit_reason_status={"no_published_version": 409},
+            guardrail_status=422,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
@@ -296,10 +291,12 @@ def materialize_machines(
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except DeclarativeEngineError as exc:
-        raise HTTPException(
-            status_code=_declarative_error_status_code(exc),
-            detail=exc.to_dict(),
-        ) from exc
+        raise_declarative_http(
+            exc,
+            not_found_reasons={"artifact_not_found", "artifact_missing_on_disk", "ruleset_not_found"},
+            explicit_reason_status={"no_published_version": 409},
+            guardrail_status=422,
+        )
     except Exception as exc:
         log.error("engine materialize failed: %s", exc)
         raise HTTPException(status_code=500, detail="engine materialize failed") from exc

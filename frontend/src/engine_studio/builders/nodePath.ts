@@ -7,12 +7,12 @@ function parsePath(path: string): Array<string | number> {
 
   const parts = normalized.split('.')
   parts.forEach((part) => {
-    const keyMatch = part.match(/^[^\[]+/)
+    const keyMatch = part.match(/^[^[]+/)
     if (keyMatch?.[0]) {
       tokens.push(keyMatch[0])
     }
 
-    const indices = part.match(/\[(\d+)\]/g)
+    const indices = part.match(/\[(\d+)]/g)
     indices?.forEach((indexToken) => {
       const value = Number(indexToken.slice(1, -1))
       if (Number.isInteger(value)) {

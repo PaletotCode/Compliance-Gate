@@ -67,6 +67,7 @@ class DatasetVersion(TimestampMixin, Base):
     source_type = Column(String(32), nullable=False, default="machines")
     status = Column(String(16), nullable=False, default="pending")
     used_profile_ids = Column(Text, nullable=True)                        # dict mapping source -> CsvTabProfile.id
+    used_profile_payloads = Column(Text, nullable=True)                   # dict mapping source -> frozen CsvTabConfig payload
     data_dir = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
 
@@ -248,5 +249,8 @@ class WorkspaceUploadFile(TimestampMixin, Base):
     file_size_bytes = Column(Integer, nullable=True)
     detected_encoding = Column(String(32), nullable=True)
     validation_warnings = Column(Text, nullable=True)
+    draft_config_json = Column(Text, nullable=True)
+    draft_profile_id = Column(String(36), nullable=True)
+    draft_profile_version = Column(Integer, nullable=True)
 
     session = relationship("WorkspaceUploadSession", back_populates="files")

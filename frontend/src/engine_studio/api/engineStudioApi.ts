@@ -1,4 +1,5 @@
 import { api } from '@/api/client'
+import { unwrapApiEnvelope, type ApiEnvelope } from '@/api/envelope'
 import type {
   ClassificationDivergenceRecord,
   ClassificationModeState,
@@ -27,15 +28,6 @@ import type {
   ViewSortSpec,
 } from '@/engine_studio/types'
 
-type ApiEnvelope<T> = T | { data: T; success?: boolean }
-
-function unwrap<T>(payload: ApiEnvelope<T>): T {
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    return payload.data
-  }
-  return payload as T
-}
-
 export async function getEngineCatalog(
   datasetVersionId: string,
   sampleSize = 10,
@@ -46,12 +38,12 @@ export async function getEngineCatalog(
       sample_size: sampleSize,
     },
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listTransformations(): Promise<TransformationRecord[]> {
   const { data } = await api.get<ApiEnvelope<TransformationRecord[]>>('/api/v1/engine/transformations')
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function createTransformation(input: {
@@ -62,7 +54,7 @@ export async function createTransformation(input: {
   output_type: TransformationOutputType
 }): Promise<TransformationRecord> {
   const { data } = await api.post<ApiEnvelope<TransformationRecord>>('/api/v1/engine/transformations', input)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function updateTransformation(
@@ -79,17 +71,17 @@ export async function updateTransformation(
     `/api/v1/engine/transformations/${transformationId}`,
     input,
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listSegmentTemplates(): Promise<SegmentTemplate[]> {
   const { data } = await api.get<ApiEnvelope<SegmentTemplate[]>>('/api/v1/engine/segments/templates')
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listSegments(): Promise<SegmentRecord[]> {
   const { data } = await api.get<ApiEnvelope<SegmentRecord[]>>('/api/v1/engine/segments')
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function createSegment(input: {
@@ -98,7 +90,7 @@ export async function createSegment(input: {
   filter_expression: JsonRecord
 }): Promise<SegmentRecord> {
   const { data } = await api.post<ApiEnvelope<SegmentRecord>>('/api/v1/engine/segments', input)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function createSegmentFromTemplate(input: {
@@ -110,7 +102,7 @@ export async function createSegmentFromTemplate(input: {
     '/api/v1/engine/segments/from-template',
     input,
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function updateSegment(
@@ -122,7 +114,7 @@ export async function updateSegment(
   },
 ): Promise<SegmentRecord> {
   const { data } = await api.put<ApiEnvelope<SegmentRecord>>(`/api/v1/engine/segments/${segmentId}`, input)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function previewSegment(input: {
@@ -144,12 +136,12 @@ export async function previewSegment(input: {
       },
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listViews(): Promise<ViewRecord[]> {
   const { data } = await api.get<ApiEnvelope<ViewRecord[]>>('/api/v1/engine/views')
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function createView(input: {
@@ -158,7 +150,7 @@ export async function createView(input: {
   payload: ViewPayload
 }): Promise<ViewRecord> {
   const { data } = await api.post<ApiEnvelope<ViewRecord>>('/api/v1/engine/views', input)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function updateView(
@@ -170,7 +162,7 @@ export async function updateView(
   },
 ): Promise<ViewRecord> {
   const { data } = await api.put<ApiEnvelope<ViewRecord>>(`/api/v1/engine/views/${viewId}`, input)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function previewView(input: {
@@ -192,7 +184,7 @@ export async function previewView(input: {
       },
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function runView(input: {
@@ -218,19 +210,19 @@ export async function runView(input: {
       },
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listRuleSets(includeArchived = false): Promise<RuleSetRecord[]> {
   const { data } = await api.get<ApiEnvelope<RuleSetRecord[]>>('/api/v1/engine/rulesets', {
     params: { include_archived: includeArchived },
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function getRuleSet(rulesetId: string): Promise<RuleSetDetailRecord> {
   const { data } = await api.get<ApiEnvelope<RuleSetDetailRecord>>(`/api/v1/engine/rulesets/${rulesetId}`)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function createRuleSet(input: {
@@ -239,7 +231,7 @@ export async function createRuleSet(input: {
   payload: RuleSetPayloadV2
 }): Promise<RuleSetRecord> {
   const { data } = await api.post<ApiEnvelope<RuleSetRecord>>('/api/v1/engine/rulesets', input)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function updateRuleSet(
@@ -250,12 +242,12 @@ export async function updateRuleSet(
   },
 ): Promise<RuleSetRecord> {
   const { data } = await api.put<ApiEnvelope<RuleSetRecord>>(`/api/v1/engine/rulesets/${rulesetId}`, input)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function archiveRuleSet(rulesetId: string): Promise<RuleSetRecord> {
   const { data } = await api.delete<ApiEnvelope<RuleSetRecord>>(`/api/v1/engine/rulesets/${rulesetId}`)
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listRuleSetVersions(rulesetId: string): Promise<RuleSetVersionRecord[]> {
@@ -267,7 +259,7 @@ export async function listRuleSetVersions(rulesetId: string): Promise<RuleSetVer
       },
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function createRuleSetVersion(input: {
@@ -282,7 +274,7 @@ export async function createRuleSetVersion(input: {
       payload: input.payload,
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function updateRuleSetVersion(input: {
@@ -296,7 +288,7 @@ export async function updateRuleSetVersion(input: {
       payload: input.payload,
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function validateRuleSetVersion(input: {
@@ -310,7 +302,7 @@ export async function validateRuleSetVersion(input: {
       column_types: input.column_types,
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function publishRuleSetVersion(input: {
@@ -320,7 +312,7 @@ export async function publishRuleSetVersion(input: {
   const { data } = await api.post<ApiEnvelope<RuleSetVersionRecord>>(
     `/api/v1/engine/rulesets/${input.ruleset_id}/versions/${input.version}/publish`,
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function rollbackRuleSet(input: {
@@ -333,7 +325,7 @@ export async function rollbackRuleSet(input: {
       target_version: input.target_version,
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function validateRuleSetPayload(input: {
@@ -344,7 +336,7 @@ export async function validateRuleSetPayload(input: {
     payload: input.payload,
     column_types: input.column_types ?? {},
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function explainRuleSetRow(input: {
@@ -359,7 +351,7 @@ export async function explainRuleSetRow(input: {
     ruleset_name: input.ruleset_name,
     version: input.version,
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function explainRuleSetSample(input: {
@@ -376,7 +368,7 @@ export async function explainRuleSetSample(input: {
     ruleset_name: input.ruleset_name,
     version: input.version,
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function dryRunRuleSet(input: {
@@ -395,12 +387,12 @@ export async function dryRunRuleSet(input: {
     ruleset_name: input.ruleset_name,
     version: input.version,
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function getClassificationMode(): Promise<ClassificationModeState> {
   const { data } = await api.get<ApiEnvelope<ClassificationModeState>>('/api/v1/engine/classification/mode')
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function setClassificationMode(input: {
@@ -411,7 +403,7 @@ export async function setClassificationMode(input: {
     mode: input.mode,
     ruleset_name: input.ruleset_name ?? null,
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listClassificationDivergences(input?: {
@@ -427,7 +419,7 @@ export async function listClassificationDivergences(input?: {
       },
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listClassificationMetrics(input?: {
@@ -443,5 +435,5 @@ export async function listClassificationMetrics(input?: {
       },
     },
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }

@@ -1,4 +1,5 @@
 import { api } from '@/api/client'
+import { unwrapApiEnvelope, type ApiEnvelope } from '@/api/envelope'
 import { ApiError } from '@/api/types'
 import type {
   DatasetsIngestRequest,
@@ -14,15 +15,6 @@ import type {
   ReportRunRequest,
   ReportRunResponse,
 } from '@/main_view/api/schemas'
-
-type MaybeEnvelope<T> = T | { data: T; success?: boolean }
-
-function unwrap<T>(payload: MaybeEnvelope<T>): T {
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    return payload.data
-  }
-  return payload as T
-}
 
 function buildMachinesParams(query: MachineTableQuery): URLSearchParams {
   const params = new URLSearchParams()
@@ -53,7 +45,7 @@ export async function ingestDatasetMachines(payload: DatasetsIngestRequest): Pro
 export async function materializeMachines(
   datasetVersionId: string,
 ): Promise<MaterializeMachinesResponse> {
-  const { data } = await api.post<MaybeEnvelope<MaterializeMachinesResponse>>(
+  const { data } = await api.post<ApiEnvelope<MaterializeMachinesResponse>>(
     '/api/v1/engine/materialize/machines',
     undefined,
     {
@@ -63,30 +55,30 @@ export async function materializeMachines(
     },
   )
 
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 async function fetchMachinesTableFromEngine(
   query: MachineTableQuery,
 ): Promise<PaginatedPayload<MachineItem>> {
-  const { data } = await api.get<MaybeEnvelope<PaginatedPayload<MachineItem>>>(
+  const { data } = await api.get<ApiEnvelope<PaginatedPayload<MachineItem>>>(
     '/api/v1/engine/tables/machines',
     {
       params: buildMachinesParams(query),
     },
   )
 
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 async function fetchMachinesTableFromMachines(
   query: MachineTableQuery,
 ): Promise<PaginatedPayload<MachineItem>> {
-  const { data } = await api.get<MaybeEnvelope<PaginatedPayload<MachineItem>>>('/api/v1/machines/table', {
+  const { data } = await api.get<ApiEnvelope<PaginatedPayload<MachineItem>>>('/api/v1/machines/table', {
     params: buildMachinesParams(query),
   })
 
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function fetchMachinesTable(query: MachineTableQuery): Promise<PaginatedPayload<MachineItem>> {
@@ -110,29 +102,29 @@ export async function fetchMachinesSummary(
   query.statuses?.forEach((status) => params.append('statuses', status))
   query.flags?.forEach((flag) => params.append('flags', flag))
 
-  const { data } = await api.get<MaybeEnvelope<MachineSummary>>('/api/v1/machines/summary', {
+  const { data } = await api.get<ApiEnvelope<MachineSummary>>('/api/v1/machines/summary', {
     params,
   })
 
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function fetchMachinesFilters(): Promise<FilterDefinition[]> {
-  const { data } = await api.get<MaybeEnvelope<FilterDefinition[]>>('/api/v1/machines/filters')
-  return unwrap(data)
+  const { data } = await api.get<ApiEnvelope<FilterDefinition[]>>('/api/v1/machines/filters')
+  return unwrapApiEnvelope(data)
 }
 
 export async function runMachinesReport(
   datasetVersionId: string,
   payload: ReportRunRequest,
 ): Promise<ReportRunResponse> {
-  const { data } = await api.post<MaybeEnvelope<ReportRunResponse>>('/api/v1/engine/reports/run', payload, {
+  const { data } = await api.post<ApiEnvelope<ReportRunResponse>>('/api/v1/engine/reports/run', payload, {
     params: {
       dataset_version_id: datasetVersionId,
     },
   })
 
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export function exportRowsAsCsv(rows: Array<Record<string, unknown>>, filename: string): void {
@@ -150,8 +142,8 @@ export function exportRowsAsCsv(rows: Array<Record<string, unknown>>, filename: 
       .map((header) => {
         const raw = row[header]
         const value = Array.isArray(raw) ? raw.join('|') : raw
-        const normalized = String(value ?? '').replace(/\"/g, '\"\"')
-        return `\"${normalized}\"`
+        const normalized = String(value ?? '').replace(/"/g, '""')
+        return `"${normalized}"`
       })
       .join(','),
   )

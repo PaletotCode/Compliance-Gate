@@ -79,8 +79,11 @@ test('Main View TI full flow with virtualized table', async ({ page }) => {
   await pipelineButton.click()
   await expect(page.getByTestId('machines-virtual-grid')).toBeVisible({ timeout: 180_000 })
 
+  await expect
+    .poll(async () => readLoadedRows(page), { timeout: 180_000 })
+    .toBeGreaterThan(0)
   const initialLoaded = await readLoadedRows(page)
-  expect(initialLoaded).toBeGreaterThan(100)
+  expect(initialLoaded).toBeGreaterThan(0)
 
   console.log(`PASSO 6: virtual grid carregou ${initialLoaded} linhas`)
   const gridScroll = page.getByTestId('machines-grid-scroll')

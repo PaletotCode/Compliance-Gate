@@ -12,6 +12,7 @@ from typing import Optional
 from sqlalchemy import text
 from sqlalchemy.orm import Session, joinedload
 
+from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabDraftConfig
 from compliance_gate.infra.db.models import (
     AuditLog,
     WorkspaceUploadFile,
@@ -73,6 +74,69 @@ def register_upload_file(
     db.add(row)
     db.flush()
     return row
+
+
+def _get_session_file(db: Session, *, session_id: str, source: str) -> WorkspaceUploadFile | None:
+    return (
+        db.query(WorkspaceUploadFile)
+        .filter(
+            WorkspaceUploadFile.session_id == session_id,
+            WorkspaceUploadFile.source == source,
+        )
+        .first()
+    )
+
+
+def upsert_draft_config(
+    db: Session,
+    *,
+    session_id: str,
+    source: str,
+    draft: CsvTabDraftConfig,
+    profile_id: str | None = None,
+    profile_version: int | None = None,
+) -> WorkspaceUploadFile:
+    row = _get_session_file(db, session_id=session_id, source=source)
+    if row is None:
+        raise ValueError(f"upload file not found for source={source}")
+
+    row.draft_config_json = json.dumps(
+        draft.model_dump(exclude_none=True),
+        ensure_ascii=False,
+    )
+    row.draft_profile_id = profile_id
+    row.draft_profile_version = profile_version
+    db.flush()
+    return row
+
+
+def clear_draft_config(db: Session, *, session_id: str, source: str) -> WorkspaceUploadFile:
+    row = _get_session_file(db, session_id=session_id, source=source)
+    if row is None:
+        raise ValueError(f"upload file not found for source={source}")
+    row.draft_config_json = None
+    row.draft_profile_id = None
+    row.draft_profile_version = None
+    db.flush()
+    return row
+
+
+def get_draft_configs(db: Session, *, session_id: str) -> dict[str, CsvTabDraftConfig]:
+    rows = (
+        db.query(WorkspaceUploadFile)
+        .filter(WorkspaceUploadFile.session_id == session_id)
+        .all()
+    )
+    out: dict[str, CsvTabDraftConfig] = {}
+    for row in rows:
+        if not row.draft_config_json:
+            continue
+        try:
+            payload = json.loads(row.draft_config_json)
+            out[row.source] = CsvTabDraftConfig.model_validate(payload)
+        except Exception:
+            continue
+    return out
 
 
 def finalize_upload_session(

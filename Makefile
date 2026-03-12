@@ -1,6 +1,6 @@
 # Compliance Gate - Automation Makefile
 
-.PHONY: help install dev backend-dev backend-up backend-down frontend-dev frontend-electron fullstack stop clean verify verify-all test auth-check
+.PHONY: help install dev backend-dev backend-up backend-down backend-reset frontend-dev frontend-electron fullstack stop clean verify verify-all test auth-check
 
 # Default help command
 help:
@@ -8,7 +8,8 @@ help:
 	@echo "  make install         - Install backend dependencies"
 	@echo "  make backend-dev     - Run backend with local .venv (uvicorn)"
 	@echo "  make backend-up      - Start backend stack via docker compose (db/redis/api)"
-	@echo "  make backend-down    - Stop backend stack via docker compose"
+	@echo "  make backend-down    - Stop backend stack via docker compose (preserve data volumes)"
+	@echo "  make backend-reset   - Stop backend stack and remove Docker volumes (destructive)"
 	@echo "  make frontend-dev    - Run frontend Vite dev server"
 	@echo "  make frontend-electron - Run frontend inside Electron (desktop app)"
 	@echo "  make fullstack       - Start backend stack and then frontend dev server"
@@ -41,6 +42,10 @@ backend-up:
 
 backend-down:
 	@echo "Stopping backend stack..."
+	docker compose down --remove-orphans
+
+backend-reset:
+	@echo "Resetting backend stack and Docker volumes (destructive)..."
 	docker compose down -v --remove-orphans
 
 frontend-dev:
@@ -63,7 +68,7 @@ stop:
 	@pkill -f "uvicorn compliance_gate.main:app" || true
 	@pkill -f "vite --configLoader runner" || true
 	@pkill -f "electron .*frontend" || true
-	@docker compose down -v --remove-orphans || true
+	@docker compose down --remove-orphans || true
 	@echo "Processes stopped."
 
 # --- Utilities ---

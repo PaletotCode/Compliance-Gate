@@ -27,7 +27,7 @@ class AuthSettings(BaseSettings):
 
     # MFA/TOTP
     auth_mfa_issuer: str = "Compliance Gate"
-    auth_mfa_setup_ttl_seconds: int = 600
+    auth_mfa_setup_ttl_seconds: int = 1800
     auth_login_challenge_ttl_seconds: int = 300
 
     # Recovery codes / secret protection

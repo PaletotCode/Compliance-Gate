@@ -118,16 +118,15 @@ type MfaCodeInputProps = {
 }
 
 function MfaCodeInput({ value, onChange, onComplete, delay = '0' }: MfaCodeInputProps) {
-  const [code, setCode] = useState<string[]>(['', '', '', '', '', ''])
   const inputs = useRef<Array<HTMLInputElement | null>>([])
 
-  useEffect(() => {
-    const next = ['', '', '', '', '', '']
+  const code = useMemo(() => {
+    const digits = ['', '', '', '', '', '']
     const normalized = value.replace(/\D/g, '').slice(0, 6)
     for (let index = 0; index < normalized.length; index += 1) {
-      next[index] = normalized[index]
+      digits[index] = normalized[index]
     }
-    setCode(next)
+    return digits
   }, [value])
 
   const handleChange = (index: number, rawValue: string) => {
@@ -135,7 +134,6 @@ function MfaCodeInput({ value, onChange, onComplete, delay = '0' }: MfaCodeInput
 
     const newCode = [...code]
     newCode[index] = rawValue.substring(rawValue.length - 1)
-    setCode(newCode)
 
     if (rawValue && index < 5) {
       inputs.current[index + 1]?.focus()
@@ -209,7 +207,7 @@ type CanvasStep = 'login' | 'forgot-password' | 'setup' | 'mfa' | 'success'
 type MfaPurpose = 'loginChallenge' | 'setupConfirm' | null
 
 export function AuthenticationCanvas() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => getInitialTheme())
   const [step, setStep] = useState<CanvasStep>('login')
   const [isQrExpanded, setIsQrExpanded] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -268,6 +266,12 @@ export function AuthenticationCanvas() {
   )
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.document.documentElement.classList.toggle('dark', theme === 'dark')
+    window.localStorage.setItem('cg-auth-theme', theme)
+  }, [theme])
+
+  useEffect(() => {
     if (!isQrExpanded) return
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -280,7 +284,8 @@ export function AuthenticationCanvas() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [isQrExpanded])
 
-  const setupSecret = useMemo(() => extractSecretFromOtpauth(mfaSetup?.otpauth_url ?? ''), [mfaSetup?.otpauth_url])
+  const setupSecretRaw = useMemo(() => extractRawSecretFromOtpauth(mfaSetup?.otpauth_url ?? ''), [mfaSetup?.otpauth_url])
+  const setupSecretDisplay = useMemo(() => formatSecretForDisplay(setupSecretRaw), [setupSecretRaw])
 
   const notify = useCallback(
     (
@@ -394,7 +399,9 @@ export function AuthenticationCanvas() {
       setMfaCode('')
       setMfaPurpose('setupConfirm')
       setStep('setup')
-    } catch {}
+    } catch (error) {
+      void error
+    }
   }
 
   const handleForgotPassword = async () => {
@@ -437,12 +444,33 @@ export function AuthenticationCanvas() {
       setLoginForm((current) => ({ ...current, username: forgotForm.username }))
       notify(response.message || 'Senha redefinida com sucesso.', 'success', 'Senha atualizada')
       setStep('login')
-    } catch {}
+    } catch (error) {
+      void error
+    }
   }
 
   const handleSetupComplete = () => {
     clearError()
     setStep('mfa')
+  }
+
+  const handleRegenerateSetup = async () => {
+    clearError()
+    if (!backendOnline) {
+      notify('Backend indisponível. Verifique o serviço e tente novamente.', 'warning', 'Offline')
+      return
+    }
+    try {
+      const setup = await beginMfaSetup()
+      setMfaSetup(setup)
+      setMfaCode('')
+      setRecoveryCodes([])
+      setMfaPurpose('setupConfirm')
+      setStep('setup')
+      notify('Novo QR Code gerado com sucesso.', 'info', 'Atualizado')
+    } catch (error) {
+      void error
+    }
   }
 
   const handleMfaComplete = async () => {
@@ -492,7 +520,14 @@ export function AuthenticationCanvas() {
         setRecoveryCodes(response.recovery_codes)
         notify('MFA confirmado. Copie os recovery codes antes de continuar.', 'success', 'Dispositivo vinculado', 5200)
       }
-    } catch {}
+    } catch (error) {
+      const message = error instanceof Error ? error.message.toLowerCase() : ''
+      if (mfaPurpose === 'setupConfirm' && message.includes('setup not found or expired')) {
+        notify('A sessão do QR expirou. Gere um novo QR Code e tente novamente.', 'warning', 'Sessão expirada')
+        void handleRegenerateSetup()
+      }
+      void error
+    }
   }
 
   const handleCopy = async (value: string, successMessage: string) => {
@@ -721,20 +756,22 @@ export function AuthenticationCanvas() {
                   </p>
                 </div>
 
-                <div className="relative group mx-auto w-44 h-44 p-3 bg-white/95 dark:bg-white/10 backdrop-blur-md rounded-lg border-2 border-[#00AE9D]/30 shadow-xl flex items-center justify-center animate-in zoom-in duration-700">
-                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#00AE9D_1px,transparent_1px)] [background-size:8px_8px] rounded-lg" />
-                  {mfaSetup ? (
-                    <img
-                      src={`data:image/png;base64,${mfaSetup.qr_code_base64_png}`}
-                      alt="QR Code MFA"
-                      className="relative z-10 w-32 h-32 rounded-md cursor-zoom-in transition-transform hover:scale-105"
-                      onClick={() => setIsQrExpanded(true)}
-                    />
-                  ) : (
-                    <QrCode size={100} className="text-[#00AE9D] relative z-10" />
-                  )}
-                  <div className="absolute -top-2 -right-2 bg-[#00AE9D] text-white p-1 rounded-md shadow-lg">
-                    <Smartphone size={14} />
+                <div className="relative group mx-auto w-[228px] sm:w-[252px] aspect-square rounded-2xl bg-gradient-to-br from-[#00AE9D]/55 via-cyan-300/20 to-white/25 p-[10px] shadow-[0_24px_80px_rgba(0,174,157,0.35)] animate-in zoom-in duration-700">
+                  <div className="relative h-full w-full rounded-xl border border-white/45 dark:border-[#00AE9D]/30 bg-white/92 dark:bg-slate-900/86 backdrop-blur-lg flex items-center justify-center overflow-hidden">
+                    <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#00AE9D_1px,transparent_1px)] [background-size:8px_8px]" />
+                    {mfaSetup ? (
+                      <img
+                        src={`data:image/png;base64,${mfaSetup.qr_code_base64_png}`}
+                        alt="QR Code MFA"
+                        className="relative z-10 h-[88%] w-[88%] object-contain aspect-square rounded-lg bg-white p-2 cursor-zoom-in transition-transform duration-300 group-hover:scale-[1.02] shadow-[0_14px_34px_rgba(0,0,0,0.28)]"
+                        onClick={() => setIsQrExpanded(true)}
+                      />
+                    ) : (
+                      <QrCode size={128} className="text-[#00AE9D] relative z-10" />
+                    )}
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-[#00AE9D] text-white p-1.5 rounded-md shadow-lg">
+                    <Smartphone size={16} />
                   </div>
                 </div>
 
@@ -743,11 +780,11 @@ export function AuthenticationCanvas() {
                     <div className="flex flex-col">
                       <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Chave Secreta</span>
                       <span className="text-xs font-mono font-bold text-white tracking-widest uppercase">
-                        {setupSecret || 'SICOOB-G8-F2-99'}
+                        {setupSecretDisplay || 'SICOOB-G8-F2-99'}
                       </span>
                     </div>
                     <button
-                      onClick={() => handleCopy(mfaSetup?.otpauth_url ?? '', 'Link otpauth copiado.')}
+                      onClick={() => handleCopy(setupSecretRaw || mfaSetup?.otpauth_url || '', 'Chave secreta copiada.')}
                       className="p-2 text-white hover:text-[#00AE9D] transition-colors"
                     >
                       <Copy size={16} />
@@ -757,6 +794,13 @@ export function AuthenticationCanvas() {
                   <PrimaryButton loading={isLoading} onClick={handleSetupComplete} disabled={!mfaSetup}>
                     ATIVAR DISPOSITIVO <CheckCircle2 size={18} />
                   </PrimaryButton>
+                  <button
+                    type="button"
+                    onClick={() => void handleRegenerateSetup()}
+                    className="w-full h-10 text-[10px] font-black text-white/70 hover:text-[#00AE9D] transition-colors uppercase tracking-[2px]"
+                  >
+                    Gerar novo QR Code
+                  </button>
                 </div>
               </div>
             )}
@@ -873,12 +917,18 @@ export function AuthenticationCanvas() {
           >
             Fechar
           </button>
-          <img
-            src={`data:image/png;base64,${mfaSetup.qr_code_base64_png}`}
-            alt="QR Code MFA em tela cheia"
-            className="w-[min(92vw,980px)] h-auto max-h-[92vh] rounded-xl border-4 border-white/90 bg-white p-3 shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
+          <div
+            className="relative w-[min(94vw,860px)] aspect-square max-h-[90vh] rounded-[30px] bg-gradient-to-br from-[#00AE9D]/60 via-[#00AE9D]/25 to-white/30 p-3 shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
             onClick={(event) => event.stopPropagation()}
-          />
+          >
+            <div className="h-full w-full rounded-[24px] border border-white/60 bg-white p-5 md:p-7 flex items-center justify-center">
+              <img
+                src={`data:image/png;base64,${mfaSetup.qr_code_base64_png}`}
+                alt="QR Code MFA em tela cheia"
+                className="w-full h-full object-contain aspect-square"
+              />
+            </div>
+          </div>
         </div>
       )}
 
@@ -909,14 +959,28 @@ export function AuthenticationCanvas() {
   )
 }
 
-function extractSecretFromOtpauth(otpauthUrl: string): string {
+function extractRawSecretFromOtpauth(otpauthUrl: string): string {
   if (!otpauthUrl) return ''
   try {
     const parsed = new URL(otpauthUrl)
-    return (parsed.searchParams.get('secret') ?? '').replace(/(.{4})/g, '$1-').replace(/-$/, '')
+    return parsed.searchParams.get('secret') ?? ''
   } catch {
     return ''
   }
+}
+
+function formatSecretForDisplay(secret: string): string {
+  if (!secret) return ''
+  return secret.replace(/(.{4})/g, '$1-').replace(/-$/, '')
+}
+
+function getInitialTheme(): 'light' | 'dark' {
+  if (typeof window === 'undefined') return 'light'
+  const storedTheme = window.localStorage.getItem('cg-auth-theme')
+  if (storedTheme === 'light' || storedTheme === 'dark') {
+    return storedTheme
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 function mapAuthErrorMessage(message: string): string {
@@ -928,6 +992,14 @@ function mapAuthErrorMessage(message: string): string {
 
   if (normalized.includes('invalid credentials')) {
     return 'Usuário ou senha inválidos.'
+  }
+
+  if (normalized.includes('mfa setup not found or expired')) {
+    return 'A sessão de ativação do MFA expirou. Gere um novo QR Code e tente novamente.'
+  }
+
+  if (normalized.includes('invalid totp code') || normalized.includes('invalid mfa code')) {
+    return 'Código TOTP inválido. Confirme se o celular está com data/hora automáticas e tente novamente.'
   }
 
   if (normalized.includes('network error')) {

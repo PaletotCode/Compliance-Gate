@@ -96,6 +96,20 @@ def resolve_data_dir(version: DatasetVersion) -> Path:
 
 
 def resolve_profile_configs(db: Session, version: DatasetVersion) -> dict[str, CsvTabConfig]:
+    if version.used_profile_payloads:
+        try:
+            payloads_map = json.loads(version.used_profile_payloads)
+            configs: dict[str, CsvTabConfig] = {}
+            for source_name, payload in payloads_map.items():
+                if not isinstance(payload, dict):
+                    continue
+                configs[source_name] = CsvTabConfig.model_validate(payload)
+            if configs:
+                return configs
+        except Exception:
+            # Backward compatibility: if payload snapshot is malformed, fallback to profile_ids.
+            pass
+
     if not version.used_profile_ids:
         return {}
     try:

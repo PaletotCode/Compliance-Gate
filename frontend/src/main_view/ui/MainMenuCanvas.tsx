@@ -142,13 +142,14 @@ export function MainMenuCanvas() {
     })
   }, [studioTable.items])
 
-  const materializedRows = isTiAdmin ? studioRows : machinesGrid.rows
-  const materializedTotalRows = isTiAdmin ? studioTable.total_rows : machinesGrid.total
-  const materializedHasNextPage = isTiAdmin ? studioTable.has_next : machinesGrid.has_next
-  const materializedIsLoadingInitial = isTiAdmin
+  const shouldUseStudioTable = isTiAdmin && studioRows.length > 0
+  const materializedRows = shouldUseStudioTable ? studioRows : machinesGrid.rows
+  const materializedTotalRows = shouldUseStudioTable ? studioTable.total_rows : machinesGrid.total
+  const materializedHasNextPage = shouldUseStudioTable ? studioTable.has_next : machinesGrid.has_next
+  const materializedIsLoadingInitial = shouldUseStudioTable
     ? studioTable.is_loading_initial || studioIsBootstrapping
     : machinesGrid.is_loading_initial
-  const materializedIsLoadingMore = isTiAdmin ? studioTable.is_loading_more : machinesGrid.is_loading_more
+  const materializedIsLoadingMore = shouldUseStudioTable ? studioTable.is_loading_more : machinesGrid.is_loading_more
 
   useEffect(() => {
     if (view !== 'materialized') return
@@ -307,7 +308,7 @@ export function MainMenuCanvas() {
           onOpenFilterMenu={setOpenFilterMenu}
           onApplyFilter={(column, selection) => applyExcelFilter('MATERIALIZED', column, selection)}
           onReachEnd={() => {
-            if (isTiAdmin) {
+            if (shouldUseStudioTable) {
               void runSafeAction(fetchNextStudioTablePage)
               return
             }

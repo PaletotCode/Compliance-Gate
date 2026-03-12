@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import shutil
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
 from compliance_gate.config.settings import settings
+from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabDraftConfig
 from compliance_gate.domains.machines.ingest.sources import MACHINES_SOURCES_BY_NAME
 from compliance_gate.infra.db.session import get_db
 from compliance_gate.infra.storage import uploads_store
@@ -34,6 +36,9 @@ class UploadFileSchema(BaseModel):
     file_size_bytes: int
     checksum_sha256: str
     detected_encoding: str
+    draft_config: dict | None = None
+    draft_profile_id: str | None = None
+    draft_profile_version: int | None = None
 
 
 class UploadSessionSchema(BaseModel):
@@ -108,6 +113,12 @@ def _save_uploaded_file(upload: UploadFile, target: Path, max_bytes: int) -> tup
 
 
 def _to_file_schema(row) -> UploadFileSchema:
+    draft_config = None
+    if getattr(row, "draft_config_json", None):
+        try:
+            draft_config = json.loads(row.draft_config_json)
+        except Exception:
+            draft_config = None
     return UploadFileSchema(
         source=row.source,
         original_filename=row.original_filename,
@@ -115,6 +126,9 @@ def _to_file_schema(row) -> UploadFileSchema:
         file_size_bytes=row.file_size_bytes or 0,
         checksum_sha256=row.checksum_sha256 or "",
         detected_encoding=row.detected_encoding or "unknown",
+        draft_config=draft_config,
+        draft_profile_id=getattr(row, "draft_profile_id", None),
+        draft_profile_version=getattr(row, "draft_profile_version", None),
     )
 
 
@@ -351,3 +365,75 @@ def delete_upload_session(
     uploads_store.delete_session(db, session)
     db.commit()
     return ApiResponse(data="deleted")
+
+
+class UploadDraftConfigRequest(BaseModel):
+    payload: CsvTabDraftConfig
+    profile_id: str | None = None
+    profile_version: int | None = None
+
+
+@router.put(
+    "/sessions/{session_id}/sources/{source}/draft-config",
+    response_model=ApiResponse[UploadFileSchema],
+)
+def upsert_upload_draft_config(
+    session_id: str,
+    source: str,
+    body: UploadDraftConfigRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
+    normalized_source = source.upper().strip()
+    if normalized_source not in MACHINES_SOURCES_BY_NAME:
+        raise HTTPException(status_code=400, detail=f"unknown source={source}")
+
+    session = uploads_store.get_session_by_id(db, session_id)
+    if not session or session.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="upload session not found")
+
+    try:
+        file_row = uploads_store.upsert_draft_config(
+            db,
+            session_id=session.id,
+            source=normalized_source,
+            draft=body.payload,
+            profile_id=body.profile_id,
+            profile_version=body.profile_version,
+        )
+        db.commit()
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return ApiResponse(data=_to_file_schema(file_row))
+
+
+@router.delete(
+    "/sessions/{session_id}/sources/{source}/draft-config",
+    response_model=ApiResponse[UploadFileSchema],
+)
+def clear_upload_draft_config(
+    session_id: str,
+    source: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(Role.TI_ADMIN)),
+):
+    normalized_source = source.upper().strip()
+    if normalized_source not in MACHINES_SOURCES_BY_NAME:
+        raise HTTPException(status_code=400, detail=f"unknown source={source}")
+
+    session = uploads_store.get_session_by_id(db, session_id)
+    if not session or session.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="upload session not found")
+
+    try:
+        file_row = uploads_store.clear_draft_config(
+            db,
+            session_id=session.id,
+            source=normalized_source,
+        )
+        db.commit()
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return ApiResponse(data=_to_file_schema(file_row))

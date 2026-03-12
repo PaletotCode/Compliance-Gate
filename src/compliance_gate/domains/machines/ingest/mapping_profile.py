@@ -49,6 +49,61 @@ class CsvTabConfig(BaseModel):
     )
 
 
+class CsvTabDraftConfig(BaseModel):
+    """
+    Partial CSV tab config used for autosave drafts in upload sessions.
+    Allows incomplete state while the user is still editing.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    header_row: int | None = Field(
+        default=None,
+        ge=0,
+        validation_alias=AliasChoices("header_row", "header_row_index"),
+        description="0-based index of the header row",
+    )
+    delimiter: str | None = Field(default=None)
+    encoding: str | None = Field(default=None)
+    sic_column: str | None = Field(default=None)
+    selected_columns: list[str] = Field(default_factory=list)
+    alias_map: dict[str, str] = Field(default_factory=dict)
+    normalize_key_strategy: str | None = Field(default=None)
+
+    def is_complete(self) -> bool:
+        return bool(self.sic_column and self.sic_column.strip())
+
+    def to_complete_config(self, fallback: CsvTabConfig | None = None) -> CsvTabConfig | None:
+        sic = (self.sic_column or "").strip() or (fallback.sic_column if fallback else "")
+        if not sic:
+            return None
+        return CsvTabConfig(
+            header_row=self.header_row if self.header_row is not None else (fallback.header_row if fallback else 0),
+            delimiter=self.delimiter if self.delimiter is not None else (fallback.delimiter if fallback else None),
+            encoding=self.encoding if self.encoding is not None else (fallback.encoding if fallback else None),
+            sic_column=sic,
+            selected_columns=self.selected_columns or (fallback.selected_columns if fallback else []),
+            alias_map=self.alias_map or (fallback.alias_map if fallback else {}),
+            normalize_key_strategy=(
+                self.normalize_key_strategy
+                if self.normalize_key_strategy is not None
+                else (fallback.normalize_key_strategy if fallback else "ts_default")
+            ),
+        )
+
+    @staticmethod
+    def from_complete(config: CsvTabConfig) -> "CsvTabDraftConfig":
+        return CsvTabDraftConfig(
+            header_row=config.header_row,
+            delimiter=config.delimiter,
+            encoding=config.encoding,
+            sic_column=config.sic_column,
+            selected_columns=list(config.selected_columns),
+            alias_map=dict(config.alias_map),
+            normalize_key_strategy=config.normalize_key_strategy,
+        )
+
+
 class CsvTabProfileSchema(BaseModel):
     """
     API representation of a CsvTabProfile.

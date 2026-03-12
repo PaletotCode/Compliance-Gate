@@ -16,20 +16,21 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path as FPath, Query
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
 from compliance_gate.Engine.config.engine_settings import engine_settings
 from compliance_gate.Engine.models import EngineArtifact
-from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig
+from compliance_gate.domains.machines.ingest.mapping_profile import CsvTabConfig, CsvTabDraftConfig
 from compliance_gate.domains.machines.ingest.pipeline import run_ingest_pipeline
 from compliance_gate.domains.machines.ingest.preview import run_preview
+from compliance_gate.domains.machines.ingest.sources import MACHINES_SOURCES_BY_NAME
 from compliance_gate.infra.db.session import get_db
 from compliance_gate.infra.storage.data_dir_resolver import resolve_data_dir
 from compliance_gate.infra.storage import datasets_store as store
-from compliance_gate.infra.storage import profiles_store
+from compliance_gate.infra.storage import profiles_store, uploads_store
 
 router = APIRouter(prefix="/datasets/machines", tags=["datasets"])
 log = logging.getLogger(__name__)
@@ -41,18 +42,32 @@ log = logging.getLogger(__name__)
 
 
 class PreviewRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     data_dir: Optional[str] = None
     upload_session_id: Optional[str] = None
     profile_ids: dict[str, str] = Field(default_factory=dict)
+    inline_configs: dict[str, CsvTabConfig | CsvTabDraftConfig] = Field(
+        default_factory=dict,
+        validation_alias=AliasChoices("inline_configs", "configs", "source_configs"),
+    )
+    persist_inline_configs: bool = True
 
 
 class IngestRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     source: str = "path"  # "path" only for Chat 1
     data_dir: Optional[str] = None
     upload_session_id: Optional[str] = None
     # Deprecated. Tenant comes from authenticated user token.
     tenant_id: Optional[str] = None
     profile_ids: dict[str, str] = Field(default_factory=dict)
+    inline_configs: dict[str, CsvTabConfig | CsvTabDraftConfig] = Field(
+        default_factory=dict,
+        validation_alias=AliasChoices("inline_configs", "configs", "source_configs"),
+    )
+    persist_inline_configs: bool = True
 
 
 class DatasetVersionSchema(BaseModel):
@@ -79,37 +94,206 @@ def _load_profile_configs(
     *,
     tenant_id: str,
     profile_ids: dict[str, str],
-) -> dict[str, CsvTabConfig]:
-    configs: dict[str, CsvTabConfig] = {}
+) -> dict[str, CsvTabConfig | dict]:
+    configs: dict[str, CsvTabConfig | dict] = {}
     for src_name, p_id in profile_ids.items():
+        normalized_source = src_name.upper().strip()
+        if normalized_source not in MACHINES_SOURCES_BY_NAME:
+            raise HTTPException(
+                status_code=400,
+                detail=f"source inválido em profile_ids: {src_name}",
+            )
         profile = profiles_store.get_profile_by_id(db, p_id)
         if not profile or profile.tenant_id != tenant_id:
             log.warning(
                 "datasets.profile invalid id source=%s profile_id=%s tenant_id=%s",
-                src_name,
+                normalized_source,
                 p_id,
                 tenant_id,
             )
             raise HTTPException(
-                status_code=400, detail=f"profile_id inválido para source={src_name}"
+                status_code=400, detail=f"profile_id inválido para source={normalized_source}"
             )
         payload = profiles_store.get_active_payload(db, p_id)
         if payload is None:
             log.warning(
                 "datasets.profile missing payload source=%s profile_id=%s tenant_id=%s",
-                src_name,
+                normalized_source,
                 p_id,
                 tenant_id,
             )
             raise HTTPException(
                 status_code=400,
-                detail=f"profile_id sem payload ativo para source={src_name}",
+                detail=f"profile_id sem payload ativo para source={normalized_source}",
             )
-        configs[src_name] = payload
+        if isinstance(payload, CsvTabConfig):
+            configs[normalized_source] = payload
+        elif isinstance(payload, dict):
+            if not hasattr(db, "query"):
+                configs[normalized_source] = payload
+            else:
+                try:
+                    configs[normalized_source] = CsvTabConfig.model_validate(payload)
+                except Exception:
+                    # Backward-compatible fallback for legacy payloads.
+                    configs[normalized_source] = payload
+        else:
+            configs[normalized_source] = payload
     return configs
 
 
+def _coerce_inline_config_map(raw: object) -> dict[str, CsvTabConfig | CsvTabDraftConfig]:
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, CsvTabConfig | CsvTabDraftConfig] = {}
+    for source_name, payload in raw.items():
+        if not isinstance(source_name, str):
+            continue
+        try:
+            if isinstance(payload, CsvTabConfig | CsvTabDraftConfig):
+                out[source_name] = payload
+            elif isinstance(payload, dict):
+                try:
+                    out[source_name] = CsvTabConfig.model_validate(payload)
+                except Exception:
+                    out[source_name] = CsvTabDraftConfig.model_validate(payload)
+        except Exception:
+            continue
+    return out
+
+
+def _extract_inline_configs(body: PreviewRequest | IngestRequest) -> dict[str, CsvTabConfig | CsvTabDraftConfig]:
+    merged: dict[str, CsvTabConfig | CsvTabDraftConfig] = {}
+    merged.update(_coerce_inline_config_map(body.inline_configs))
+    extras = body.model_extra or {}
+    for key in ("inline_configs", "configs", "source_configs", "config_by_source", "profiles_payload"):
+        merged.update(_coerce_inline_config_map(extras.get(key)))
+    return merged
+
+
+def _persist_session_drafts(
+    db: Session,
+    *,
+    session_id: str,
+    inline_configs: dict[str, CsvTabConfig | CsvTabDraftConfig],
+) -> None:
+    if not hasattr(db, "query"):
+        return
+    for source_name, cfg in inline_configs.items():
+        normalized_source = source_name.upper().strip()
+        if normalized_source not in MACHINES_SOURCES_BY_NAME:
+            continue
+        draft = cfg if isinstance(cfg, CsvTabDraftConfig) else CsvTabDraftConfig.from_complete(cfg)
+        uploads_store.upsert_draft_config(
+            db,
+            session_id=session_id,
+            source=normalized_source,
+            draft=draft,
+        )
+
+
+def _resolve_effective_configs(
+    db: Session,
+    *,
+    tenant_id: str,
+    upload_session_id: str | None,
+    profile_ids: dict[str, str],
+    inline_configs: dict[str, CsvTabConfig | CsvTabDraftConfig],
+) -> tuple[dict[str, CsvTabConfig | dict], dict[str, dict], list[str]]:
+    warnings: list[str] = []
+    configs = _load_profile_configs(
+        db,
+        tenant_id=tenant_id,
+        profile_ids=profile_ids,
+    )
+
+    if upload_session_id and hasattr(db, "query"):
+        session = uploads_store.get_session_by_id(db, upload_session_id)
+        if session and session.tenant_id == tenant_id:
+            session_drafts = uploads_store.get_draft_configs(db, session_id=session.id)
+            for source_name, draft in session_drafts.items():
+                complete = draft.to_complete_config(configs.get(source_name))
+                if complete is not None:
+                    configs[source_name] = complete
+                else:
+                    warnings.append(
+                        f"draft incompleto ignorado para source={source_name} (sic_column ausente)"
+                    )
+
+    for source_name, cfg in inline_configs.items():
+        normalized_source = source_name.upper().strip()
+        if normalized_source not in MACHINES_SOURCES_BY_NAME:
+            raise HTTPException(
+                status_code=400,
+                detail=f"source inválido em inline_configs: {source_name}",
+            )
+        if isinstance(cfg, CsvTabConfig):
+            configs[normalized_source] = cfg
+            continue
+        merged = cfg.to_complete_config(configs.get(normalized_source))
+        if merged is None:
+            warnings.append(
+                f"inline config incompleto ignorado para source={normalized_source} (sic_column ausente)"
+            )
+            continue
+        configs[normalized_source] = merged
+
+    if hasattr(db, "query"):
+        for source_name in MACHINES_SOURCES_BY_NAME:
+            if source_name in configs:
+                continue
+            default_payload = profiles_store.get_default_profile_payload(
+                db,
+                tenant_id=tenant_id,
+                source=source_name,
+            )
+            if default_payload:
+                configs[source_name] = default_payload
+
+    payload_snapshots: dict[str, dict] = {}
+    for source_name, cfg in configs.items():
+        if isinstance(cfg, CsvTabConfig):
+            payload_snapshots[source_name] = cfg.model_dump(mode="json")
+        elif isinstance(cfg, dict):
+            payload_snapshots[source_name] = cfg
+        else:
+            payload_snapshots[source_name] = {"value": str(cfg)}
+    return configs, payload_snapshots, warnings
+
+
+def _to_runtime_configs(
+    configs: dict[str, CsvTabConfig | dict],
+) -> tuple[dict[str, CsvTabConfig], list[str]]:
+    runtime: dict[str, CsvTabConfig] = {}
+    warnings: list[str] = []
+    for source_name, cfg in configs.items():
+        if isinstance(cfg, CsvTabConfig):
+            runtime[source_name] = cfg
+            continue
+        try:
+            runtime[source_name] = CsvTabConfig.model_validate(cfg)
+        except Exception:
+            warnings.append(
+                f"config inválido ignorado para source={source_name}; usando autodetecção"
+            )
+    return runtime, warnings
+
+
 def _version_to_schema(v) -> dict:
+    try:
+        used_profile_ids = json.loads(v.used_profile_ids or "{}")
+        if not isinstance(used_profile_ids, dict):
+            used_profile_ids = {}
+    except Exception:
+        used_profile_ids = {}
+
+    try:
+        used_profile_payloads = json.loads(v.used_profile_payloads or "{}")
+        if not isinstance(used_profile_payloads, dict):
+            used_profile_payloads = {}
+    except Exception:
+        used_profile_payloads = {}
+
     files_out = []
     for f in v.files or []:
         files_out.append(
@@ -155,6 +339,8 @@ def _version_to_schema(v) -> dict:
         "status": v.status,
         "source_type": v.source_type,
         "data_dir": v.data_dir,
+        "used_profile_ids": used_profile_ids,
+        "used_profile_payloads": used_profile_payloads,
         "created_at": v.created_at.isoformat() if v.created_at else None,
         "files": files_out,
         "metrics": metrics_out,
@@ -201,13 +387,35 @@ def preview_machines(
         data_dir=body.data_dir,
         upload_session_id=body.upload_session_id,
     )
-    configs = _load_profile_configs(
+    inline_configs = _extract_inline_configs(body)
+    if body.upload_session_id and body.persist_inline_configs and inline_configs and hasattr(db, "query"):
+        session = uploads_store.get_session_by_id(db, body.upload_session_id)
+        if session and session.tenant_id == current_user.tenant_id:
+            _persist_session_drafts(
+                db,
+                session_id=session.id,
+                inline_configs=inline_configs,
+            )
+            db.commit()
+
+    configs, _, warnings = _resolve_effective_configs(
         db,
         tenant_id=current_user.tenant_id,
+        upload_session_id=body.upload_session_id,
         profile_ids=body.profile_ids,
+        inline_configs=inline_configs,
     )
-    result = run_preview(data_dir, configs=configs)
-    return result.to_response()
+    if hasattr(db, "query"):
+        runtime_configs, runtime_warnings = _to_runtime_configs(configs)
+    else:
+        runtime_configs, runtime_warnings = configs, []
+    result = run_preview(data_dir, configs=runtime_configs)
+    response = result.to_response()
+    combined_warnings = [*warnings, *runtime_warnings]
+    if combined_warnings:
+        response.setdefault("warnings", [])
+        response["warnings"] = [*response["warnings"], *combined_warnings]
+    return response
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -231,11 +439,32 @@ def ingest_machines(
         data_dir=body.data_dir,
         upload_session_id=body.upload_session_id,
     )
-    configs = _load_profile_configs(
+    inline_configs = _extract_inline_configs(body)
+    if body.upload_session_id and body.persist_inline_configs and inline_configs and hasattr(db, "query"):
+        session = uploads_store.get_session_by_id(db, body.upload_session_id)
+        if session and session.tenant_id == current_user.tenant_id:
+            _persist_session_drafts(
+                db,
+                session_id=session.id,
+                inline_configs=inline_configs,
+            )
+            db.commit()
+
+    configs, payload_snapshots, config_warnings = _resolve_effective_configs(
         db,
         tenant_id=current_user.tenant_id,
+        upload_session_id=body.upload_session_id,
         profile_ids=body.profile_ids,
+        inline_configs=inline_configs,
     )
+    if hasattr(db, "query"):
+        runtime_configs, runtime_warnings = _to_runtime_configs(configs)
+    else:
+        runtime_configs, runtime_warnings = configs, []
+    normalized_profile_ids = {
+        source.upper().strip(): profile_id
+        for source, profile_id in body.profile_ids.items()
+    }
 
     # Create pending version
     version = store.create_dataset_version(
@@ -243,7 +472,8 @@ def ingest_machines(
         tenant_id=current_user.tenant_id,
         source_type="machines",
         data_dir=str(data_dir),
-        profile_ids_map=body.profile_ids,
+        profile_ids_map=normalized_profile_ids,
+        profile_payloads_map=payload_snapshots,
         actor=current_user.id,
     )
 
@@ -251,7 +481,7 @@ def ingest_machines(
         ingest_result = run_ingest_pipeline(
             data_dir,
             dataset_version_id=version.id,
-            configs=configs,
+            configs=runtime_configs,
         )
 
         # Register files
@@ -306,7 +536,7 @@ def ingest_machines(
                 for fi in ingest_result.files
                 if fi.read_result.ok
             },
-            "warnings": ingest_result.warnings,
+            "warnings": [*ingest_result.warnings, *config_warnings, *runtime_warnings],
         }
 
     except Exception as exc:

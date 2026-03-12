@@ -74,10 +74,30 @@ Após instalar com `.[dev]`:
 python retests/scripts/run_auth_retests.py
 ```
 
+## Observação de persistência (MFA/TOTP)
+- Para parar a stack sem perder usuários/MFA, use:
+  ```bash
+  make backend-down
+  ```
+- Para reset completo e remoção de volumes (destrutivo), use:
+  ```bash
+  make backend-reset
+  ```
+
 ## Reteste RBAC (auth + isolamento multi-tenant)
 ```bash
 python retests/scripts/run_rbac_retests.py
 ```
+
+## Scripts utilitários de Auth
+- Validar persistência de MFA após restart da API:
+  ```bash
+  PYTHONPATH=src .venv/bin/python scripts/auth_mfa_persistence_check.py --restart-api
+  ```
+- Reset completo de usuário (senha + MFA + recovery codes):
+  ```bash
+  PYTHONPATH=src .venv/bin/python scripts/reset_auth_user.py --username pedrom4349_00 --password '#9y9p4PED' --role TI_ADMIN
+  ```
 
 ## Engine Core v1
 - API: `/api/v1/engine/*`

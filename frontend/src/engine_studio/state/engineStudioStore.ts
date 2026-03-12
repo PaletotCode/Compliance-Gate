@@ -41,12 +41,37 @@ import type {
   JsonRecord,
   RuleSetPayloadV2,
   RuleSetVersionRecord,
+  SegmentRecord,
+  TransformationRecord,
+  ViewColumnSpec,
+  ViewRecord,
   ViewPayload,
+  ViewSortSpec,
 } from '@/engine_studio/types'
 import { pushNotification } from '@/shared/notifications/notificationStore'
 import type { EngineStudioStore, EngineStudioTableState } from './types'
 
 const DEFAULT_VIEW_NAME = 'Admin Studio Table'
+const MAX_ENGINE_VIEW_ROW_LIMIT = 10_000
+const DEFAULT_ENGINE_VIEW_ROW_LIMIT = 5_000
+const VIEW_NORMALIZATION_FALLBACK_COLUMNS = 60
+const REPAIRABLE_VIEW_GUARDRAIL_REASONS = new Set([
+  'view_column_not_found',
+  'dataset_scope_mismatch',
+  'sort_column_not_selected',
+  'transformation_not_found',
+  'segment_not_found',
+  'empty_view_columns',
+])
+
+type ViewNormalizationContext = {
+  datasetVersionId: string
+  baseColumnNames: Set<string>
+  fallbackBaseColumns: string[]
+  transformationIds: Set<string>
+  transformationOutputById: Map<string, string>
+  segmentIds: Set<string>
+}
 
 function createInitialTableState(): EngineStudioTableState {
   return {
@@ -84,8 +109,211 @@ function buildDefaultViewPayload(catalog: EngineCatalogSnapshot): ViewPayload {
       column_name: 'hostname',
       direction: 'asc',
     },
-    row_limit: 100000,
+    row_limit: DEFAULT_ENGINE_VIEW_ROW_LIMIT,
   }
+}
+
+function clampViewRowLimit(value: unknown): number {
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) {
+    return DEFAULT_ENGINE_VIEW_ROW_LIMIT
+  }
+  const normalized = Math.trunc(numericValue)
+  return Math.min(Math.max(normalized, 1), MAX_ENGINE_VIEW_ROW_LIMIT)
+}
+
+function normalizeViewPayloadGuardrails(payload: ViewPayload, fallbackDatasetVersionId: string): ViewPayload {
+  const resolvedDatasetVersionId =
+    fallbackDatasetVersionId ||
+    (payload.dataset_scope?.mode === 'dataset_version'
+      ? payload.dataset_scope.dataset_version_id
+      : '') ||
+    'dataset-version-id'
+
+  return {
+    ...payload,
+    dataset_scope: {
+      mode: 'dataset_version',
+      dataset_version_id: resolvedDatasetVersionId,
+    },
+    row_limit: clampViewRowLimit(payload.row_limit),
+  }
+}
+
+function resolvePayloadDatasetVersionId(payload: ViewPayload | undefined): string | null {
+  if (!payload) return null
+  if (payload.dataset_scope?.mode !== 'dataset_version') return null
+  return payload.dataset_scope.dataset_version_id || null
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)]
+}
+
+function buildViewNormalizationContext(input: {
+  datasetVersionId: string
+  catalog: EngineCatalogSnapshot | null
+  transformations: TransformationRecord[]
+  segments: SegmentRecord[]
+}): ViewNormalizationContext {
+  const { datasetVersionId, catalog, transformations, segments } = input
+  const hasCatalogForDataset =
+    Boolean(catalog) && catalog?.dataset_version_id === datasetVersionId
+
+  const catalogColumns = hasCatalogForDataset
+    ? (catalog?.columns ?? []).map((column) => column.name)
+    : []
+
+  return {
+    datasetVersionId,
+    baseColumnNames: new Set(catalogColumns),
+    fallbackBaseColumns: catalogColumns.slice(0, VIEW_NORMALIZATION_FALLBACK_COLUMNS),
+    transformationIds: new Set(transformations.map((item) => item.id)),
+    transformationOutputById: new Map(
+      transformations.map((item) => [item.id, item.payload.output_column_name]),
+    ),
+    segmentIds: new Set(segments.map((item) => item.id)),
+  }
+}
+
+function resolveSelectableColumnName(
+  column: ViewColumnSpec,
+  transformationOutputById: Map<string, string>,
+): string | null {
+  if (column.kind === 'base') {
+    return column.column_name
+  }
+  const alias = column.alias?.trim()
+  if (alias) return alias
+  return transformationOutputById.get(column.transformation_id) ?? null
+}
+
+function sanitizeViewPayload(
+  payload: ViewPayload,
+  context: ViewNormalizationContext,
+): ViewPayload {
+  const normalized = normalizeViewPayloadGuardrails(payload, context.datasetVersionId)
+  const dedup = new Set<string>()
+  const sanitizedColumns: ViewColumnSpec[] = []
+
+  for (const column of normalized.columns ?? []) {
+    if (column.kind === 'base') {
+      if (
+        context.baseColumnNames.size > 0 &&
+        !context.baseColumnNames.has(column.column_name)
+      ) {
+        continue
+      }
+      const dedupKey = `base:${column.column_name}`
+      if (dedup.has(dedupKey)) continue
+      dedup.add(dedupKey)
+      sanitizedColumns.push(column)
+      continue
+    }
+
+    if (!context.transformationIds.has(column.transformation_id)) {
+      continue
+    }
+    const alias = column.alias?.trim() || null
+    const dedupKey = `derived:${column.transformation_id}:${alias ?? ''}`
+    if (dedup.has(dedupKey)) continue
+    dedup.add(dedupKey)
+    sanitizedColumns.push(
+      alias
+        ? {
+            kind: 'derived',
+            transformation_id: column.transformation_id,
+            alias,
+          }
+        : {
+            kind: 'derived',
+            transformation_id: column.transformation_id,
+          },
+    )
+  }
+
+  if (sanitizedColumns.length === 0 && context.fallbackBaseColumns.length > 0) {
+    sanitizedColumns.push(
+      ...context.fallbackBaseColumns.map((name) => ({
+        kind: 'base' as const,
+        column_name: name,
+      })),
+    )
+  }
+
+  const selectableColumns = new Set(
+    sanitizedColumns
+      .map((column) =>
+        resolveSelectableColumnName(column, context.transformationOutputById),
+      )
+      .filter((name): name is string => Boolean(name)),
+  )
+
+  const currentSort = normalized.sort
+  let sanitizedSort: ViewSortSpec | null = null
+  if (currentSort) {
+    if (selectableColumns.has(currentSort.column_name)) {
+      sanitizedSort = {
+        column_name: currentSort.column_name,
+        direction: currentSort.direction === 'desc' ? 'desc' : 'asc',
+      }
+    } else if (selectableColumns.size > 0) {
+      const fallbackSortColumn = selectableColumns.has('hostname')
+        ? 'hostname'
+        : [...selectableColumns][0]
+      sanitizedSort = {
+        column_name: fallbackSortColumn,
+        direction: 'asc',
+      }
+    }
+  }
+
+  const filters = normalized.filters
+  const sanitizedSegmentIds = uniqueStrings(
+    (filters?.segment_ids ?? []).filter((segmentId) =>
+      context.segmentIds.has(segmentId),
+    ),
+  )
+
+  return {
+    ...normalized,
+    columns: sanitizedColumns,
+    filters: {
+      segment_ids: sanitizedSegmentIds,
+      ad_hoc_expression: filters?.ad_hoc_expression ?? null,
+    },
+    sort: sanitizedSort,
+  }
+}
+
+async function normalizeViewsGuardrails(
+  views: ViewRecord[],
+  context: ViewNormalizationContext,
+): Promise<ViewRecord[]> {
+  const normalizedViews: ViewRecord[] = []
+  for (const view of views) {
+    const normalizedPayload = sanitizeViewPayload(view.payload, context)
+    if (JSON.stringify(normalizedPayload) === JSON.stringify(view.payload)) {
+      normalizedViews.push(view)
+      continue
+    }
+
+    try {
+      const updated = await updateView(view.id, {
+        payload: normalizedPayload,
+      })
+      normalizedViews.push(updated)
+    } catch {
+      normalizedViews.push(view)
+      pushNotification({
+        tone: 'warning',
+        title: 'Engine Studio',
+        message: `Não foi possível normalizar a view "${view.name}".`,
+      })
+    }
+  }
+
+  return normalizedViews
 }
 
 function notifyEngineSuccess(message: string): void {
@@ -181,6 +409,13 @@ export const engineStudioStore = create<EngineStudioStore>()((set, get) => ({
         })
         views = [defaultView]
       }
+      const viewContext = buildViewNormalizationContext({
+        datasetVersionId,
+        catalog,
+        transformations,
+        segments,
+      })
+      views = await normalizeViewsGuardrails(views, viewContext)
 
       const previousSelected = get().selected_view_id
       const nextSelected =
@@ -366,7 +601,18 @@ export const engineStudioStore = create<EngineStudioStore>()((set, get) => ({
 
   refreshViews: async () => {
     try {
-      const views = await listViews()
+      const datasetVersionId = get().dataset_version_id
+      let views = await listViews()
+      if (datasetVersionId) {
+        const state = get()
+        const viewContext = buildViewNormalizationContext({
+          datasetVersionId,
+          catalog: state.catalog,
+          transformations: state.transformations,
+          segments: state.segments,
+        })
+        views = await normalizeViewsGuardrails(views, viewContext)
+      }
       const selected = get().selected_view_id
       const selected_view_id =
         (selected && views.some((item) => item.id === selected) && selected) || views[0]?.id || null
@@ -383,10 +629,21 @@ export const engineStudioStore = create<EngineStudioStore>()((set, get) => ({
 
   createView: async (input) => {
     try {
+      const fallbackDatasetVersionId =
+        get().dataset_version_id ??
+        resolvePayloadDatasetVersionId(input.payload as ViewPayload) ??
+        'dataset-version-id'
+      const state = get()
+      const viewContext = buildViewNormalizationContext({
+        datasetVersionId: fallbackDatasetVersionId,
+        catalog: state.catalog,
+        transformations: state.transformations,
+        segments: state.segments,
+      })
       const created = await createView({
         name: input.name,
         description: input.description ?? null,
-        payload: input.payload as unknown as ViewPayload,
+        payload: sanitizeViewPayload(input.payload as unknown as ViewPayload, viewContext),
       })
       await get().refreshViews()
       set({ selected_view_id: created.id })
@@ -404,10 +661,25 @@ export const engineStudioStore = create<EngineStudioStore>()((set, get) => ({
 
   updateView: async (viewId, input) => {
     try {
+      const fallbackDatasetVersionId =
+        get().dataset_version_id ??
+        resolvePayloadDatasetVersionId(input.payload as ViewPayload)
+      const state = get()
+      const viewContext = fallbackDatasetVersionId
+        ? buildViewNormalizationContext({
+            datasetVersionId: fallbackDatasetVersionId,
+            catalog: state.catalog,
+            transformations: state.transformations,
+            segments: state.segments,
+          })
+        : null
       await updateView(viewId, {
         name: input.name,
         description: input.description,
-        payload: input.payload as unknown as ViewPayload | undefined,
+        payload:
+          input.payload && viewContext
+            ? sanitizeViewPayload(input.payload as unknown as ViewPayload, viewContext)
+            : (input.payload as unknown as ViewPayload | undefined),
       })
       await get().refreshViews()
       await get().reloadTable()
@@ -429,10 +701,19 @@ export const engineStudioStore = create<EngineStudioStore>()((set, get) => ({
     }
 
     try {
+      const state = get()
+      const viewContext = buildViewNormalizationContext({
+        datasetVersionId,
+        catalog: state.catalog,
+        transformations: state.transformations,
+        segments: state.segments,
+      })
       const result = await previewView({
         dataset_version_id: datasetVersionId,
         view_id: input.view_id,
-        inline_view_payload: input.inline_view_payload as unknown as ViewPayload | undefined,
+        inline_view_payload: input.inline_view_payload
+          ? sanitizeViewPayload(input.inline_view_payload as unknown as ViewPayload, viewContext)
+          : undefined,
         limit: input.limit,
       })
       set({ view_preview: result })
@@ -492,6 +773,48 @@ export const engineStudioStore = create<EngineStudioStore>()((set, get) => ({
       }))
     } catch (error) {
       const payload = extractEngineErrorPayload(error)
+      const reason =
+        typeof payload.details.reason === 'string' ? payload.details.reason : null
+
+      if (reason && REPAIRABLE_VIEW_GUARDRAIL_REASONS.has(reason)) {
+        try {
+          await get().refreshViews()
+          const repairedSelectedViewId = get().selected_view_id
+          if (repairedSelectedViewId) {
+            const repaired = await runView({
+              dataset_version_id: datasetVersionId,
+              view_id: repairedSelectedViewId,
+              page: 1,
+              size: get().table.size,
+            })
+            set((state) => ({
+              last_error: null,
+              table: {
+                ...state.table,
+                items: repaired.items,
+                columns: repaired.columns,
+                total_rows: repaired.total_rows,
+                page: repaired.page,
+                size: repaired.size,
+                has_next: repaired.has_next,
+                has_previous: repaired.has_previous,
+                warnings: repaired.warnings,
+                is_loading_initial: false,
+                is_loading_more: false,
+              },
+            }))
+            pushNotification({
+              tone: 'warning',
+              title: 'Engine Studio',
+              message: 'View ajustada automaticamente para o dataset atual.',
+            })
+            return
+          }
+        } catch {
+          // fallback para erro original
+        }
+      }
+
       set((state) => ({
         last_error: payload,
         table: {

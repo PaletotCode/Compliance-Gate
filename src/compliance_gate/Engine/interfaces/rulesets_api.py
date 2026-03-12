@@ -12,6 +12,7 @@ from compliance_gate.authentication.http.dependencies import require_role
 from compliance_gate.authentication.models import Role, User
 from compliance_gate.Engine.config.engine_settings import engine_settings
 from compliance_gate.Engine.errors import DeclarativeEngineError, InvalidExpressionSyntax
+from compliance_gate.Engine.interfaces.error_http import raise_declarative_http
 from compliance_gate.Engine.expressions import ExpressionValidationOptions
 from compliance_gate.Engine.rulesets import (
     ClassificationMigrationPhase,
@@ -279,19 +280,12 @@ class ClassificationRunMetricsResponse(BaseModel):
     error_truncated: str | None = None
 
 
-def _err_status(exc: DeclarativeEngineError) -> int:
-    reason = exc.details.get("reason")
-    if isinstance(reason, str) and reason.endswith("_not_found"):
-        return 404
-    if reason in {"ruleset_archived"}:
-        return 410
-    if reason in {"unique_violation"}:
-        return 409
-    return 400
-
-
 def _raise_declarative(exc: DeclarativeEngineError) -> None:
-    raise HTTPException(status_code=_err_status(exc), detail=exc.to_dict()) from exc
+    raise_declarative_http(
+        exc,
+        gone_reasons={"ruleset_archived"},
+        conflict_reasons={"unique_violation"},
+    )
 
 
 def _validation_options() -> ExpressionValidationOptions:

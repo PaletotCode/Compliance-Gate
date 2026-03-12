@@ -29,6 +29,7 @@ from compliance_gate.Engine.declarative import (
     update_view,
 )
 from compliance_gate.Engine.errors import DeclarativeEngineError
+from compliance_gate.Engine.interfaces.error_http import raise_declarative_http
 from compliance_gate.Engine.expressions import ExpressionNode
 from compliance_gate.Engine.runtime import (
     SegmentPreviewResult,
@@ -160,17 +161,11 @@ class ViewResponse(BaseModel):
     payload: ViewPayloadV1
 
 
-def _err_status(exc: DeclarativeEngineError) -> int:
-    reason = exc.details.get("reason")
-    if isinstance(reason, str) and reason.endswith("_not_found"):
-        return 404
-    if reason in {"artifact_missing_on_disk"}:
-        return 404
-    return 400
-
-
 def _raise_declarative(exc: DeclarativeEngineError) -> None:
-    raise HTTPException(status_code=_err_status(exc), detail=exc.to_dict()) from exc
+    raise_declarative_http(
+        exc,
+        not_found_reasons={"artifact_missing_on_disk"},
+    )
 
 
 def _to_transformation_response(record: TransformationRecord) -> TransformationResponse:

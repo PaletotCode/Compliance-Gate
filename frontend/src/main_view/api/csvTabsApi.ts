@@ -1,5 +1,6 @@
 import { ApiError } from '@/api/types'
 import { api } from '@/api/client'
+import { unwrapApiEnvelope, type ApiEnvelope } from '@/api/envelope'
 import type {
   CreateProfileRequest,
   CsvTabProfileSchema,
@@ -13,61 +14,52 @@ import type {
 
 const CSV_TABS_BASE = '/api/v1/csv-tabs'
 
-type MaybeApiEnvelope<T> = T | { data: T }
-
-function unwrap<T>(payload: MaybeApiEnvelope<T>): T {
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    return payload.data
-  }
-  return payload as T
-}
-
 export async function listSources(): Promise<string[]> {
-  const { data } = await api.get<MaybeApiEnvelope<string[]>>(`${CSV_TABS_BASE}/sources`)
-  return unwrap(data)
+  const { data } = await api.get<ApiEnvelope<string[]>>(`${CSV_TABS_BASE}/sources`)
+  return unwrapApiEnvelope(data)
 }
 
 export async function listProfiles(source?: string): Promise<CsvTabProfileSchema[]> {
-  const { data } = await api.get<MaybeApiEnvelope<CsvTabProfileSchema[]>>(`${CSV_TABS_BASE}/profiles`, {
+  const { data } = await api.get<ApiEnvelope<CsvTabProfileSchema[]>>(`${CSV_TABS_BASE}/profiles`, {
     params: source ? { source } : undefined,
   })
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function previewRaw(payload: PreviewRawRequest): Promise<PreviewRawResponse> {
-  const { data } = await api.post<MaybeApiEnvelope<PreviewRawResponse>>(`${CSV_TABS_BASE}/preview/raw`, payload)
-  return unwrap(data)
+  const { data } = await api.post<ApiEnvelope<PreviewRawResponse>>(`${CSV_TABS_BASE}/preview/raw`, payload)
+  return unwrapApiEnvelope(data)
 }
 
 export async function previewParsed(payload: PreviewParsedRequest): Promise<PreviewParsedResponse> {
-  const { data } = await api.post<MaybeApiEnvelope<PreviewParsedResponse>>(
+  const { data } = await api.post<ApiEnvelope<PreviewParsedResponse>>(
     `${CSV_TABS_BASE}/preview/parsed`,
     payload,
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function createProfile(payload: CreateProfileRequest): Promise<CsvTabProfileSchema> {
-  const { data } = await api.post<MaybeApiEnvelope<CsvTabProfileSchema>>(`${CSV_TABS_BASE}/profiles`, payload)
-  return unwrap(data)
+  const { data } = await api.post<ApiEnvelope<CsvTabProfileSchema>>(`${CSV_TABS_BASE}/profiles`, payload)
+  return unwrapApiEnvelope(data)
 }
 
 export async function updateProfile(
   profileId: string,
   payload: UpdateProfileRequest,
 ): Promise<StatusMessageResponse> {
-  const { data } = await api.put<MaybeApiEnvelope<StatusMessageResponse>>(
+  const { data } = await api.put<ApiEnvelope<StatusMessageResponse>>(
     `${CSV_TABS_BASE}/profiles/${profileId}`,
     payload,
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export async function promoteDefault(profileId: string): Promise<StatusMessageResponse> {
-  const { data } = await api.post<MaybeApiEnvelope<StatusMessageResponse>>(
+  const { data } = await api.post<ApiEnvelope<StatusMessageResponse>>(
     `${CSV_TABS_BASE}/profiles/${profileId}/promote-default`,
   )
-  return unwrap(data)
+  return unwrapApiEnvelope(data)
 }
 
 export function getMainViewErrorMessage(error: unknown): string {

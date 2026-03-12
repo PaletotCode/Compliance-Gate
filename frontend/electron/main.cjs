@@ -23,6 +23,20 @@ function contentTypeFor(filePath) {
   return 'application/octet-stream'
 }
 
+function applySecurityHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none')
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http: https: ws: wss:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self';",
+  )
+}
+
 function sanitizePath(urlPath) {
   const normalized = path.normalize(urlPath.replace(/^\/+/, ''))
   return normalized.startsWith('..') ? '' : normalized
@@ -72,6 +86,7 @@ function startStaticServer(staticRoot) {
           res.end('Not found')
           return
         }
+        applySecurityHeaders(res)
         res.setHeader('Content-Type', contentTypeFor(filePath))
         res.end(data)
       })
